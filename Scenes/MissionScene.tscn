@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://mission123"]
+[gd_scene load_steps=7 format=3 uid="uid://mission123"]
 
 [ext_resource type="Script" path="res://Scripts/MissionManager.gd" id="1_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
@@ -10,9 +10,6 @@
 [node name="MissionScene" type="Node2D"]
 script = ExtResource("1_manager")
 
-[node name="NightOverlay" type="CanvasModulate" parent="."]
-color = Color(0.15, 0.15, 0.3, 1)
-
 [node name="Background" type="CanvasLayer" parent="."]
 layer = -1
 
@@ -20,7 +17,7 @@ layer = -1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.05, 0.05, 0.1, 1)
+color = Color(0.6, 0.6, 0.6, 1)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(500, 300)

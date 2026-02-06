@@ -1,10 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.1, 0.1, 0.1, 1)
+bg_color = Color(0.2, 0.2, 0.2, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
-bg_color = Color(0.8, 0.2, 0.2, 1)
+bg_color = Color(0.6, 0.6, 0.6, 1)
 
 [node name="HealthBar" type="ProgressBar"]
 offset_right = 60.0
