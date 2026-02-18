@@ -16,14 +16,8 @@ func _ready() -> void:
 	# Animate title on load
 	animate_title()
 	
-	# Reset game state
-	GameManager.day = 1
-	GameManager.money = 0
-	GameManager.xp = 0
-	GameManager.level = 1
-	GameManager.current_phase = "SHOP"
-	GameManager.target_order_received = false
-	GameManager.current_contract = {}
+	# Reset game state fully
+	GameManager.reset_game()
 
 func animate_title() -> void:
 	if has_node("TitleContainer"):

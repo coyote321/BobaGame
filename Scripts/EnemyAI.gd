@@ -1,8 +1,8 @@
 extends CharacterBody2D
 
 # == Combat Stats ==
-@export var max_health: float = 100.0
-var health: float = 100.0
+@export var max_health: float = 60.0
+var health: float = 60.0
 var is_dead: bool = false
 
 # == State Machine ==
@@ -10,21 +10,21 @@ enum State { IDLE, PATROL, ALERT, CHASE, ATTACK, HURT, DEAD }
 var state: State = State.PATROL
 
 # == Movement ==
-var speed: float = 80.0
-var chase_speed: float = 120.0
+var speed: float = 180.0
+var chase_speed: float = 280.0
 var patrol_points: Array = []
 var patrol_index: int = 0
 var patrol_wait_timer: float = 0.0
 
 # == Detection ==
-var detection_range: float = 200.0
-var attack_range: float = 50.0
+var detection_range: float = 250.0
+var attack_range: float = 80.0
 var player: CharacterBody2D = null
 
 # == Combat ==
-var attack_damage: float = 15.0
+var attack_damage: float = 5.0
 var attack_cooldown: float = 0.0
-const ATTACK_RATE: float = 1.0
+const ATTACK_RATE: float = 0.3
 var hurt_timer: float = 0.0
 
 # == Alert ==
@@ -40,6 +40,7 @@ var health_bar: ProgressBar
 var alert_indicator: Label
 
 func _ready():
+	add_to_group("enemy")
 	health = max_health
 	setup_visuals()
 	
@@ -216,10 +217,12 @@ func process_hurt(delta):
 func perform_attack():
 	if player and player.has_method("take_damage"):
 		player.take_damage(attack_damage)
-		# Visual attack effect
+		# Visual lunge effect (use offset so it doesn't teleport)
+		var lunge_dir = (player.global_position - global_position).normalized()
+		var original_pos = position
 		var tween = create_tween()
-		tween.tween_property(self, "position", global_position + (player.global_position - global_position).normalized() * 20, 0.1)
-		tween.tween_property(self, "position", global_position, 0.1)
+		tween.tween_property(self, "position", original_pos + lunge_dir * 20, 0.08)
+		tween.tween_property(self, "position", original_pos, 0.08)
 
 func check_player_detection():
 	if not player or not is_instance_valid(player):

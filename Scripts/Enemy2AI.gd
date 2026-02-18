@@ -1,8 +1,8 @@
 extends CharacterBody2D
 
 # == Combat Stats ==
-@export var max_health: float = 50.0
-var health: float = 50.0
+@export var max_health: float = 200.0
+var health: float = 200.0
 var is_dead: bool = false
 
 # == State Machine ==
@@ -10,8 +10,8 @@ enum State { IDLE, PATROL, ALERT, CHASE, ATTACK, HURT, DEAD }
 var state: State = State.PATROL
 
 # == Movement ==
-var speed: float = 120.0
-var chase_speed: float = 180.0
+var speed: float = 40.0
+var chase_speed: float = 55.0
 var patrol_points: Array = []
 var patrol_index: int = 0
 var patrol_wait_timer: float = 0.0
@@ -22,9 +22,9 @@ var attack_range: float = 300.0
 var player: CharacterBody2D = null
 
 # == Combat ==
-var attack_damage: float = 10.0
+var attack_damage: float = 25.0
 var attack_cooldown: float = 0.0
-const ATTACK_RATE: float = 1.5
+const ATTACK_RATE: float = 2.5
 var hurt_timer: float = 0.0
 
 # == Alert ==
@@ -41,9 +41,9 @@ var alert_indicator: Label
 
 # == Projectile ==
 const PROJECTILE_SCRIPT = preload("res://Scripts/EnemyProjectile.gd")
-const PROJECTILE_TEXTURE = preload("res://Assets/Sprites/projectile.svg")
 
 func _ready():
+	add_to_group("enemy")
 	health = max_health
 	setup_visuals()
 	
@@ -204,12 +204,12 @@ func process_attack(delta):
 		state = State.CHASE
 		return
 	
-	# Stop to shoot
-	velocity = Vector2.ZERO
+	# Slowly advance while shooting (tank creeps toward you)
+	var dir = (player.global_position - global_position).normalized()
+	velocity = dir * speed * 0.5  # Half patrol speed while shooting
 	move_and_slide()
 	
 	# Face player
-	var dir = (player.global_position - global_position).normalized()
 	if sprite:
 		sprite.flip_h = dir.x < 0
 	
@@ -241,13 +241,14 @@ func perform_attack():
 	projectile.set_script(PROJECTILE_SCRIPT)
 	projectile.direction = (player.global_position - global_position).normalized()
 	projectile.damage = attack_damage
+	projectile.speed = 350.0
 	
-	# Visual
-	var p_sprite = Sprite2D.new()
-	p_sprite.texture = PROJECTILE_TEXTURE
-	p_sprite.scale = Vector2(0.5, 0.5)
-	p_sprite.modulate = Color(1, 0.2, 0.2) # Red projectile
-	projectile.add_child(p_sprite)
+	# Visual - dark red square (gray-box prototype)
+	var p_rect = ColorRect.new()
+	p_rect.color = Color(0.7, 0.15, 0.1)
+	p_rect.size = Vector2(12, 12)
+	p_rect.position = Vector2(-6, -6)
+	projectile.add_child(p_rect)
 	
 	var shape = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -257,7 +258,7 @@ func perform_attack():
 	
 	projectile.global_position = global_position
 	
-	get_parent().add_child(projectile)
+	get_tree().current_scene.add_child(projectile)
 	projectile.body_entered.connect(projectile._on_body_entered)
 
 
