@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://shopscene123"]
+[gd_scene load_steps=14 format=3 uid="uid://shopscene123"]
 
 [ext_resource type="Script" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
@@ -16,7 +16,7 @@
 size = Vector2(100, 100)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.2, 0.2, 0.2, 0.9)
+bg_color = Color(0.35, 0.35, 0.35, 0.9)
 
 [node name="ShopScene" type="Node2D"]
 script = ExtResource("1_script_manager")
@@ -29,24 +29,27 @@ offset_left = -2000.0
 offset_top = -2000.0
 offset_right = 2000.0
 offset_bottom = 2000.0
-color = Color(0.235, 0.176, 0.118, 1)
+color = Color(0.5, 0.5, 0.5, 1)
 
 [node name="Decorations" type="Node2D" parent="."]
 
 [node name="Bookshelf1" parent="Decorations" instance=ExtResource("4_prop")]
 position = Vector2(300, 150)
+modulate = Color(0.6, 0.6, 0.6, 1)
 
 [node name="Sprite2D" parent="Decorations/Bookshelf1" index="0"]
 texture = ExtResource("7_bookshelf")
 
 [node name="Table1" parent="Decorations" instance=ExtResource("4_prop")]
 position = Vector2(800, 500)
+modulate = Color(0.6, 0.6, 0.6, 1)
 
 [node name="Sprite2D" parent="Decorations/Table1" index="0"]
 texture = ExtResource("8_table")
 
 [node name="Table2" parent="Decorations" instance=ExtResource("4_prop")]
 position = Vector2(1000, 500)
+modulate = Color(0.6, 0.6, 0.6, 1)
 
 [node name="Sprite2D" parent="Decorations/Table2" index="0"]
 texture = ExtResource("8_table")
@@ -78,6 +81,7 @@ collision_mask = 16
 shape = SubResource("RectangleShape2D_zone")
 
 [node name="Sprite2D" type="Sprite2D" parent="CounterZone"]
+modulate = Color(0.7, 0.7, 0.7, 1)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("5_logo_shop")
 
@@ -91,6 +95,7 @@ position = Vector2(2, 0)
 shape = SubResource("RectangleShape2D_zone")
 
 [node name="Sprite2D" type="Sprite2D" parent="UpgradeZone"]
+modulate = Color(0.7, 0.7, 0.7, 1)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("6_logo_weapon")
 
@@ -103,6 +108,7 @@ collision_mask = 16
 shape = SubResource("RectangleShape2D_zone")
 
 [node name="Sprite2D" type="Sprite2D" parent="MissionZone"]
+modulate = Color(0.7, 0.7, 0.7, 1)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("9_logo_mission")
 
@@ -124,7 +130,7 @@ offset_right = 100.0
 offset_bottom = -77.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_constants/outline_size = 4
 text = "Press 'E' to Interact"
 horizontal_alignment = 1

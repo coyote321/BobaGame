@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=1 format=3]
 
 [node name="Prop" type="StaticBody2D"]
 collision_layer = 1
