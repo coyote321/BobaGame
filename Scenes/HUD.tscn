@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://c8ungd4jd7yww"]
+[gd_scene load_steps=7 format=3 uid="uid://c8ungd4jd7yww"]
 
 [ext_resource type="Script" uid="uid://coltxto0566oy" path="res://Scripts/HUD.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="6_hotbar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
 bg_color = Color(0.12, 0.12, 0.15, 0.9)
@@ -86,7 +87,7 @@ text = "100 / 100"
 offset_left = 16.0
 offset_top = 62.0
 offset_right = 360.0
-offset_bottom = 170.0
+offset_bottom = 130.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="ObjectiveLabel" type="Label" parent="MissionPanel"]
@@ -99,33 +100,13 @@ theme_override_colors/font_color = Color(1, 0.8, 0.5, 1)
 theme_override_font_sizes/font_size = 16
 text = "ELIMINATE ALL ENEMIES"
 
-[node name="StealthLabel" type="Label" parent="MissionPanel"]
-layout_mode = 0
-offset_left = 12.0
-offset_top = 32.0
-offset_right = 336.0
-offset_bottom = 50.0
-theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
-theme_override_font_sizes/font_size = 13
-text = "STEALTH: ██████████"
-
-[node name="ControlsLabel" type="Label" parent="MissionPanel"]
-layout_mode = 0
-offset_left = 12.0
-offset_top = 54.0
-offset_right = 336.0
-offset_bottom = 70.0
-theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
-theme_override_font_sizes/font_size = 11
-text = "[CTRL] Crouch | [1/2] Weapons | [B] Abort"
-
 [node name="AbortButton" type="Button" parent="MissionPanel"]
 modulate = Color(1, 0.5, 0.5, 1)
 layout_mode = 0
 offset_left = 12.0
-offset_top = 74.0
+offset_top = 32.0
 offset_right = 160.0
-offset_bottom = 102.0
+offset_bottom = 60.0
 theme_override_font_sizes/font_size = 13
 text = "ABORT MISSION"
 
@@ -134,9 +115,9 @@ visible = false
 modulate = Color(0.5, 1, 0.5, 1)
 layout_mode = 0
 offset_left = 170.0
-offset_top = 74.0
+offset_top = 32.0
 offset_right = 330.0
-offset_bottom = 102.0
+offset_bottom = 60.0
 theme_override_font_sizes/font_size = 13
 text = "RETURN TO SHOP"
 
@@ -149,70 +130,4 @@ theme_override_colors/font_color = Color(0.6, 0.85, 0.6, 1)
 theme_override_font_sizes/font_size = 20
 text = "$ 0"
 
-[node name="WeaponBar" type="HBoxContainer" parent="."]
-offset_left = 540.0
-offset_top = 660.0
-offset_right = 740.0
-offset_bottom = 710.0
-theme_override_constants/separation = 8
-
-[node name="Slot1" type="Panel" parent="WeaponBar"]
-custom_minimum_size = Vector2(55, 40)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="Label" type="Label" parent="WeaponBar/Slot1"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 13
-text = "1"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Slot2" type="Panel" parent="WeaponBar"]
-custom_minimum_size = Vector2(55, 40)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="Label" type="Label" parent="WeaponBar/Slot2"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 13
-text = "2"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Slot3" type="Panel" parent="WeaponBar"]
-custom_minimum_size = Vector2(55, 40)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="Label" type="Label" parent="WeaponBar/Slot3"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 13
-text = "3"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="WeaponName" type="Label" parent="."]
-offset_left = 540.0
-offset_top = 640.0
-offset_right = 740.0
-offset_bottom = 658.0
-theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
-theme_override_font_sizes/font_size = 13
-text = "Pistol"
-horizontal_alignment = 1
+[node name="Hotbar" parent="." instance=ExtResource("6_hotbar")]

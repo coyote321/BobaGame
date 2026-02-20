@@ -35,7 +35,7 @@ const ALERT_DURATION: float = 1.0
 var is_target: bool = false
 
 # == Visuals ==
-var sprite: Sprite2D
+var body_rect: ColorRect
 var health_bar: ProgressBar
 var alert_indicator: Label
 
@@ -57,17 +57,20 @@ func _ready():
 	setup_patrol_points()
 
 func setup_visuals():
-	# Get or create sprite
-	if has_node("Sprite2D"):
-		sprite = $Sprite2D
+	# Get or create body rect
+	if has_node("Body") and $Body is ColorRect:
+		body_rect = $Body
 	else:
-		sprite = Sprite2D.new()
-		sprite.modulate = Color.BLUE # Blue for Enemy 2
-		add_child(sprite)
+		body_rect = ColorRect.new()
+		body_rect.name = "Body"
+		body_rect.position = Vector2(-30, -30)
+		body_rect.size = Vector2(60, 60)
+		body_rect.color = Color(0.6, 0.2, 0.7, 1)
+		add_child(body_rect)
 	
 	# Target enemies are gold colored
 	if is_target:
-		sprite.modulate = Color(1, 0.85, 0)
+		body_rect.color = Color(1, 0.85, 0)
 	
 	# Health bar (use existing one if present in the scene)
 	if has_node("HealthBar") and $HealthBar is ProgressBar:
@@ -144,9 +147,7 @@ func process_patrol(delta):
 	velocity = dir * speed
 	move_and_slide()
 	
-	# Flip sprite
-	if dir.x != 0 and sprite:
-		sprite.flip_h = dir.x < 0
+	# (no flip needed for solid square)
 	
 	if global_position.distance_to(target) < 10:
 		patrol_index = (patrol_index + 1) % patrol_points.size()
@@ -189,8 +190,7 @@ func process_chase(delta):
 	velocity = dir * chase_speed
 	move_and_slide()
 	
-	if sprite:
-		sprite.flip_h = dir.x < 0
+	# (no flip needed for solid square)
 
 func process_attack(delta):
 	if not player or not is_instance_valid(player):
@@ -210,8 +210,7 @@ func process_attack(delta):
 	move_and_slide()
 	
 	# Face player
-	if sprite:
-		sprite.flip_h = dir.x < 0
+	# (no flip needed for solid square)
 	
 	if attack_cooldown <= 0:
 		perform_attack()
@@ -298,12 +297,12 @@ func take_damage(amount: float):
 		fill.bg_color = Color(0.8, 0.2, 0.2)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	
-	# Flash red
-	if sprite:
-		var orig_color = sprite.modulate
-		sprite.modulate = Color.WHITE
+	# Flash white
+	if body_rect:
+		var orig_color = body_rect.color
+		body_rect.color = Color.WHITE
 		await get_tree().create_timer(0.1).timeout
-		sprite.modulate = orig_color
+		body_rect.color = orig_color
 	
 	# Show damage number
 	show_damage_number(amount)
@@ -342,6 +341,6 @@ func die():
 	
 	# Death animation
 	var tween = create_tween()
-	tween.tween_property(sprite, "modulate:a", 0.0, 0.5)
+	tween.tween_property(body_rect, "modulate:a", 0.0, 0.5)
 	tween.parallel().tween_property(self, "scale", Vector2(1.2, 0.3), 0.5)
 	tween.tween_callback(queue_free)

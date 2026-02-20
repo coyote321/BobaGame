@@ -14,14 +14,14 @@ var is_secret_agent: bool = false
 
 @onready var patience_bar = $Control/ProgressBar
 @onready var order_label = $Control/OrderLabel
-@onready var body_sprite = $Sprite2D
+@onready var body_sprite = $Body
 
 func _ready():
 	# Randomize appearance
 	if is_secret_agent:
-		body_sprite.modulate = Color(0.2, 0.2, 0.3)
+		body_sprite.color = Color(0.2, 0.2, 0.3)
 	else:
-		body_sprite.modulate = Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0))
+		body_sprite.color = Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0))
 	
 	# Patience based on day
 	max_patience = 60.0 - (GameManager.day * 2) 
