@@ -1,63 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://b8j2k3l4m5n6"]
+[gd_scene load_steps=6 format=3 uid="uid://b8j2k3l4m5n6"]
 
 [ext_resource type="Script" uid="uid://brukk584vh7oh" path="res://Scripts/MainMenu.gd" id="1_script"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Button"]
-content_margin_left = 30.0
-content_margin_top = 15.0
-content_margin_right = 30.0
-content_margin_bottom = 15.0
-bg_color = Color(0.4, 0.4, 0.4, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 5
-border_color = Color(0.25, 0.25, 0.25, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 4
-shadow_offset = Vector2(0, 4)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ButtonPressed"]
-content_margin_left = 30.0
-content_margin_top = 15.0
-content_margin_right = 30.0
-content_margin_bottom = 15.0
-bg_color = Color(0.3, 0.3, 0.3, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 2
-border_color = Color(0.2, 0.2, 0.2, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.2)
-shadow_size = 2
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ButtonHover"]
-content_margin_left = 30.0
-content_margin_top = 15.0
-content_margin_right = 30.0
-content_margin_bottom = 15.0
-bg_color = Color(0.5, 0.5, 0.5, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 5
-border_color = Color(0.35, 0.35, 0.35, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 6
-shadow_offset = Vector2(0, 5)
+[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets/Fonts/Montserrat-SemiBold.ttf" id="3_font_semi"]
+[ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="4_font_medium"]
+[ext_resource type="Script" uid="uid://ktxuei1l7wu0" path="res://Scripts/MenuButton.gd" id="5_menu_btn"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -75,79 +22,70 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.5, 0.5, 0.5, 1)
+color = Color(0.07, 0.07, 0.09, 1)
 
-[node name="TitleContainer" type="VBoxContainer" parent="."]
+[node name="CenterColumn" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = -1
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -250.0
-offset_top = 80.0
-offset_right = 250.0
-offset_bottom = 180.0
+offset_left = -474.0
+offset_top = 74.0
+offset_right = 483.0
+offset_bottom = 754.0
 grow_horizontal = 2
+theme_override_constants/separation = 0
 
-[node name="Label" type="Label" parent="TitleContainer"]
+[node name="TitleLabel" type="Label" parent="CenterColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 56
-text = "Boba & Blades"
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 110
+text = "BOBA & BLADES"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="TitleContainer"]
+[node name="AccentLine" type="ColorRect" parent="CenterColumn"]
+custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 24
+color = Color(0.91, 0.76, 0.29, 0.4)
+
+[node name="Subtitle" type="Label" parent="CenterColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 0.8)
+theme_override_fonts/font = ExtResource("4_font_medium")
+theme_override_font_sizes/font_size = 16
+text = "$$$$$$$"
 horizontal_alignment = 1
+uppercase = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -120.0
-offset_top = -20.0
-offset_right = 120.0
-offset_bottom = 220.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 20
-
-[node name="StartButton" type="Button" parent="VBoxContainer"]
+[node name="Spacer" type="Control" parent="CenterColumn"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_Button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_ButtonPressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ButtonHover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_ButtonHover")
-text = "Start Game"
 
-[node name="OptionsButton" type="Button" parent="VBoxContainer"]
+[node name="ButtonContainer" type="VBoxContainer" parent="CenterColumn"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_Button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_ButtonPressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ButtonHover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_ButtonHover")
-text = "Options"
+theme_override_constants/separation = 6
 
-[node name="ExitButton" type="Button" parent="VBoxContainer"]
+[node name="StartButton" type="Button" parent="CenterColumn/ButtonContainer"]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_Button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_ButtonPressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ButtonHover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_ButtonHover")
-text = "Exit Game"
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 26
+text = "PLAY"
+script = ExtResource("5_menu_btn")
+
+[node name="OptionsButton" type="Button" parent="CenterColumn/ButtonContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 26
+text = "OPTIONS"
+script = ExtResource("5_menu_btn")
+
+[node name="ExitButton" type="Button" parent="CenterColumn/ButtonContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 26
+text = "QUIT"
+script = ExtResource("5_menu_btn")
