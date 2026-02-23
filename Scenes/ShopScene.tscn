@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://shopscene123"]
 
-[ext_resource type="Script" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
+[ext_resource type="Script" uid="uid://ct3ygntqv3fsk" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes/Wall.tscn" id="3_wall"]
 [ext_resource type="PackedScene" path="res://Scenes/Prop.tscn" id="4_prop"]
@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dxihbl6j2rwg1" path="res://Assets/Sprites/logo_weapon.svg" id="6_logo_weapon"]
 [ext_resource type="Texture2D" uid="uid://bwmbxl04uktew" path="res://Assets/Sprites/bookshelf.svg" id="7_bookshelf"]
 [ext_resource type="Texture2D" uid="uid://do80ekbih5ms6" path="res://Assets/Sprites/table.svg" id="8_table"]
-[ext_resource type="Texture2D" path="res://Assets/Sprites/logo_mission.svg" id="9_logo_mission"]
+[ext_resource type="Texture2D" uid="uid://dga70jbpe0se8" path="res://Assets/Sprites/logo_mission.svg" id="9_logo_mission"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="10_hotbar"]
 [ext_resource type="PackedScene" path="res://Scenes/MoneyDisplay.tscn" id="11_money"]
 
@@ -34,6 +34,7 @@ color = Color(0.5, 0.5, 0.5, 1)
 [node name="Decorations" type="Node2D" parent="."]
 
 [node name="Bookshelf1" parent="Decorations" instance=ExtResource("4_prop")]
+modulate = Color(0.6, 0.6, 0.6, 1)
 position = Vector2(300, 150)
 modulate = Color(0.6, 0.6, 0.6, 1)
 
@@ -41,6 +42,7 @@ modulate = Color(0.6, 0.6, 0.6, 1)
 texture = ExtResource("7_bookshelf")
 
 [node name="Table1" parent="Decorations" instance=ExtResource("4_prop")]
+modulate = Color(0.6, 0.6, 0.6, 1)
 position = Vector2(800, 500)
 modulate = Color(0.6, 0.6, 0.6, 1)
 
@@ -48,6 +50,7 @@ modulate = Color(0.6, 0.6, 0.6, 1)
 texture = ExtResource("8_table")
 
 [node name="Table2" parent="Decorations" instance=ExtResource("4_prop")]
+modulate = Color(0.6, 0.6, 0.6, 1)
 position = Vector2(1000, 500)
 modulate = Color(0.6, 0.6, 0.6, 1)
 
@@ -65,11 +68,11 @@ position = Vector2(640, 1200)
 scale = Vector2(20, 1)
 
 [node name="Wall3" parent="Walls" instance=ExtResource("3_wall")]
-position = Vector2(-200, 600)
+position = Vector2(-39, 641)
 scale = Vector2(1, 20)
 
 [node name="Wall4" parent="Walls" instance=ExtResource("3_wall")]
-position = Vector2(1500, 600)
+position = Vector2(1312, 643)
 scale = Vector2(1, 20)
 
 [node name="CounterZone" type="Area2D" parent="."]
@@ -205,26 +208,9 @@ offset_bottom = 41.0
 text = "X"
 
 [node name="Hotbar" parent="UI_Layer" instance=ExtResource("10_hotbar")]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -60.0
-offset_right = 100.0
-offset_bottom = -10.0
-grow_horizontal = 2
-grow_vertical = 0
 
 [node name="MoneyDisplay" parent="UI_Layer" instance=ExtResource("11_money")]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 20.0
-offset_top = 20.0
 offset_right = 220.0
-offset_bottom = 60.0
 
 [editable path="Decorations/Bookshelf1"]
 [editable path="Decorations/Table1"]

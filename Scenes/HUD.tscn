@@ -1,0 +1,133 @@
+[gd_scene load_steps=7 format=3 uid="uid://c8ungd4jd7yww"]
+
+[ext_resource type="Script" uid="uid://coltxto0566oy" path="res://Scripts/HUD.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="6_hotbar"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
+bg_color = Color(0.12, 0.12, 0.15, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.35, 0.4, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_bg"]
+bg_color = Color(0.2, 0.2, 0.22, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_fill"]
+bg_color = Color(0.35, 0.75, 0.35, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.1, 0.13, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.3, 0.35, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="HUD" type="CanvasLayer"]
+layer = 50
+script = ExtResource("1_script")
+
+[node name="HealthPanel" type="Panel" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 286.0
+offset_bottom = 56.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hp_bg")
+
+[node name="HPLabel" type="Label" parent="HealthPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 36.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_font_sizes/font_size = 16
+text = "HP"
+
+[node name="HealthBar" type="ProgressBar" parent="HealthPanel"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 12.0
+offset_right = 200.0
+offset_bottom = 32.0
+theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
+value = 100.0
+show_percentage = false
+
+[node name="HealthText" type="Label" parent="HealthPanel"]
+layout_mode = 0
+offset_left = 206.0
+offset_top = 10.0
+offset_right = 264.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "100 / 100"
+
+[node name="MissionPanel" type="Panel" parent="."]
+offset_left = 16.0
+offset_top = 62.0
+offset_right = 360.0
+offset_bottom = 130.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="ObjectiveLabel" type="Label" parent="MissionPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 336.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(1, 0.8, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "ELIMINATE ALL ENEMIES"
+
+[node name="AbortButton" type="Button" parent="MissionPanel"]
+modulate = Color(1, 0.5, 0.5, 1)
+layout_mode = 0
+offset_left = 12.0
+offset_top = 32.0
+offset_right = 160.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 13
+text = "ABORT MISSION"
+
+[node name="ReturnButton" type="Button" parent="MissionPanel"]
+visible = false
+modulate = Color(0.5, 1, 0.5, 1)
+layout_mode = 0
+offset_left = 170.0
+offset_top = 32.0
+offset_right = 330.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 13
+text = "RETURN TO SHOP"
+
+[node name="MoneyLabel" type="Label" parent="."]
+offset_left = 1100.0
+offset_top = 18.0
+offset_right = 1260.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(0.6, 0.85, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "$ 0"
+
+[node name="Hotbar" parent="." instance=ExtResource("6_hotbar")]

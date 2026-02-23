@@ -9,6 +9,9 @@ var health = 100
 var is_crouching = false
 var is_aiming = false
 
+# Reference to external HUD
+var hud_node = null
+
 # Weapon State
 var current_weapon_idx = 1 # 1 = Main, 2 = Melee
 
@@ -18,11 +21,16 @@ var ability_cooldown = 0.0
 @export var projectile_scene: PackedScene
 
 const BOBA_PROJECTILE_SCRIPT := preload("res://Scripts/BobaProjectile.gd")
-const PROJECTILE_TEXTURE := preload("res://Assets/Sprites/projectile.svg")
 
 func _ready():
 	health = GameManager.max_health
 	add_to_group("player")
+	# Allow _input to fire even while tree is paused (for game-over screen)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Find the HUD in the scene tree (instanced in MissionScene)
+	await get_tree().process_frame
+	hud_node = get_tree().current_scene.find_child("HUD", true, false)
 
 func _physics_process(delta):
 	if fire_cooldown > 0:
@@ -99,33 +107,25 @@ func handle_state_inputs():
 		switch_weapon(1)
 	elif Input.is_action_just_pressed("weapon_2"):
 		switch_weapon(2)
+	elif Input.is_action_just_pressed("weapon_3"):
+		switch_weapon(3)
 
 func is_crouching_state() -> bool:
 	return is_crouching
 
 func switch_weapon(idx):
 	current_weapon_idx = idx
-	var weapon_name = GameManager.equipped_main if idx == 1 else GameManager.equipped_melee
-	print("Switched to: ", weapon_name)
-	update_hotbar_ui()
-
-func update_hotbar_ui():
-	var hotbar = get_tree().current_scene.find_child("Hotbar", true, false)
-	if hotbar:
-		var hbox = hotbar.get_node_or_null("HBox")
-		if hbox:
-			for i in range(hbox.get_child_count()):
-				var slot = hbox.get_child(i)
-				var style = slot.get_theme_stylebox("panel")
-				if style:
-					style = style.duplicate()
-					if i + 1 == current_weapon_idx:
-						style.bg_color = Color(0.4, 0.7, 1, 0.5)
-						style.border_color = Color(0.4, 0.7, 1, 1)
-					else:
-						style.bg_color = Color(0, 0, 0, 0.5)
-						style.border_color = Color(0, 0, 0, 0)
-					slot.add_theme_stylebox_override("panel", style)
+	var weapon_name = ""
+	if idx == 1:
+		weapon_name = GameManager.equipped_main
+	elif idx == 2:
+		weapon_name = GameManager.equipped_melee
+	elif idx == 3:
+		weapon_name = GameManager.equipped_special
+	
+	# Update HUD
+	if hud_node and hud_node.has_method("update_weapon"):
+		hud_node.update_weapon(idx, weapon_name)
 
 func use_ability():
 	print("Ability Used! (Dash)")
@@ -149,7 +149,7 @@ func use_ability():
 		modulate = Color.WHITE
 
 func attack():
-	if current_weapon_idx == 1:
+	if current_weapon_idx == 1 or current_weapon_idx == 3:
 		shoot()
 	else:
 		melee_attack()
@@ -178,23 +178,22 @@ func melee_attack():
 	fire_cooldown = GameManager.weapons.get(weapon_name, {}).get("fire_rate", 0.5)
 
 func shoot():
-	print("=== SHOOT CALLED ===")
-	
 	var weapon_name = GameManager.equipped_main
+	if current_weapon_idx == 3:
+		weapon_name = GameManager.equipped_special
+		if weapon_name == "":
+			return
+
 	var weapon_data = GameManager.weapons.get(weapon_name, {})
-	# Respect weapon fire rate (seconds between shots)
 	fire_cooldown = float(weapon_data.get("fire_rate", 0.5))
 	var damage = GameManager.get_weapon_damage(weapon_name)
 	var direction = Vector2.RIGHT
 	if has_node("Visuals"):
 		direction = Vector2.RIGHT.rotated($Visuals.rotation)
 	
-	print("Weapon:", weapon_name, "Damage:", damage)
-	
 	# Create projectile
 	var projectile = Area2D.new()
-	projectile.name = "Boba_" + str(randi())
-	# Layer/mask: detect walls (1) + enemies (4), but not the player.
+	projectile.name = "Proj_" + str(randi())
 	projectile.collision_layer = 8
 	projectile.collision_mask = 1 | 4
 	projectile.z_index = 100
@@ -202,27 +201,27 @@ func shoot():
 	# SET SCRIPT FIRST
 	projectile.set_script(BOBA_PROJECTILE_SCRIPT)
 	
-	# SET PROPERTIES - FAST speed!
+	# SET PROPERTIES
 	projectile.direction = direction
 	projectile.damage = damage
-	projectile.speed = 800.0  # FAST!
+	projectile.speed = 800.0
 	
-	# Visual - load the original boba image
-	var sprite = Sprite2D.new()
-	sprite.texture = PROJECTILE_TEXTURE
-	sprite.scale = Vector2(0.4, 0.4)  # Scale down the boba cup
-	sprite.rotation = direction.angle() + PI/2  # Point in direction
-	projectile.add_child(sprite)
+	# Visual - plain red square (gray-box prototype)
+	var rect = ColorRect.new()
+	rect.color = Color(0.85, 0.2, 0.15)
+	rect.size = Vector2(10, 10)
+	rect.position = Vector2(-5, -5)  # Center it
+	projectile.add_child(rect)
 	
 	# Collision shape
 	var shape = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
-	circle.radius = 12.0
+	circle.radius = 8.0
 	shape.shape = circle
 	projectile.add_child(shape)
 	
 	# Set position
-	projectile.global_position = global_position + direction * 30  # Offset in front
+	projectile.global_position = global_position + direction * 30
 	
 	# ADD TO SCENE
 	get_parent().add_child(projectile)
@@ -232,11 +231,11 @@ func shoot():
 	
 	# Start lifetime countdown
 	projectile.start_lifetime()
-	
-	print("BOBA FIRED! Damage:", damage)
 
 func take_damage(amount):
 	health -= amount
+	if health < 0:
+		health = 0
 	
 	# Flash red
 	modulate = Color(1, 0.3, 0.3)
@@ -245,50 +244,39 @@ func take_damage(amount):
 	if is_instance_valid(self):
 		modulate = Color.WHITE
 	
-	if has_node("HealthBar"):
-		$HealthBar.value = (float(health) / float(GameManager.max_health)) * 100
+	# Update HUD
+	if hud_node and hud_node.has_method("update_health"):
+		hud_node.update_health(health, GameManager.max_health)
 	
-	print("Player Health: ", health)
+	# Screen shake
+	if has_node("Camera2D"):
+		var cam = $Camera2D
+		var shake_tween = create_tween()
+		shake_tween.tween_property(cam, "offset", Vector2(randf_range(-8, 8), randf_range(-8, 8)), 0.05)
+		shake_tween.tween_property(cam, "offset", Vector2(randf_range(-4, 4), randf_range(-4, 4)), 0.05)
+		shake_tween.tween_property(cam, "offset", Vector2.ZERO, 0.05)
 	
 	if health <= 0:
 		die()
 
+var is_game_over: bool = false
+
 func die():
-	print("GAME OVER")
-	set_physics_process(false)  # Stop player processing
+	if is_game_over:
+		return
+	is_game_over = true
+	set_physics_process(false)
 	
-	# Show game over screen
-	var canvas = CanvasLayer.new()
-	canvas.layer = 100
-	canvas.process_mode = Node.PROCESS_MODE_ALWAYS  # Works while paused
-	get_tree().current_scene.add_child(canvas)
+	# Hide the HUD
+	if hud_node and hud_node.has_method("hide_hud"):
+		hud_node.hide_hud()
 	
-	var bg = ColorRect.new()
-	bg.color = Color(0.1, 0, 0, 0.9)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(bg)
+	# Brief red flash before transition
+	modulate = Color(1, 0.2, 0.2)
 	
-	var label = Label.new()
-	label.text = "MISSION FAILED"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.set_anchors_preset(Control.PRESET_CENTER)
-	label.add_theme_font_size_override("font_size", 48)
-	label.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
-	canvas.add_child(label)
+	# Short delay for impact
+	await get_tree().create_timer(0.8).timeout
 	
-	var btn = Button.new()
-	btn.text = "RETURN TO SHOP"
-	btn.set_anchors_preset(Control.PRESET_CENTER)
-	btn.position = Vector2(-100, 60)
-	btn.custom_minimum_size = Vector2(200, 50)
-	btn.process_mode = Node.PROCESS_MODE_ALWAYS  # Works while paused
-	btn.pressed.connect(func():
-		get_tree().paused = false  # UNPAUSE FIRST!
-		GameManager.health = GameManager.max_health
-		GameManager.start_shop()
-		get_tree().change_scene_to_file("res://Scenes/ShopScene.tscn")
-	)
-	canvas.add_child(btn)
-	
-	get_tree().paused = true
+	# Transition to the end screen
+	GameManager.health = GameManager.max_health
+	get_tree().change_scene_to_file("res://Scenes/EndScreen.tscn")

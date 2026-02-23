@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://by8ejuwjj3axa"]
+[gd_scene load_steps=4 format=3 uid="uid://by8ejuwjj3axa"]
 
 [ext_resource type="Script" uid="uid://djgn3wre8b3fw" path="res://Scripts/Enemy2AI.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://cr7vls5vgu3ki" path="res://Assets/Sprites/enemy.svg" id="2_tex"]
 [ext_resource type="PackedScene" path="res://Scenes/HealthBar.tscn" id="3_healthbar"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
@@ -12,9 +11,12 @@ collision_layer = 4
 collision_mask = 7
 script = ExtResource("1_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.3, 0.3, 0.3, 1)
-texture = ExtResource("2_tex")
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -30.0
+offset_top = -30.0
+offset_right = 30.0
+offset_bottom = 30.0
+color = Color(0.6, 0.2, 0.7, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_enemy")
@@ -24,5 +26,5 @@ offset_left = -30.0
 offset_top = -50.0
 offset_right = 30.0
 offset_bottom = -40.0
-max_value = 50.0
-value = 50.0
+max_value = 200.0
+value = 200.0

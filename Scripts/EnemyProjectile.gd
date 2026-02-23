@@ -17,7 +17,7 @@ func _on_body_entered(body):
 	# Collision masks should handle most filtering (hitting walls/player)
 	# But we double check to be safe
 	
-	if body.name == "Player":
+	if body.name == "Player" or body.is_in_group("player"):
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
 		queue_free()

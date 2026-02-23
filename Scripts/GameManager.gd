@@ -31,12 +31,13 @@ var weapons: Dictionary = {
 	"Pistol": {"damage": 10, "fire_rate": 1.0, "unlock_level": 1, "cost": 0, "type": "ranged"},
 	"Boba Dart Gun": {"damage": 15, "fire_rate": 0.8, "unlock_level": 2, "cost": 75, "type": "ranged"},
 	"Kitchen Knife": {"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee"},
-	"Tapioca Launcher": {"damage": 20, "fire_rate": 1.2, "unlock_level": 3, "cost": 150, "type": "ranged"},
+	"Tapioca Launcher": {"damage": 20, "fire_rate": 1.2, "unlock_level": 3, "cost": 150, "type": "special"},
 	"Poison Straw": {"damage": 40, "fire_rate": 2.0, "unlock_level": 4, "cost": 250, "type": "melee"}
 }
-var owned_weapons: Array = ["Pistol", "Kitchen Knife"]
+var owned_weapons: Array = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
 var equipped_main: String = "Pistol"
 var equipped_melee: String = "Kitchen Knife"
+var equipped_special: String = "Tapioca Launcher"
 var player_damage_multiplier: float = 1.0
 
 # Mission/Contract System
@@ -66,6 +67,7 @@ func setup_inputs():
 		"pause": KEY_ESCAPE,
 		"weapon_1": KEY_1,
 		"weapon_2": KEY_2,
+		"weapon_3": KEY_3,
 		"ability": KEY_G,
 		"interact": KEY_E
 	}
@@ -224,11 +226,36 @@ func equip_weapon(weapon_name: String):
 		var weapon_type = weapons[weapon_name]["type"]
 		if weapon_type == "ranged":
 			equipped_main = weapon_name
-		else:
+		elif weapon_type == "melee":
 			equipped_melee = weapon_name
+		elif weapon_type == "special":
+			equipped_special = weapon_name
 		print("Equipped: ", weapon_name)
 
 func get_weapon_damage(weapon_name: String) -> float:
 	if weapon_name in weapons:
 		return weapons[weapon_name]["damage"] * player_damage_multiplier
 	return 10.0
+
+func reset_game():
+	# Reset all game state for a fresh start
+	health = max_health
+	money = 0
+	day = 1
+	xp = 0
+	level = 1
+	current_phase = "SHOP"
+	target_order_received = false
+	current_contract = {}
+	contracts_completed = 0
+	daily_earnings = 0
+	customers_served_today = 0
+	reputation = 0
+	shop_level = 1
+	owned_weapons = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
+	equipped_main = "Pistol"
+	equipped_melee = "Kitchen Knife"
+	equipped_special = "Tapioca Launcher"
+	player_damage_multiplier = 1.0
+	generate_daily_quests()
+	print("Game state fully reset")
