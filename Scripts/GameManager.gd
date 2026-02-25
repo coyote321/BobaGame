@@ -33,7 +33,7 @@ var weapons: Dictionary = {
 	"Kitchen Knife": {"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee"},
 	"Tapioca Launcher": {"damage": 20, "fire_rate": 1.2, "unlock_level": 3, "cost": 150, "type": "special"},
 	"Poison Straw": {"damage": 40, "fire_rate": 2.0, "unlock_level": 4, "cost": 250, "type": "melee"},
-	"Flamethrower": {"damage": 5, "fire_rate": 0.05, "unlock_level": 3, "cost": 200, "type": "special"}
+	"Flamethrower": {"damage": 5, "fire_rate": 0.05, "unlock_level": 1, "cost": 200, "type": "special"}
 }
 var owned_weapons: Array = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
 var equipped_main: String = "Pistol"

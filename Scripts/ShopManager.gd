@@ -42,8 +42,31 @@ func _ready():
 	setup_hud()
 	setup_zones()
 	setup_boba_ui()
+	setup_close_buttons()
 	
 	start_spawning()
+
+func setup_close_buttons():
+	# Connect close buttons for all panels
+	var close_boba = get_node_or_null("UI_Layer/BobaPanel/CloseBoba")
+	if close_boba:
+		close_boba.pressed.connect(func(): ui_boba_panel.visible = false)
+	
+	var close_upgrade = get_node_or_null("UI_Layer/UpgradePanel/CloseUpgrade")
+	if close_upgrade:
+		close_upgrade.pressed.connect(func():
+			var panel = get_node_or_null("UI_Layer/UpgradePanel")
+			if panel:
+				panel.visible = false
+		)
+	
+	var close_mission = get_node_or_null("UI_Layer/MissionPanel/CloseMission")
+	if close_mission:
+		close_mission.pressed.connect(func():
+			var panel = get_node_or_null("UI_Layer/MissionPanel")
+			if panel:
+				panel.visible = false
+		)
 
 func _process(delta):
 	if shift_active:
