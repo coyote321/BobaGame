@@ -89,6 +89,9 @@ func _process(delta):
 	if active_zone and Input.is_action_just_pressed("interact"):
 		interact_with_zone(active_zone)
 
+	if Input.is_action_just_pressed("pause"):
+		_close_all_panels()
+
 # ============ STYLE HELPERS ============
 
 func _make_panel_style(bg: Color = BG_DARK, border: Color = ACCENT_GOLD_DIM, radius: int = 6) -> StyleBoxFlat:
@@ -328,6 +331,9 @@ func _set_zone(name):
 func _clear_zone():
 	active_zone = null
 	ui_interaction.visible = false
+	_close_all_panels()
+
+func _close_all_panels():
 	ui_boba_panel.visible = false
 	var upgrade_panel = get_node_or_null("UI_Layer/UpgradePanel")
 	if upgrade_panel:
@@ -360,22 +366,40 @@ func show_upgrade_panel(toggle: bool = true):
 	margin.add_theme_constant_override("margin_bottom", 16)
 	panel.add_child(margin)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	margin.add_child(vbox)
+	var close_btn = panel.get_node_or_null("CloseUpgrade")
+	if close_btn:
+		panel.move_child(close_btn, -1)
+
+	var outer_vbox := VBoxContainer.new()
+	outer_vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(outer_vbox)
 
 	var title = _styled_label("WEAPON SHOP", font_bold, 22, ACCENT_GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
+	outer_vbox.add_child(title)
 
 	var level_lbl = _styled_label("Level " + str(GameManager.level), font_medium, 13, TEXT_DIM)
 	level_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(level_lbl)
+	outer_vbox.add_child(level_lbl)
 
 	var divider := ColorRect.new()
 	divider.custom_minimum_size = Vector2(0, 1)
 	divider.color = ACCENT_GOLD_DIM
-	vbox.add_child(divider)
+	outer_vbox.add_child(divider)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var scrollbar_style := StyleBoxFlat.new()
+	scrollbar_style.bg_color = ACCENT_GOLD_DIM
+	scrollbar_style.set_corner_radius_all(3)
+	scroll.add_theme_stylebox_override("scroll", scrollbar_style)
+	outer_vbox.add_child(scroll)
+
+	var weapon_list := VBoxContainer.new()
+	weapon_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	weapon_list.add_theme_constant_override("separation", 10)
+	scroll.add_child(weapon_list)
 
 	var available_weapons = GameManager.get_available_weapons()
 
@@ -386,7 +410,7 @@ func show_upgrade_panel(toggle: bool = true):
 
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
-		vbox.add_child(row)
+		weapon_list.add_child(row)
 
 		var info_col := VBoxContainer.new()
 		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -429,6 +453,10 @@ func show_mission_panel():
 	margin.add_theme_constant_override("margin_right", 24)
 	margin.add_theme_constant_override("margin_bottom", 20)
 	panel.add_child(margin)
+
+	var close_btn = panel.get_node_or_null("CloseMission")
+	if close_btn:
+		panel.move_child(close_btn, -1)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
@@ -502,6 +530,10 @@ func setup_boba_ui():
 	margin.add_theme_constant_override("margin_right", 24)
 	margin.add_theme_constant_override("margin_bottom", 20)
 	p.add_child(margin)
+
+	var close_btn = p.get_node_or_null("CloseBoba")
+	if close_btn:
+		p.move_child(close_btn, -1)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
