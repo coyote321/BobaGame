@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://shopscene123"]
+[gd_scene load_steps=14 format=3 uid="uid://shopscene123"]
 
 [ext_resource type="Script" uid="uid://ct3ygntqv3fsk" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
@@ -11,36 +11,12 @@
 [ext_resource type="Texture2D" uid="uid://dga70jbpe0se8" path="res://Assets/Sprites/logo_mission.svg" id="9_logo_mission"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="10_hotbar"]
 [ext_resource type="PackedScene" path="res://Scenes/MoneyDisplay.tscn" id="11_money"]
-[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="12_font_bold"]
-[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets/Fonts/Montserrat-SemiBold.ttf" id="13_font_semi"]
-[ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="14_font_medium"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
 size = Vector2(100, 100)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boba_panel"]
-bg_color = Color(0.08, 0.08, 0.1, 0.96)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.91, 0.76, 0.29, 0.25)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_side_panel"]
-bg_color = Color(0.08, 0.08, 0.1, 0.96)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.91, 0.76, 0.29, 0.25)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.35, 0.35, 0.35, 0.9)
 
 [node name="ShopScene" type="Node2D"]
 script = ExtResource("1_script_manager")
@@ -151,20 +127,16 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -160.0
-offset_top = -90.0
-offset_right = 160.0
-offset_bottom = -60.0
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = -77.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 0.9)
-theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.07, 0.9)
-theme_override_constants/outline_size = 6
-theme_override_fonts/font = ExtResource("13_font_semi")
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_outline_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_constants/outline_size = 4
 text = "Press 'E' to Interact"
 horizontal_alignment = 1
-uppercase = true
 
 [node name="BobaPanel" type="Panel" parent="UI_Layer"]
 visible = false
@@ -173,26 +145,21 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = -220.0
-offset_right = 220.0
-offset_bottom = 220.0
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_boba_panel")
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="CloseBoba" type="Button" parent="UI_Layer/BobaPanel"]
 layout_mode = 0
-offset_left = 388.0
+offset_left = 350.0
 offset_top = 10.0
-offset_right = 428.0
-offset_bottom = 38.0
-theme_override_colors/font_color = Color(0.5, 0.5, 0.55, 1)
-theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_fonts/font = ExtResource("13_font_semi")
-theme_override_font_sizes/font_size = 18
+offset_right = 390.0
+offset_bottom = 41.0
 text = "X"
-flat = true
 
 [node name="UpgradePanel" type="Panel" parent="UI_Layer"]
 visible = false
@@ -201,26 +168,21 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
+offset_left = -180.0
 offset_top = -160.0
-offset_right = 200.0
+offset_right = 180.0
 offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="CloseUpgrade" type="Button" parent="UI_Layer/UpgradePanel"]
 layout_mode = 0
-offset_left = 355.0
+offset_left = 260.0
 offset_top = 10.0
-offset_right = 390.0
-offset_bottom = 38.0
-theme_override_colors/font_color = Color(0.5, 0.5, 0.55, 1)
-theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_fonts/font = ExtResource("13_font_semi")
-theme_override_font_sizes/font_size = 18
+offset_right = 290.0
+offset_bottom = 41.0
 text = "X"
-flat = true
 
 [node name="MissionPanel" type="Panel" parent="UI_Layer"]
 visible = false
@@ -229,26 +191,21 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -160.0
-offset_right = 200.0
-offset_bottom = 160.0
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="CloseMission" type="Button" parent="UI_Layer/MissionPanel"]
 layout_mode = 0
-offset_left = 355.0
+offset_left = 260.0
 offset_top = 10.0
-offset_right = 390.0
-offset_bottom = 38.0
-theme_override_colors/font_color = Color(0.5, 0.5, 0.55, 1)
-theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_fonts/font = ExtResource("13_font_semi")
-theme_override_font_sizes/font_size = 18
+offset_right = 290.0
+offset_bottom = 41.0
 text = "X"
-flat = true
 
 [node name="Hotbar" parent="UI_Layer" instance=ExtResource("10_hotbar")]
 

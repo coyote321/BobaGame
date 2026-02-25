@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://bi0tqm2u0r0cv"]
+
+[ext_resource type="Script" uid="uid://d2fp2hjwy8hq2" path="res://Scripts/FlamethrowerPickup.gd" id="1_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 50.0
+
+[node name="FlamethrowerPickup" type="Area2D"]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_script")
+
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+color = Color(1, 0.45, 0.05, 1)
+
+[node name="Core" type="ColorRect" parent="."]
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+color = Color(1, 0.9, 0.3, 1)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -53.0
+offset_top = -72.0
+offset_right = 57.0
+offset_bottom = -49.0
+text = "Flamethrower"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_pickup")
+debug_color = Color(1, 0.5, 0, 0.2)

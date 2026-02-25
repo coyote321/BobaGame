@@ -1,11 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://mission123"]
+[gd_scene load_steps=8 format=3 uid="uid://mission123"]
 
-[ext_resource type="Script" path="res://Scripts/MissionManager.gd" id="1_manager"]
+[ext_resource type="Script" uid="uid://bx34agcu58124" path="res://Scripts/MissionManager.gd" id="1_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://enemy123" path="res://Scenes/Enemy.tscn" id="3_enemy"]
 [ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes/Wall.tscn" id="4_wall"]
+[ext_resource type="PackedScene" path="res://Scenes/FlamethrowerPickup.tscn" id="7_31li1"]
 [ext_resource type="PackedScene" uid="uid://by8ejuwjj3axa" path="res://Scenes/Enemy2.tscn" id="7_enemy2"]
-[ext_resource type="PackedScene" path="res://Scenes/HUD.tscn" id="8_hud"]
+[ext_resource type="PackedScene" uid="uid://c8ungd4jd7yww" path="res://Scenes/HUD.tscn" id="8_hud"]
 
 [node name="MissionScene" type="Node2D"]
 script = ExtResource("1_manager")
@@ -51,3 +52,5 @@ scale = Vector2(1, 4)
 
 [node name="HUD" parent="." instance=ExtResource("8_hud")]
 
+[node name="FlamethrowerPickup" parent="." instance=ExtResource("7_31li1")]
+position = Vector2(173, 388)

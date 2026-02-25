@@ -21,6 +21,7 @@ var ability_cooldown = 0.0
 @export var projectile_scene: PackedScene
 
 const BOBA_PROJECTILE_SCRIPT := preload("res://Scripts/BobaProjectile.gd")
+const FLAME_PROJECTILE_SCRIPT := preload("res://Scripts/FlameProjectile.gd")
 
 func _ready():
 	health = GameManager.max_health
@@ -186,6 +187,12 @@ func shoot():
 
 	var weapon_data = GameManager.weapons.get(weapon_name, {})
 	fire_cooldown = float(weapon_data.get("fire_rate", 0.5))
+	
+	# Flamethrower uses its own spawning logic
+	if weapon_name == "Flamethrower":
+		_shoot_flame(weapon_data)
+		return
+	
 	var damage = GameManager.get_weapon_damage(weapon_name)
 	var direction = Vector2.RIGHT
 	if has_node("Visuals"):
@@ -231,6 +238,143 @@ func shoot():
 	
 	# Start lifetime countdown
 	projectile.start_lifetime()
+
+func _shoot_flame(_weapon_data: Dictionary) -> void:
+	var damage = GameManager.get_weapon_damage("Flamethrower")
+	var base_dir = Vector2.RIGHT
+	if has_node("Visuals"):
+		base_dir = Vector2.RIGHT.rotated($Visuals.rotation)
+	
+	# Wide cone spread for flamethrower feel
+	var spread = deg_to_rad(randf_range(-15.0, 15.0))
+	var direction = base_dir.rotated(spread)
+	
+	# Create flame projectile node
+	var flame = Area2D.new()
+	flame.name = "Flame_" + str(randi())
+	flame.collision_layer = 8
+	flame.collision_mask = 1 | 4
+	flame.z_index = 100
+	
+	flame.set_script(FLAME_PROJECTILE_SCRIPT)
+	flame.direction = direction
+	flame.damage = damage
+	flame.speed = 300.0
+	
+	# ===== MAIN FIRE PARTICLES =====
+	var fire = GPUParticles2D.new()
+	fire.emitting = true
+	fire.one_shot = false
+	fire.amount = 50
+	fire.lifetime = 0.5
+	fire.speed_scale = 2.0
+	fire.explosiveness = 0.1
+	fire.randomness = 0.5
+	
+	var fire_mat = ParticleProcessMaterial.new()
+	fire_mat.direction = Vector3(direction.x, direction.y, 0)
+	fire_mat.spread = 20.0
+	fire_mat.initial_velocity_min = 30.0
+	fire_mat.initial_velocity_max = 80.0
+	fire_mat.gravity = Vector3(0, -60, 0)  # flames rise
+	fire_mat.damping_min = 10.0
+	fire_mat.damping_max = 30.0
+	fire_mat.scale_min = 4.0
+	fire_mat.scale_max = 10.0
+	fire_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	fire_mat.emission_sphere_radius = 6.0
+	
+	# Fire color: white-hot core -> bright yellow -> orange -> red -> fade
+	var fire_grad = Gradient.new()
+	fire_grad.set_offset(0, 0.0)
+	fire_grad.set_color(0, Color(1.0, 1.0, 0.85, 1.0))      # white-hot
+	fire_grad.add_point(0.15, Color(1.0, 0.95, 0.3, 1.0))    # bright yellow
+	fire_grad.add_point(0.4, Color(1.0, 0.55, 0.05, 0.95))   # orange
+	fire_grad.add_point(0.7, Color(0.85, 0.15, 0.02, 0.7))   # deep red
+	fire_grad.set_offset(1, 1.0)
+	fire_grad.set_color(1, Color(0.2, 0.02, 0.0, 0.0))       # fade out
+	var fire_grad_tex = GradientTexture1D.new()
+	fire_grad_tex.gradient = fire_grad
+	fire_mat.color_ramp = fire_grad_tex
+	
+	# Scale curve: grow then shrink
+	var scale_curve = Curve.new()
+	scale_curve.add_point(Vector2(0.0, 0.3))
+	scale_curve.add_point(Vector2(0.2, 1.0))
+	scale_curve.add_point(Vector2(0.6, 0.8))
+	scale_curve.add_point(Vector2(1.0, 0.1))
+	var scale_curve_tex = CurveTexture.new()
+	scale_curve_tex.curve = scale_curve
+	fire_mat.scale_curve = scale_curve_tex
+	
+	fire.process_material = fire_mat
+	flame.add_child(fire)
+	
+	# ===== SMOKE TRAIL =====
+	var smoke = GPUParticles2D.new()
+	smoke.emitting = true
+	smoke.one_shot = false
+	smoke.amount = 20
+	smoke.lifetime = 0.6
+	smoke.speed_scale = 1.0
+	smoke.explosiveness = 0.05
+	smoke.randomness = 0.8
+	
+	var smoke_mat = ParticleProcessMaterial.new()
+	smoke_mat.direction = Vector3(0, -1, 0)  # drift upward
+	smoke_mat.spread = 40.0
+	smoke_mat.initial_velocity_min = 15.0
+	smoke_mat.initial_velocity_max = 40.0
+	smoke_mat.gravity = Vector3(0, -30, 0)
+	smoke_mat.scale_min = 6.0
+	smoke_mat.scale_max = 14.0
+	smoke_mat.damping_min = 5.0
+	smoke_mat.damping_max = 15.0
+	
+	# Smoke color: dark gray, fading out
+	var smoke_grad = Gradient.new()
+	smoke_grad.set_offset(0, 0.0)
+	smoke_grad.set_color(0, Color(0.3, 0.25, 0.2, 0.4))
+	smoke_grad.set_offset(1, 1.0)
+	smoke_grad.set_color(1, Color(0.15, 0.12, 0.1, 0.0))
+	var smoke_grad_tex = GradientTexture1D.new()
+	smoke_grad_tex.gradient = smoke_grad
+	smoke_mat.color_ramp = smoke_grad_tex
+	
+	smoke.process_material = smoke_mat
+	flame.add_child(smoke)
+	
+	# ===== GLOW / LIGHT EFFECT =====
+	var glow = PointLight2D.new()
+	glow.color = Color(1.0, 0.5, 0.1, 1.0)
+	glow.energy = 1.5
+	glow.texture_scale = 0.4
+	# Use a simple white gradient texture for the light
+	var light_tex = GradientTexture2D.new()
+	light_tex.gradient = Gradient.new()
+	light_tex.gradient.set_color(0, Color.WHITE)
+	light_tex.gradient.set_color(1, Color.TRANSPARENT)
+	light_tex.fill = GradientTexture2D.FILL_RADIAL
+	light_tex.fill_from = Vector2(0.5, 0.5)
+	light_tex.fill_to = Vector2(0.5, 0.0)
+	light_tex.width = 128
+	light_tex.height = 128
+	glow.texture = light_tex
+	flame.add_child(glow)
+	
+	# Larger collision for the flame area
+	var shape = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 20.0
+	shape.shape = circle
+	flame.add_child(shape)
+	
+	# Position and add to scene
+	flame.global_position = global_position + base_dir * 25
+	get_parent().add_child(flame)
+	
+	flame.body_entered.connect(flame._on_body_entered)
+	flame.start_lifetime()
 
 func take_damage(amount):
 	health -= amount
