@@ -1,0 +1,91 @@
+[gd_scene load_steps=6 format=3 uid="uid://b8j2k3l4m5n6"]
+
+[ext_resource type="Script" uid="uid://brukk584vh7oh" path="res://Scripts/MainMenu.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets/Fonts/Montserrat-SemiBold.ttf" id="3_font_semi"]
+[ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="4_font_medium"]
+[ext_resource type="Script" uid="uid://ktxuei1l7wu0" path="res://Scripts/MenuButton.gd" id="5_menu_btn"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07, 0.07, 0.09, 1)
+
+[node name="CenterColumn" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -474.0
+offset_top = 74.0
+offset_right = 483.0
+offset_bottom = 754.0
+grow_horizontal = 2
+theme_override_constants/separation = 0
+
+[node name="TitleLabel" type="Label" parent="CenterColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 110
+text = "BOBA & BLADES"
+horizontal_alignment = 1
+
+[node name="AccentLine" type="ColorRect" parent="CenterColumn"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(0.91, 0.76, 0.29, 0.4)
+
+[node name="Subtitle" type="Label" parent="CenterColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 0.8)
+theme_override_fonts/font = ExtResource("4_font_medium")
+theme_override_font_sizes/font_size = 16
+text = "$$$$$$$"
+horizontal_alignment = 1
+uppercase = true
+
+[node name="Spacer" type="Control" parent="CenterColumn"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="ButtonContainer" type="VBoxContainer" parent="CenterColumn"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StartButton" type="Button" parent="CenterColumn/ButtonContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 26
+text = "PLAY"
+script = ExtResource("5_menu_btn")
+
+[node name="OptionsButton" type="Button" parent="CenterColumn/ButtonContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 26
+text = "OPTIONS"
+script = ExtResource("5_menu_btn")
+
+[node name="ExitButton" type="Button" parent="CenterColumn/ButtonContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font_semi")
+theme_override_font_sizes/font_size = 26
+text = "QUIT"
+script = ExtResource("5_menu_btn")
