@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://b8j2k3l4m5n6"]
 
 [ext_resource type="Script" uid="uid://brukk584vh7oh" path="res://Scripts/MainMenu.gd" id="1_script"]
-[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="2_font_bold"]
-[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets/Fonts/Montserrat-SemiBold.ttf" id="3_font_semi"]
-[ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="4_font_medium"]
+[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets copy/Fonts/Montserrat-Bold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets copy/Fonts/Montserrat-SemiBold.ttf" id="3_font_semi"]
+[ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets copy/Fonts/Montserrat-Medium.ttf" id="4_font_medium"]
 [ext_resource type="Script" uid="uid://ktxuei1l7wu0" path="res://Scripts/MenuButton.gd" id="5_menu_btn"]
 
 [node name="MainMenu" type="Control"]

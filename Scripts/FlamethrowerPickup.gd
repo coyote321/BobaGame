@@ -44,14 +44,27 @@ func _on_body_exited(body: Node2D) -> void:
 			_prompt_label.visible = false
 
 func _pick_up() -> void:
+	if weapon_name in GameManager.owned_weapons:
+		if _prompt_label:
+			_prompt_label.text = "Already owned!"
+			_prompt_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4, 0.9))
+		var flash_tween = create_tween()
+		flash_tween.tween_property(_prompt_label, "modulate:a", 0.0, 0.8).from(1.0)
+		flash_tween.tween_callback(func():
+			if _prompt_label:
+				_prompt_label.text = "Press E to pick up"
+				_prompt_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
+				_prompt_label.modulate.a = 1.0
+				_prompt_label.visible = _player_in_range != null
+		)
+		return
+
 	_picked_up = true
-	
-	# Determine which slot to place the weapon in
+
 	var slot_main = GameManager.equipped_main
 	var slot_melee = GameManager.equipped_melee
 	var slot_special = GameManager.equipped_special
-	
-	# Check for empty slots first (empty string = open slot)
+
 	if slot_main == "":
 		GameManager.equipped_main = weapon_name
 	elif slot_melee == "":
@@ -59,11 +72,10 @@ func _pick_up() -> void:
 	elif slot_special == "":
 		GameManager.equipped_special = weapon_name
 	else:
-		# All slots full — replace the currently selected slot
 		var idx = 1
 		if _player_in_range and "current_weapon_idx" in _player_in_range:
 			idx = _player_in_range.current_weapon_idx
-		
+
 		match idx:
 			1:
 				GameManager.equipped_main = weapon_name
@@ -71,8 +83,7 @@ func _pick_up() -> void:
 				GameManager.equipped_melee = weapon_name
 			3:
 				GameManager.equipped_special = weapon_name
-	
-	# Make sure the weapon is in owned_weapons
+
 	if weapon_name not in GameManager.owned_weapons:
 		GameManager.owned_weapons.append(weapon_name)
 	

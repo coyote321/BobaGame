@@ -28,12 +28,67 @@ var max_health: int = 100
 
 # Weapons System
 var weapons: Dictionary = {
-	"Pistol": {"damage": 10, "fire_rate": 1.0, "unlock_level": 1, "cost": 0, "type": "ranged"},
-	"Boba Dart Gun": {"damage": 15, "fire_rate": 0.8, "unlock_level": 2, "cost": 75, "type": "ranged"},
-	"Kitchen Knife": {"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee"},
-	"Tapioca Launcher": {"damage": 20, "fire_rate": 1.2, "unlock_level": 3, "cost": 150, "type": "special"},
-	"Poison Straw": {"damage": 40, "fire_rate": 2.0, "unlock_level": 4, "cost": 250, "type": "melee"},
-	"Flamethrower": {"damage": 5, "fire_rate": 0.05, "unlock_level": 1, "cost": 200, "type": "special"}
+	"Pistol": {
+		"damage": 10, "fire_rate": 1.0, "unlock_level": 1, "cost": 0, "type": "ranged",
+		"tuning": {
+			"projectile_speed": 850.0, "projectile_size": 10.0, "projectile_lifetime": 2.2,
+			"spread_deg": 1.5, "projectile_color": Color(1.0, 0.42, 0.55),
+			"recoil_distance": 4.8, "kick_rotation": 0.06, "kick_duration": 0.05, "recover_duration": 0.08,
+			"flash_scale": Vector2(18, 10), "flash_color": Color(1.0, 0.93, 0.6, 0.95), "flash_duration": 0.07,
+			"camera_shake": 2.0, "burst_color": Color(1.0, 0.68, 0.82), "sparkle_amount": 18
+		}
+	},
+	"Boba Dart Gun": {
+		"damage": 10, "fire_rate": 0.8, "unlock_level": 2, "cost": 75, "type": "ranged",
+		"tuning": {
+			"projectile_speed": 950.0, "projectile_size": 8.0, "projectile_lifetime": 2.0,
+			"spread_deg": 0.8, "projectile_color": Color(0.45, 0.98, 0.98),
+			"recoil_distance": 3.0, "kick_rotation": 0.04, "kick_duration": 0.04, "recover_duration": 0.07,
+			"flash_scale": Vector2(16, 8), "flash_color": Color(0.68, 1.0, 0.98, 0.95), "flash_duration": 0.06,
+			"camera_shake": 1.4, "burst_color": Color(0.55, 1.0, 0.92), "sparkle_amount": 20,
+			"poison_tick_damage": 1.0, "poison_ticks": 10, "poison_interval": 1.0
+		}
+	},
+	"Kitchen Knife": {
+		"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee",
+		"tuning": {
+			"melee_range": 80.0, "melee_arc_dot": 0.5, "lunge_distance": 10.0,
+			"swing_rotation": 0.35, "kick_duration": 0.06, "recover_duration": 0.09,
+			"flash_scale": Vector2(14, 7), "flash_color": Color(1.0, 0.95, 1.0, 0.75), "flash_duration": 0.06,
+			"camera_shake": 1.8, "burst_color": Color(1.0, 0.85, 0.96), "sparkle_amount": 16
+		}
+	},
+	"Tapioca Launcher": {
+		"damage": 6, "fire_rate": 1.2, "unlock_level": 3, "cost": 150, "type": "special",
+		"tuning": {
+			"projectile_speed": 680.0, "projectile_size": 15.0, "projectile_lifetime": 2.8,
+			"spread_deg": 2.2, "projectile_color": Color(0.42, 0.27, 0.64),
+			"recoil_distance": 10.0, "kick_rotation": 0.13, "kick_duration": 0.07, "recover_duration": 0.14,
+			"flash_scale": Vector2(28, 16), "flash_color": Color(1.0, 0.75, 0.95, 0.95), "flash_duration": 0.11,
+			"camera_shake": 4.0, "burst_color": Color(0.79, 0.64, 1.0), "sparkle_amount": 28,
+			"cluster_count": 5, "cluster_spread_deg": 8.0
+		}
+	},
+	"Poison Straw": {
+		"damage": 8, "fire_rate": 0.6, "unlock_level": 4, "cost": 250, "type": "ranged",
+		"tuning": {
+			"projectile_speed": 1000.0, "projectile_size": 7.0, "projectile_lifetime": 2.2,
+			"spread_deg": 0.5, "projectile_color": Color(0.35, 0.95, 0.45),
+			"recoil_distance": 2.5, "kick_rotation": 0.03, "kick_duration": 0.04, "recover_duration": 0.07,
+			"flash_scale": Vector2(14, 7), "flash_color": Color(0.67, 1.0, 0.58, 0.85), "flash_duration": 0.06,
+			"camera_shake": 1.2, "burst_color": Color(0.74, 1.0, 0.67), "sparkle_amount": 16,
+			"poison_tick_damage": 3.0, "poison_ticks": 5, "poison_interval": 0.8
+		}
+	},
+	"Flamethrower": {
+		"damage": 5, "fire_rate": 0.05, "unlock_level": 1, "cost": 200, "type": "special",
+		"tuning": {
+			"flame_speed": 320.0, "flame_lifetime": 0.45, "flame_spread_deg": 18.0,
+			"recoil_distance": 2.0, "kick_rotation": 0.025, "kick_duration": 0.03, "recover_duration": 0.05,
+			"flash_scale": Vector2(20, 12), "flash_color": Color(1.0, 0.66, 0.35, 0.85), "flash_duration": 0.05,
+			"camera_shake": 1.0, "burst_color": Color(1.0, 0.74, 0.44), "sparkle_amount": 14
+		}
+	}
 }
 var owned_weapons: Array = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
 var equipped_main: String = "Pistol"
