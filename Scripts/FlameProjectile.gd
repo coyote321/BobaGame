@@ -1,11 +1,11 @@
 extends Area2D
 
 ## A short-lived flame burst that pierces through enemies, dealing tick damage.
-## Uses GPUParticles2D for fire visuals.
 
 var direction: Vector2 = Vector2.RIGHT
 var speed: float = 300.0
 var damage: float = 5.0
+var lifetime: float = 0.4
 
 # Track per-enemy cooldowns so we don't damage every frame
 var _hit_cooldowns: Dictionary = {}
@@ -42,6 +42,6 @@ func _try_damage(body: Node2D) -> void:
 	_hit_cooldowns[id] = HIT_INTERVAL
 
 func start_lifetime() -> void:
-	await get_tree().create_timer(0.4).timeout
+	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
 		queue_free()

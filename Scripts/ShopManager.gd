@@ -420,18 +420,93 @@ func show_upgrade_panel(toggle: bool = true):
 		var name_lbl = _styled_label(weapon_name, font_semi, 15, TEXT_WHITE)
 		info_col.add_child(name_lbl)
 
-		var stat_lbl = _styled_label("DMG: " + str(weapon_data["damage"]) + "  |  " + weapon_data["type"].to_upper(), font_medium, 11, TEXT_DIM)
+		var stat_text = "DMG: " + str(weapon_data["damage"]) + "  |  " + weapon_data["type"].to_upper()
+		var poison_data = weapon_data.get("tuning", {})
+		if poison_data.get("poison_ticks", 0) > 0:
+			stat_text += "  |  POISON"
+		var stat_lbl = _styled_label(stat_text, font_medium, 11, TEXT_DIM)
 		info_col.add_child(stat_lbl)
 
-		var btn := _styled_button("EQUIP" if owned else "$" + str(weapon_data["cost"]), Vector2(90, 36))
-		if owned:
-			btn.pressed.connect(func(weapon_to_equip = wn): GameManager.equip_weapon(weapon_to_equip))
-		else:
+		var equipped_in = _get_equipped_slot_name(wn)
+		if equipped_in != "":
+			var eq_lbl = _styled_label("Equipped: " + equipped_in, font_medium, 10, ACCENT_GOLD_DIM)
+			info_col.add_child(eq_lbl)
+
+		if not owned:
+			var btn := _styled_button("$" + str(weapon_data["cost"]), Vector2(90, 36))
 			btn.pressed.connect(func(weapon_to_buy = wn):
 				if GameManager.buy_weapon(weapon_to_buy):
 					show_upgrade_panel(false)
 			)
-		row.add_child(btn)
+			row.add_child(btn)
+		else:
+			var slot_col := VBoxContainer.new()
+			slot_col.add_theme_constant_override("separation", 2)
+			row.add_child(slot_col)
+
+			var slot_label = _styled_label("EQUIP TO:", font_medium, 9, TEXT_DIM)
+			slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			slot_col.add_child(slot_label)
+
+			var slot_row := HBoxContainer.new()
+			slot_row.add_theme_constant_override("separation", 4)
+			slot_col.add_child(slot_row)
+
+			var slot1_btn := _styled_button("Slot 1", Vector2(52, 28))
+			slot1_btn.add_theme_font_size_override("font_size", 11)
+			if GameManager.equipped_main == wn:
+				_style_active_slot_button(slot1_btn)
+			slot1_btn.pressed.connect(func(w = wn):
+				_equip_to_slot(w, "main")
+				show_upgrade_panel(false)
+			)
+			slot_row.add_child(slot1_btn)
+
+			var slot2_btn := _styled_button("Slot 2", Vector2(52, 28))
+			slot2_btn.add_theme_font_size_override("font_size", 11)
+			if GameManager.equipped_melee == wn:
+				_style_active_slot_button(slot2_btn)
+			slot2_btn.pressed.connect(func(w = wn):
+				_equip_to_slot(w, "melee")
+				show_upgrade_panel(false)
+			)
+			slot_row.add_child(slot2_btn)
+
+			var slot3_btn := _styled_button("Slot 3", Vector2(58, 28))
+			slot3_btn.add_theme_font_size_override("font_size", 11)
+			if GameManager.equipped_special == wn:
+				_style_active_slot_button(slot3_btn)
+			slot3_btn.pressed.connect(func(w = wn):
+				_equip_to_slot(w, "special")
+				show_upgrade_panel(false)
+			)
+			slot_row.add_child(slot3_btn)
+
+func _equip_to_slot(weapon_name: String, slot: String) -> void:
+	if weapon_name not in GameManager.owned_weapons:
+		return
+	match slot:
+		"main":
+			GameManager.equipped_main = weapon_name
+		"melee":
+			GameManager.equipped_melee = weapon_name
+		"special":
+			GameManager.equipped_special = weapon_name
+	print("Equipped ", weapon_name, " to ", slot, " slot")
+
+func _get_equipped_slot_name(weapon_name: String) -> String:
+	var slots := []
+	if GameManager.equipped_main == weapon_name:
+		slots.append("Slot 1")
+	if GameManager.equipped_melee == weapon_name:
+		slots.append("Slot 2")
+	if GameManager.equipped_special == weapon_name:
+		slots.append("Slot 3")
+	return ", ".join(slots)
+
+func _style_active_slot_button(btn: Button) -> void:
+	btn.add_theme_color_override("font_color", ACCENT_GOLD)
+	btn.add_theme_stylebox_override("normal", _make_panel_style(Color(0.18, 0.16, 0.08, 0.95), ACCENT_GOLD, 4))
 
 # ============ MISSION PANEL ============
 
