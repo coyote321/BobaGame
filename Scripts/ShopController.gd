@@ -272,7 +272,7 @@ func spawn_customer():
 		current_order.append(ing)
 		order_description += ing + " "
 	if randf() < 0.4:
-		order_description += "\n\nSPECIAL ORDER: 'The Owl flies at midnight.'"
+		order_description += "\n\nSPECIAL ORDER"
 		GameManager.target_order_received = true
 	lbl_order.text = order_description
 

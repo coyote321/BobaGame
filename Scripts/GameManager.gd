@@ -30,6 +30,7 @@ var max_health: int = 100
 var weapons: Dictionary = {
 	"Pistol": {
 		"damage": 10, "fire_rate": 1.0, "unlock_level": 1, "cost": 0, "type": "ranged",
+		"weapon_scene": "res://Scenes/Pistol.tscn",
 		"tuning": {
 			"projectile_speed": 850.0, "projectile_size": 10.0, "projectile_lifetime": 2.2,
 			"spread_deg": 1.5, "projectile_color": Color(1.0, 0.42, 0.55),
@@ -51,6 +52,8 @@ var weapons: Dictionary = {
 	},
 	"Kitchen Knife": {
 		"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee",
+		"weapon_scene": "res://Scenes/KitchenKnife.tscn",
+		"hold_offset": Vector2(40, 6),
 		"tuning": {
 			"melee_range": 80.0, "melee_arc_dot": 0.5, "lunge_distance": 10.0,
 			"swing_rotation": 0.35, "kick_duration": 0.06, "recover_duration": 0.09,

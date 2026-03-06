@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://pistol_scene"]
+
+[ext_resource type="Texture2D" path="res://Assets/Sprites/bobagun.png" id="1_bobagun"]
+
+[node name="Pistol" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1_bobagun")
+texture_filter = 0
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(42, -4)

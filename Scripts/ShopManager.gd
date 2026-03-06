@@ -291,7 +291,7 @@ func show_contract_notification(customer):
 
 	GameManager.receive_contract(target, reward)
 
-	var notif = _styled_label("\"The owl flies at midnight...\"\nTarget: " + target,
+	var notif = _styled_label("New Contract\nTarget: " + target,
 		font_semi, 20, TEXT_RED)
 	notif.position = Vector2(400, 300)
 	notif.z_index = 100

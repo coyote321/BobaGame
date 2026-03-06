@@ -60,6 +60,10 @@ func _refresh_hotbar():
 	_set_slot_label(hotbar_slot1, "1: " + GameManager.equipped_main)
 	_set_slot_label(hotbar_slot2, "2: " + GameManager.equipped_melee)
 	_set_slot_label(hotbar_slot3, "3: " + GameManager.equipped_special)
+	# Reset all slots to unselected (overrides Hotbar.tscn defaults)
+	hotbar_slot1.add_theme_stylebox_override("panel", _unselected_style)
+	hotbar_slot2.add_theme_stylebox_override("panel", _unselected_style)
+	hotbar_slot3.add_theme_stylebox_override("panel", _unselected_style)
 
 func _set_slot_label(slot: Panel, text: String):
 	var label = slot.get_node_or_null("Label")

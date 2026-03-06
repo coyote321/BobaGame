@@ -49,6 +49,7 @@ const DEFAULT_WEAPON_TUNING := {
 var _weapon_muzzle_flash: Polygon2D
 var _shot_anim_tween: Tween
 var _muzzle_flash_inner: Polygon2D
+var _current_weapon_node: Node2D = null
 
 func _ready():
 	health = GameManager.max_health
@@ -58,6 +59,7 @@ func _ready():
 	await get_tree().process_frame
 	hud_node = get_tree().current_scene.find_child("HUD", true, false)
 	_ensure_weapon_vfx_nodes()
+	_update_weapon_scene()
 
 func _physics_process(delta):
 	if fire_cooldown > 0:
@@ -153,6 +155,45 @@ func switch_weapon(idx):
 	# Update HUD
 	if hud_node and hud_node.has_method("update_weapon"):
 		hud_node.update_weapon(idx, weapon_name)
+	_update_weapon_scene()
+
+func _update_weapon_scene() -> void:
+	if not has_node("Visuals"):
+		return
+	# Remove old weapon scene
+	if _current_weapon_node and is_instance_valid(_current_weapon_node):
+		_current_weapon_node.queue_free()
+		_current_weapon_node = null
+	# No weapons in shop phase
+	if GameManager.current_phase == "SHOP":
+		return
+	# Get weapon scene path
+	var weapon_name = _get_current_weapon_name()
+	var weapon_data = GameManager.weapons.get(weapon_name, {})
+	var scene_path = weapon_data.get("weapon_scene", "")
+	if scene_path == "":
+		return
+	var scene = load(scene_path)
+	if scene:
+		_current_weapon_node = scene.instantiate()
+		var offset = weapon_data.get("hold_offset", Vector2(32, 8))
+		_current_weapon_node.position = offset
+		$Visuals.add_child(_current_weapon_node)
+
+func _get_muzzle_global_position() -> Vector2:
+	if _current_weapon_node and is_instance_valid(_current_weapon_node):
+		var muzzle = _current_weapon_node.get_node_or_null("Muzzle")
+		if muzzle:
+			return muzzle.global_position
+	# Fallback: offset from player center
+	return global_position + _get_facing_direction() * 34.0
+
+func _get_muzzle_local_position() -> Vector2:
+	if _current_weapon_node and is_instance_valid(_current_weapon_node):
+		var muzzle = _current_weapon_node.get_node_or_null("Muzzle")
+		if muzzle:
+			return _current_weapon_node.position + muzzle.position
+	return Vector2(34, 0)
 
 func _ensure_weapon_vfx_nodes() -> void:
 	if not has_node("Visuals"):
@@ -164,7 +205,7 @@ func _ensure_weapon_vfx_nodes() -> void:
 	_weapon_muzzle_flash.name = "MuzzleFlash"
 	_weapon_muzzle_flash.color = Color(1.0, 0.9, 0.7, 0.0)
 	_weapon_muzzle_flash.polygon = _make_star_polygon(22.0, 8.0, 6)
-	_weapon_muzzle_flash.position = Vector2(34, 0)
+	_weapon_muzzle_flash.position = _get_muzzle_local_position()
 	_weapon_muzzle_flash.z_index = 120
 	$Visuals.add_child(_weapon_muzzle_flash)
 
@@ -231,7 +272,7 @@ func _play_shot_animation(direction: Vector2, tuning: Dictionary) -> void:
 		var random_rot = randf_range(-0.3, 0.3)
 		_weapon_muzzle_flash.color = flash_color
 		_weapon_muzzle_flash.polygon = _make_star_polygon(flash_size.x, flash_size.y * 0.6, 5 + randi() % 3)
-		_weapon_muzzle_flash.position = Vector2.ZERO
+		_weapon_muzzle_flash.position = _get_muzzle_local_position()
 		_weapon_muzzle_flash.rotation = random_rot
 		_weapon_muzzle_flash.scale = Vector2(0.6, 0.6)
 		_weapon_muzzle_flash.modulate.a = 1.0
@@ -284,7 +325,7 @@ func _spawn_muzzle_burst_particles(direction: Vector2, tuning: Dictionary) -> vo
 	scale_curve.add_point(Vector2(1.0, 0.0))
 	particles.scale_amount_curve = scale_curve
 
-	particles.global_position = global_position + direction * 34.0
+	particles.global_position = _get_muzzle_global_position()
 	particles.z_index = 115
 	get_parent().add_child(particles)
 
@@ -317,7 +358,7 @@ func _spawn_shell_casing(direction: Vector2, tuning: Dictionary) -> void:
 	fade.set_color(1, Color(0.65, 0.52, 0.25, 0.0))
 	shell.color_ramp = fade
 
-	shell.global_position = global_position + direction * 20.0
+	shell.global_position = _get_muzzle_global_position()
 	shell.z_index = 90
 	get_parent().add_child(shell)
 	_auto_free_after(shell, 0.8)
@@ -391,6 +432,7 @@ func melee_attack():
 	melee_anim_tuning["kick_rotation"] = float(tuning.get("swing_rotation", 0.3))
 
 	_play_shot_animation(facing_dir, melee_anim_tuning)
+	_play_melee_swing(tuning)
 	global_position += facing_dir * float(tuning.get("lunge_distance", 8.0))
 
 	var melee_range = float(tuning.get("melee_range", 80.0))
@@ -399,6 +441,7 @@ func melee_attack():
 
 	var enemies_node = get_parent().get_node_or_null("Enemies")
 	if enemies_node:
+		var attack_origin = _get_muzzle_global_position()
 		for enemy in enemies_node.get_children():
 			if enemy.has_method("take_damage"):
 				var dist = global_position.distance_to(enemy.global_position)
@@ -409,6 +452,26 @@ func melee_attack():
 						_spawn_melee_hit_effect(enemy.global_position, burst_color)
 
 	fire_cooldown = GameManager.weapons.get(weapon_name, {}).get("fire_rate", 0.5)
+
+func _play_melee_swing(tuning: Dictionary) -> void:
+	if not _current_weapon_node or not is_instance_valid(_current_weapon_node):
+		return
+	var swing_duration = (float(tuning.get("kick_duration", 0.06)) + float(tuning.get("recover_duration", 0.09))) * 2.5
+	var swing_angle = float(tuning.get("swing_rotation", 0.35))
+
+	var weapon = _current_weapon_node
+	var start_rot = weapon.rotation
+	var start_scale = weapon.scale
+
+	var tween = create_tween()
+	# Wind up (rotate back, scale up)
+	tween.tween_property(weapon, "rotation", start_rot - swing_angle * 2.5, swing_duration * 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(weapon, "scale", start_scale * 1.3, swing_duration * 0.15)
+	# Slash forward (fast, big arc)
+	tween.tween_property(weapon, "rotation", start_rot + swing_angle * 5.0, swing_duration * 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	# Recover
+	tween.tween_property(weapon, "rotation", start_rot, swing_duration * 0.6).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(weapon, "scale", start_scale, swing_duration * 0.4).set_trans(Tween.TRANS_SINE)
 
 func _spawn_slash_arc(direction: Vector2, radius: float, color: Color, tuning: Dictionary) -> void:
 	var arc = Polygon2D.new()
@@ -607,7 +670,7 @@ func _spawn_boba_projectile(direction: Vector2, damage: float, tuning: Dictionar
 	shape.shape = circle
 	projectile.add_child(shape)
 
-	projectile.global_position = global_position + direction * 34.0
+	projectile.global_position = _get_muzzle_global_position()
 
 	get_parent().add_child(projectile)
 	projectile.body_entered.connect(projectile._on_body_entered)
@@ -814,7 +877,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	shape.shape = circle
 	flame.add_child(shape)
 
-	flame.global_position = global_position + base_dir * 25
+	flame.global_position = _get_muzzle_global_position()
 	get_parent().add_child(flame)
 
 	flame.body_entered.connect(flame._on_body_entered)

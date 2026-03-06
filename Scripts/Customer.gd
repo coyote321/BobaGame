@@ -86,7 +86,7 @@ func update_order_display():
 	var text = ""
 	
 	if is_secret_agent:
-		text = "🦉 SECRET ORDER\n"
+		text = "SECRET ORDER\n"
 	
 	text += order["base"]
 	if order["milk"] == "Milk":
@@ -94,8 +94,7 @@ func update_order_display():
 	if order["topping"] != "None":
 		text += " + " + order["topping"]
 	
-	if is_secret_agent:
-		text += "\n(The owl...)"
+
 	
 	order_label.text = text
 
@@ -128,7 +127,7 @@ func serve_complete():
 	is_waiting = false
 	
 	if is_secret_agent:
-		order_label.text = "🦉 The owl flies\nat midnight..."
+		order_label.text = "Contract accepted."
 	elif satisfaction_score >= 4:
 		order_label.text = "★★★★★ Amazing!"
 	elif satisfaction_score >= 3:
