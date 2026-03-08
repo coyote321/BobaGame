@@ -29,7 +29,7 @@ var max_health: int = 100
 # Weapons System
 var weapons: Dictionary = {
 	"Pistol": {
-		"damage": 10, "fire_rate": 1.0, "unlock_level": 1, "cost": 0, "type": "ranged",
+		"damage": 10, "fire_rate": 0.4, "unlock_level": 1, "cost": 0, "type": "ranged",
 		"weapon_scene": "res://Scenes/Pistol.tscn",
 		"tuning": {
 			"projectile_speed": 850.0, "projectile_size": 10.0, "projectile_lifetime": 2.2,
@@ -55,7 +55,7 @@ var weapons: Dictionary = {
 		"weapon_scene": "res://Scenes/KitchenKnife.tscn",
 		"hold_offset": Vector2(40, 6),
 		"tuning": {
-			"melee_range": 80.0, "melee_arc_dot": 0.5, "lunge_distance": 10.0,
+			"melee_range": 120.0, "melee_arc_dot": 0.4, "lunge_distance": 10.0,
 			"swing_rotation": 0.35, "kick_duration": 0.06, "recover_duration": 0.09,
 			"flash_scale": Vector2(14, 7), "flash_color": Color(1.0, 0.95, 1.0, 0.75), "flash_duration": 0.06,
 			"camera_shake": 1.8, "burst_color": Color(1.0, 0.85, 0.96), "sparkle_amount": 16
@@ -85,6 +85,7 @@ var weapons: Dictionary = {
 	},
 	"Flamethrower": {
 		"damage": 5, "fire_rate": 0.05, "unlock_level": 1, "cost": 200, "type": "special",
+		"weapon_scene": "res://Scenes/Flamethrower.tscn",
 		"tuning": {
 			"flame_speed": 320.0, "flame_lifetime": 0.45, "flame_spread_deg": 18.0,
 			"recoil_distance": 2.0, "kick_rotation": 0.025, "kick_duration": 0.03, "recover_duration": 0.05,

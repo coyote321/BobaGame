@@ -39,6 +39,14 @@ var lbl_customers: Label
 var lbl_xp: ProgressBar
 var lbl_contract: Label
 
+# Hotbar slot management
+var _hotbar_slot1: Panel
+var _hotbar_slot2: Panel
+var _hotbar_slot3: Panel
+var _hotbar_selected_style: StyleBoxFlat
+var _hotbar_unselected_style: StyleBoxFlat
+var _current_hotbar_idx: int = 1
+
 var customer_scene = preload("res://Scenes/Customer.tscn")
 
 func _ready():
@@ -54,6 +62,7 @@ func _ready():
 	setup_zones()
 	setup_boba_ui()
 	setup_close_buttons()
+	setup_hotbar()
 
 	start_spawning()
 
@@ -92,6 +101,14 @@ func _process(delta):
 	if Input.is_action_just_pressed("pause"):
 		_close_all_panels()
 
+	# Handle hotbar weapon switching in the shop
+	if Input.is_action_just_pressed("weapon_1"):
+		_select_hotbar_slot(1)
+	elif Input.is_action_just_pressed("weapon_2"):
+		_select_hotbar_slot(2)
+	elif Input.is_action_just_pressed("weapon_3"):
+		_select_hotbar_slot(3)
+
 # ============ STYLE HELPERS ============
 
 func _make_panel_style(bg: Color = BG_DARK, border: Color = ACCENT_GOLD_DIM, radius: int = 6) -> StyleBoxFlat:
@@ -124,6 +141,57 @@ func _styled_button(text: String, min_size: Vector2 = Vector2(140, 42)) -> Butto
 	btn.add_theme_stylebox_override("hover", _make_panel_style(Color(0.18, 0.17, 0.13, 0.95), Color(0.91, 0.76, 0.29, 0.5), 4))
 	btn.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.12, 0.12, 0.14, 1.0), ACCENT_GOLD, 4))
 	return btn
+
+# ============ HOTBAR MANAGEMENT ============
+
+func setup_hotbar() -> void:
+	var hotbar = get_node_or_null("UI_Layer/Hotbar")
+	if not hotbar:
+		return
+
+	_hotbar_slot1 = hotbar.get_node_or_null("HBox/Slot1")
+	_hotbar_slot2 = hotbar.get_node_or_null("HBox/Slot2")
+	_hotbar_slot3 = hotbar.get_node_or_null("HBox/Slot3")
+
+	_hotbar_selected_style = StyleBoxFlat.new()
+	_hotbar_selected_style.bg_color = Color(0.14, 0.14, 0.17, 0.6)
+	_hotbar_selected_style.border_color = ACCENT_GOLD_DIM
+	_hotbar_selected_style.set_border_width_all(1)
+	_hotbar_selected_style.set_corner_radius_all(5)
+
+	_hotbar_unselected_style = StyleBoxFlat.new()
+	_hotbar_unselected_style.bg_color = Color(0.1, 0.1, 0.12, 0.5)
+	_hotbar_unselected_style.set_corner_radius_all(5)
+
+	# Set initial labels
+	_set_hotbar_label(_hotbar_slot1, "1: " + GameManager.equipped_main)
+	_set_hotbar_label(_hotbar_slot2, "2: " + GameManager.equipped_melee)
+	_set_hotbar_label(_hotbar_slot3, "3: " + GameManager.equipped_special)
+
+	# Highlight slot 1 by default
+	_select_hotbar_slot(1)
+
+func _select_hotbar_slot(idx: int) -> void:
+	_current_hotbar_idx = idx
+	var slots = [_hotbar_slot1, _hotbar_slot2, _hotbar_slot3]
+	for i in range(slots.size()):
+		if slots[i]:
+			if i + 1 == idx:
+				slots[i].add_theme_stylebox_override("panel", _hotbar_selected_style)
+			else:
+				slots[i].add_theme_stylebox_override("panel", _hotbar_unselected_style)
+
+func _set_hotbar_label(slot: Panel, text: String) -> void:
+	if not slot:
+		return
+	var label = slot.get_node_or_null("Label")
+	if label:
+		label.text = text
+
+func refresh_hotbar_labels() -> void:
+	_set_hotbar_label(_hotbar_slot1, "1: " + GameManager.equipped_main)
+	_set_hotbar_label(_hotbar_slot2, "2: " + GameManager.equipped_melee)
+	_set_hotbar_label(_hotbar_slot3, "3: " + GameManager.equipped_special)
 
 # ============ HUD SYSTEM ============
 
@@ -493,6 +561,7 @@ func _equip_to_slot(weapon_name: String, slot: String) -> void:
 		"special":
 			GameManager.equipped_special = weapon_name
 	print("Equipped ", weapon_name, " to ", slot, " slot")
+	refresh_hotbar_labels()
 
 func _get_equipped_slot_name(weapon_name: String) -> String:
 	var slots := []

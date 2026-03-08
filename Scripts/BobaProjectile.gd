@@ -200,4 +200,3 @@ func start_lifetime():
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
 		queue_free()
-
