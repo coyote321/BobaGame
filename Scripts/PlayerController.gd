@@ -218,6 +218,20 @@ func take_damage(amount):
 	if health <= 0:
 		die()
 
+func heal(amount: int) -> void:
+	health = min(health + amount, GameManager.max_health)
+	
+	# Flash green
+	modulate = Color(0.3, 1.0, 0.5)
+	var t := get_tree().create_timer(0.15)
+	await t.timeout
+	if is_instance_valid(self):
+		modulate = Color.WHITE
+	
+	# Update HUD
+	if hud_node and hud_node.has_method("update_health"):
+		hud_node.update_health(health, GameManager.max_health)
+
 var is_game_over: bool = false
 
 func die():

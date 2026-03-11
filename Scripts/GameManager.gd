@@ -63,6 +63,7 @@ var weapons: Dictionary = {
 	},
 	"Tapioca Launcher": {
 		"damage": 6, "fire_rate": 1.2, "unlock_level": 3, "cost": 150, "type": "special",
+		"weapon_scene": "res://Scenes/TapiocaLauncher.tscn",
 		"tuning": {
 			"projectile_speed": 680.0, "projectile_size": 15.0, "projectile_lifetime": 2.8,
 			"spread_deg": 2.2, "projectile_color": Color(0.42, 0.27, 0.64),
