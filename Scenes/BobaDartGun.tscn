@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://bobadartgun_scene"]
+
+[ext_resource type="Script" path="res://Scripts/PistolWeapon.gd" id="1_script"]
+
+[node name="BobaDartGun" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.25, 0.55, 0.6, 1)
+polygon = PackedVector2Array(-12, -5, -8, -7, 20, -4, 28, -2, 28, 2, 20, 4, -8, 7, -12, 5)
+
+[node name="Barrel" type="Polygon2D" parent="."]
+color = Color(0.35, 0.75, 0.75, 1)
+polygon = PackedVector2Array(18, -3, 36, -2, 38, 0, 36, 2, 18, 3)
+
+[node name="Grip" type="Polygon2D" parent="."]
+color = Color(0.18, 0.4, 0.45, 1)
+polygon = PackedVector2Array(-4, 4, 2, 4, 4, 12, -2, 14, -6, 12, -6, 6)
+
+[node name="Accent" type="Polygon2D" parent="."]
+color = Color(0.45, 0.98, 0.98, 0.6)
+polygon = PackedVector2Array(6, -3, 18, -2.5, 18, 2.5, 6, 3)
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(40, 0)

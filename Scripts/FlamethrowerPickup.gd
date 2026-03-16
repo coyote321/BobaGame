@@ -86,22 +86,18 @@ func _pick_up() -> void:
 
 	if weapon_name not in GameManager.owned_weapons:
 		GameManager.owned_weapons.append(weapon_name)
-	
-	print("Picked up ", weapon_name, "!")
-	
-	# Refresh the HUD hotbar so the new weapon name shows up
-	var hud = get_tree().current_scene.find_child("HUD", true, false)
-	if hud and hud.has_method("_refresh_hotbar"):
-		hud._refresh_hotbar()
-		if _player_in_range and "current_weapon_idx" in _player_in_range:
-			var idx = _player_in_range.current_weapon_idx
-			var wn = ""
-			match idx:
-				1: wn = GameManager.equipped_main
-				2: wn = GameManager.equipped_melee
-				3: wn = GameManager.equipped_special
-			if hud.has_method("update_weapon"):
-				hud.update_weapon(idx, wn)
+
+	# Figure out which slot the weapon ended up in and swap to it
+	var equipped_slot := 0
+	if GameManager.equipped_main == weapon_name:
+		equipped_slot = 1
+	elif GameManager.equipped_melee == weapon_name:
+		equipped_slot = 2
+	elif GameManager.equipped_special == weapon_name:
+		equipped_slot = 3
+
+	if _player_in_range and _player_in_range.has_method("switch_weapon") and equipped_slot > 0:
+		_player_in_range.switch_weapon(equipped_slot)
 	
 	# Pickup flash effect — scale up and fade out
 	if _prompt_label:

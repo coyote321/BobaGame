@@ -41,6 +41,7 @@ var weapons: Dictionary = {
 	},
 	"Boba Dart Gun": {
 		"damage": 10, "fire_rate": 0.8, "unlock_level": 2, "cost": 75, "type": "ranged",
+		"weapon_scene": "res://Scenes/BobaDartGun.tscn",
 		"tuning": {
 			"projectile_speed": 950.0, "projectile_size": 8.0, "projectile_lifetime": 2.0,
 			"spread_deg": 0.8, "projectile_color": Color(0.45, 0.98, 0.98),
@@ -70,11 +71,12 @@ var weapons: Dictionary = {
 			"recoil_distance": 10.0, "kick_rotation": 0.13, "kick_duration": 0.07, "recover_duration": 0.14,
 			"flash_scale": Vector2(28, 16), "flash_color": Color(1.0, 0.75, 0.95, 0.95), "flash_duration": 0.11,
 			"camera_shake": 4.0, "burst_color": Color(0.79, 0.64, 1.0), "sparkle_amount": 28,
-			"cluster_count": 5, "cluster_spread_deg": 8.0
+			"cluster_count": 12, "cluster_spread_deg": 14.0
 		}
 	},
 	"Poison Straw": {
 		"damage": 8, "fire_rate": 0.6, "unlock_level": 4, "cost": 250, "type": "ranged",
+		"weapon_scene": "res://Scenes/PoisonStraw.tscn",
 		"tuning": {
 			"projectile_speed": 1000.0, "projectile_size": 7.0, "projectile_lifetime": 2.2,
 			"spread_deg": 0.5, "projectile_color": Color(0.35, 0.95, 0.45),
