@@ -1,15 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://knife_scene"]
+[gd_scene load_steps=3 format=3 uid="uid://dbkbq2liu22dc"]
 
-[ext_resource type="Texture2D" path="res://Assets/Sprites/kitchen_knife.png" id="1_knife"]
-[ext_resource type="Script" path="res://Scripts/KnifeWeapon.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://c5txps3myukwp" path="res://Assets/Sprites/kitchen_knife.png" id="1_knife"]
+[ext_resource type="Script" uid="uid://lcifx1jid4wu" path="res://Scripts/KnifeWeapon.gd" id="2_script"]
 
 [node name="KitchenKnife" type="Node2D"]
 script = ExtResource("2_script")
 
 [node name="Sprite" type="Sprite2D" parent="."]
-scale = Vector2(1.0, 1.0)
 texture = ExtResource("1_knife")
-texture_filter = 0
 
 [node name="Muzzle" type="Marker2D" parent="."]
 position = Vector2(26, -5)

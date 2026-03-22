@@ -12,6 +12,7 @@ func attack() -> void:
 
 	_play_shot_animation(facing_dir, melee_anim_tuning)
 	_play_melee_swing(tuning)
+	_play_knife_sound()
 	player.global_position += facing_dir * float(tuning.get("lunge_distance", 8.0))
 
 	var melee_range = float(tuning.get("melee_range", 80.0))
@@ -30,6 +31,17 @@ func attack() -> void:
 						_spawn_melee_hit_effect(enemy.global_position, burst_color)
 
 	player.fire_cooldown = _get_fire_rate()
+
+# ---------------------------------------------------------------------------
+#  Knife sound effect
+# ---------------------------------------------------------------------------
+
+func _play_knife_sound() -> void:
+	var sfx = AudioStreamPlayer.new()
+	sfx.volume_db = 0.0
+	player.get_parent().add_child(sfx)
+	sfx.play()
+	sfx.finished.connect(sfx.queue_free)
 
 # ---------------------------------------------------------------------------
 #  Melee swing animation
