@@ -1,9 +1,5 @@
 extends Area2D
 
-## Flamethrower world pickup. Place this scene anywhere in a mission level.
-## Player must press E while nearby to pick it up.
-## - If an inventory slot is empty, the weapon fills the next open slot.
-## - If all slots are full, it replaces the weapon in the currently selected slot.
 
 @export var weapon_name: String = "Flamethrower"
 

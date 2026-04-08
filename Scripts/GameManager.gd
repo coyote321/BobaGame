@@ -103,6 +103,74 @@ var equipped_melee: String = "Kitchen Knife"
 var equipped_special: String = "Tapioca Launcher"
 var player_damage_multiplier: float = 1.0
 
+# Ability System
+var active_abilities: Dictionary = {
+	"Shadow Dash": {
+		"desc": "Dash forward at lightning speed",
+		"cost": 0, "cooldown": 2.0,
+		"color": Color(0.5, 0.8, 1.0)
+	},
+	"Smoke Bomb": {
+		"desc": "Drop a smoke cloud that slows nearby enemies for 3s",
+		"cost": 150, "cooldown": 5.0,
+		"color": Color(0.6, 0.6, 0.7)
+	},
+	"Shuriken Burst": {
+		"desc": "Fire 8 projectiles in a ring around you",
+		"cost": 250, "cooldown": 4.0,
+		"color": Color(0.9, 0.4, 0.4)
+	},
+	"Poison Cloud": {
+		"desc": "Leave a poison zone that damages enemies over time",
+		"cost": 400, "cooldown": 6.0,
+		"color": Color(0.35, 0.95, 0.45)
+	}
+}
+
+var passive_upgrades: Dictionary = {
+	"Health Upgrade": {
+		"desc": "Increases max health",
+		"per_tier": "+25 HP",
+		"costs": [75, 150, 300],
+		"max_tier": 3,
+		"color": Color(1.0, 0.7, 0.3)
+	},
+	"Speed Upgrade": {
+		"desc": "Increases movement speed",
+		"per_tier": "+30 speed",
+		"costs": [75, 150, 300],
+		"max_tier": 3,
+		"color": Color(0.45, 0.72, 1.0)
+	},
+	"Damage Upgrade": {
+		"desc": "Increases all damage dealt",
+		"per_tier": "+0.25x damage",
+		"costs": [100, 200, 400],
+		"max_tier": 3,
+		"color": Color(1.0, 0.35, 0.35)
+	},
+	"Cooldown Upgrade": {
+		"desc": "Reduces ability cooldowns",
+		"per_tier": "-0.3s cooldown",
+		"costs": [100, 200, 400],
+		"max_tier": 3,
+		"color": Color(0.8, 0.5, 1.0)
+	}
+}
+
+var owned_active_abilities: Array = ["Shadow Dash"]
+var active_ability: String = "Shadow Dash"
+var passive_tiers: Dictionary = {
+	"Health Upgrade": 0,
+	"Speed Upgrade": 0,
+	"Damage Upgrade": 0,
+	"Cooldown Upgrade": 0
+}
+
+var speed_bonus: float = 0.0
+var max_health_bonus: int = 0
+var cooldown_reduction: float = 0.0
+
 # Mission/Contract System
 var target_order_received: bool = false
 var current_contract: Dictionary = {}
@@ -300,6 +368,57 @@ func get_weapon_damage(weapon_name: String) -> float:
 		return weapons[weapon_name]["damage"] * player_damage_multiplier
 	return 10.0
 
+# Ability Management
+func buy_ability(ability_name: String) -> bool:
+	if ability_name in active_abilities and ability_name not in owned_active_abilities:
+		var cost = active_abilities[ability_name]["cost"]
+		if spend_money(cost):
+			owned_active_abilities.append(ability_name)
+			print("Purchased ability: ", ability_name)
+			return true
+	return false
+
+func equip_ability(ability_name: String):
+	if ability_name in owned_active_abilities:
+		active_ability = ability_name
+		print("Equipped ability: ", ability_name)
+
+func upgrade_passive(passive_name: String) -> bool:
+	if passive_name not in passive_upgrades:
+		return false
+	var current_tier = passive_tiers.get(passive_name, 0)
+	var data = passive_upgrades[passive_name]
+	if current_tier >= data["max_tier"]:
+		return false
+	var cost = data["costs"][current_tier]
+	if spend_money(cost):
+		passive_tiers[passive_name] = current_tier + 1
+		_recalculate_passive_bonuses()
+		print("Upgraded ", passive_name, " to tier ", current_tier + 1)
+		return true
+	return false
+
+func _recalculate_passive_bonuses():
+	speed_bonus = passive_tiers["Speed Upgrade"] * 30.0
+	max_health_bonus = passive_tiers["Health Upgrade"] * 25
+	player_damage_multiplier = 1.0 + (passive_tiers["Damage Upgrade"] * 0.25)
+	cooldown_reduction = passive_tiers["Cooldown Upgrade"] * 0.3
+	max_health = 100 + max_health_bonus
+	if health > max_health:
+		health = max_health
+
+func get_ability_cooldown(ability_name: String) -> float:
+	if ability_name in active_abilities:
+		return max(0.5, active_abilities[ability_name]["cooldown"] - cooldown_reduction)
+	return 2.0
+
+func get_passive_next_cost(passive_name: String) -> int:
+	var current_tier = passive_tiers.get(passive_name, 0)
+	var data = passive_upgrades.get(passive_name, {})
+	if current_tier >= data.get("max_tier", 3):
+		return -1
+	return data["costs"][current_tier]
+
 func reset_game():
 	# Reset all game state for a fresh start
 	health = max_health
@@ -320,5 +439,17 @@ func reset_game():
 	equipped_melee = "Kitchen Knife"
 	equipped_special = "Tapioca Launcher"
 	player_damage_multiplier = 1.0
+	owned_active_abilities = ["Shadow Dash"]
+	active_ability = "Shadow Dash"
+	passive_tiers = {
+		"Health Upgrade": 0,
+		"Speed Upgrade": 0,
+		"Damage Upgrade": 0,
+		"Cooldown Upgrade": 0
+	}
+	speed_bonus = 0.0
+	max_health_bonus = 0
+	cooldown_reduction = 0.0
+	max_health = 100
 	generate_daily_quests()
 	print("Game state fully reset")
