@@ -6,6 +6,10 @@ const CUSTOMER_SLOTS_Y: float = 350.0
 const SLOT_SPACING: float = 120.0
 const SLOT_START_X: float = 400.0
 
+const TEX_MILK_ICON := preload("res://Assets/Sprites/MilkIngredientIconDesign.png")
+const TEX_SUGAR_ICON := preload("res://Assets/Sprites/SugarIconPicture.png")
+const TEX_TAPIOCA_ICON := preload("res://Assets/Sprites/BobaIconpicture.png")
+
 const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const ACCENT_GOLD_DIM := Color(0.91, 0.76, 0.29, 0.4)
 const BG_DARK := Color(0.05, 0.05, 0.07, 0.97)
@@ -976,14 +980,44 @@ func setup_boba_ui():
 		"Sugar": Color(1.0, 0.85, 0.5)
 	}
 
+	var ing_icons = {
+		"Milk": TEX_MILK_ICON,
+		"Sugar": TEX_SUGAR_ICON,
+		"Tapioca": TEX_TAPIOCA_ICON,
+	}
+
+	var icon_size := 32
+
 	for ing in GameManager.unlocked_ingredients:
+		var cell := HBoxContainer.new()
+		cell.add_theme_constant_override("separation", 5)
+		cell.alignment = BoxContainer.ALIGNMENT_CENTER
+
+		var icon_tex = ing_icons.get(ing, null)
+		if icon_tex:
+			var icon := TextureRect.new()
+			icon.texture = icon_tex
+			icon.custom_minimum_size = Vector2(icon_size, icon_size)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			cell.add_child(icon)
+		else:
+			var spacer := Control.new()
+			spacer.custom_minimum_size = Vector2(icon_size, icon_size)
+			cell.add_child(spacer)
+
 		var btn := _styled_button("+ " + ing, Vector2(125, 34))
 		btn.add_theme_font_size_override("font_size", 12)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var col = ing_colors.get(ing, TEXT_WHITE)
 		btn.add_theme_color_override("font_color", col)
 		btn.add_theme_color_override("font_hover_color", col.lightened(0.3))
 		btn.pressed.connect(_add_to_mix.bind(ing))
-		grid.add_child(btn)
+		cell.add_child(btn)
+
+		grid.add_child(cell)
 
 	vbox.add_child(_make_spacer(2))
 
