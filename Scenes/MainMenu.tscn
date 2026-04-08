@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://b8j2k3l4m5n6"]
+[gd_scene load_steps=7 format=3 uid="uid://b8j2k3l4m5n6"]
 
 [ext_resource type="Script" uid="uid://brukk584vh7oh" path="res://Scripts/MainMenu.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets copy/Fonts/Montserrat-Bold.ttf" id="2_font_bold"]
 [ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets copy/Fonts/Montserrat-SemiBold.ttf" id="3_font_semi"]
 [ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets copy/Fonts/Montserrat-Medium.ttf" id="4_font_medium"]
 [ext_resource type="Script" uid="uid://ktxuei1l7wu0" path="res://Scripts/MenuButton.gd" id="5_menu_btn"]
+[ext_resource type="Texture2D" uid="uid://c8vsf25n7iigs" path="res://Assets/Sprites/TheBoba.png" id="6_8um5k"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -89,3 +90,8 @@ theme_override_fonts/font = ExtResource("3_font_semi")
 theme_override_font_sizes/font_size = 26
 text = "QUIT"
 script = ExtResource("5_menu_btn")
+
+[node name="TheBoba" type="Sprite2D" parent="."]
+position = Vector2(963, 378)
+scale = Vector2(1.6904293, 2.1123044)
+texture = ExtResource("6_8um5k")
