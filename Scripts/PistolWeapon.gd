@@ -3,6 +3,14 @@ extends "res://Scripts/WeaponBase.gd"
 
 const BOBA_PROJECTILE_SCRIPT := preload("res://Scripts/BobaProjectile.gd")
 
+var _gun_sfx: AudioStreamPlayer = null
+
+func _ready() -> void:
+	_gun_sfx = AudioStreamPlayer.new()
+	_gun_sfx.stream = preload("res://Assets/Audio/boba-gun sounds.mp3")
+	_gun_sfx.volume_db = 0.0
+	add_child(_gun_sfx)
+
 func attack() -> void:
 	if weapon_name == "":
 		return
@@ -16,6 +24,10 @@ func attack() -> void:
 	var damage = _get_damage()
 	_play_shot_animation(_get_facing_direction(), tuning)
 	_spawn_shell_casing(direction, tuning)
+
+	# Play boba gun sound
+	if _gun_sfx:
+		_gun_sfx.play()
 
 	# Fire-rate cooldown is set on the player
 	player.fire_cooldown = _get_fire_rate()

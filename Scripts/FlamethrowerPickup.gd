@@ -10,10 +10,17 @@ extends Area2D
 var _player_in_range: Node2D = null
 var _picked_up: bool = false
 var _prompt_label: Label = null
+var _pickup_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	
+	# Pickup sound effect
+	_pickup_sfx = AudioStreamPlayer.new()
+	_pickup_sfx.stream = preload("res://Assets/Audio/Pickup (1).mp3")
+	_pickup_sfx.volume_db = 10.0
+	add_child(_pickup_sfx)
 	
 	# Create the "Press E" prompt (hidden by default)
 	_prompt_label = Label.new()
@@ -60,6 +67,10 @@ func _pick_up() -> void:
 		return
 
 	_picked_up = true
+
+	# Play pickup sound
+	if _pickup_sfx:
+		_pickup_sfx.play()
 
 	var slot_main = GameManager.equipped_main
 	var slot_melee = GameManager.equipped_melee

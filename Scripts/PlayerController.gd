@@ -20,12 +20,20 @@ var ability_cooldown = 0.0
 
 @export var projectile_scene: PackedScene
 
+var _damage_sfx: AudioStreamPlayer = null
+
 var _current_weapon_node: Node2D = null
 
 func _ready():
 	health = GameManager.max_health
 	add_to_group("player")
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Damage sound effect
+	_damage_sfx = AudioStreamPlayer.new()
+	_damage_sfx.stream = preload("res://Assets/Audio/PlayerTakesDamage (1).wav")
+	_damage_sfx.volume_db = -5.0
+	add_child(_damage_sfx)
 	
 	await get_tree().process_frame
 	hud_node = get_tree().current_scene.find_child("HUD", true, false)
@@ -195,6 +203,10 @@ func take_damage(amount):
 	health -= amount
 	if health < 0:
 		health = 0
+	
+	# Play damage sound
+	if _damage_sfx:
+		_damage_sfx.play()
 	
 	# Flash red
 	modulate = Color(1, 0.3, 0.3)

@@ -11,11 +11,18 @@ var _picked_up: bool = false
 var _prompt_label: Label = null
 var _bob_offset: float = 0.0
 var _base_y: float = 0.0
+var _pickup_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	_base_y = position.y
+	
+	# Pickup sound effect
+	_pickup_sfx = AudioStreamPlayer.new()
+	_pickup_sfx.stream = preload("res://Assets/Audio/Pickup (1).mp3")
+	_pickup_sfx.volume_db = 10.0
+	add_child(_pickup_sfx)
 
 	# Create the "Press E to heal" prompt (hidden by default)
 	_prompt_label = Label.new()
@@ -73,6 +80,10 @@ func _pick_up() -> void:
 		return
 
 	_picked_up = true
+
+	# Play pickup sound
+	if _pickup_sfx:
+		_pickup_sfx.play()
 
 	# Heal the player
 	if _player_in_range.has_method("heal"):
