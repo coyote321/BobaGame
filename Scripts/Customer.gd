@@ -17,17 +17,19 @@ var is_secret_agent: bool = false
 @onready var body_sprite = $Body
 
 func _ready():
-	# Randomize appearance
 	if is_secret_agent:
 		body_sprite.color = Color(0.2, 0.2, 0.3)
 	else:
 		body_sprite.color = Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0))
 	
-	# Patience based on day
 	max_patience = 60.0 - (GameManager.day * 2) 
 	if max_patience < 20: max_patience = 20
 	patience = max_patience
 	decay_rate = 100.0 / max_patience
+	
+	patience_bar.show_percentage = false
+	patience_bar.add_theme_color_override("font_color", Color(0, 0, 0, 0))
+	patience_bar.add_theme_font_size_override("font_size", 0)
 	
 	generate_order()
 	update_ui()
@@ -105,6 +107,13 @@ func receive_item(item_data: Dictionary) -> bool:
 	if not has_ordered: return false
 	
 	var accuracy = calculate_accuracy(item_data)
+	
+	if accuracy < 3:
+		order_label.text = "Wrong order!"
+		order_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
+		_reset_order_label_after_delay()
+		return false
+	
 	var speed_bonus = (patience / max_patience) * 2
 	
 	satisfaction_score = int(accuracy + speed_bonus)
@@ -112,6 +121,11 @@ func receive_item(item_data: Dictionary) -> bool:
 	
 	serve_complete()
 	return true
+
+func _reset_order_label_after_delay() -> void:
+	await get_tree().create_timer(1.0).timeout
+	if is_instance_valid(self) and is_waiting:
+		update_order_display()
 
 func calculate_accuracy(item: Dictionary) -> int:
 	var matches = 0

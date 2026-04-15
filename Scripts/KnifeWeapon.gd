@@ -39,6 +39,7 @@ func attack() -> void:
 func _play_knife_sound() -> void:
 	var sfx = AudioStreamPlayer.new()
 	sfx.volume_db = 0.0
+	sfx.bus = "SFX"
 	player.get_parent().add_child(sfx)
 	sfx.play()
 	sfx.finished.connect(sfx.queue_free)

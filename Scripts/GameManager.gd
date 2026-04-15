@@ -182,10 +182,46 @@ var customers_served_today: int = 0
 var daily_quests: Array = []
 var quest_progress: Dictionary = {}
 
+var master_volume: float = 80.0
+var sfx_volume: float = 80.0
+var _sfx_bus_idx: int = -1
+
 func _ready():
 	print("GameManager initialized")
+	_setup_audio_buses()
 	setup_inputs()
 	generate_daily_quests()
+
+func _setup_audio_buses():
+	_sfx_bus_idx = AudioServer.get_bus_index("SFX")
+	if _sfx_bus_idx == -1:
+		AudioServer.add_bus()
+		_sfx_bus_idx = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(_sfx_bus_idx, "SFX")
+		AudioServer.set_bus_send(_sfx_bus_idx, "Master")
+	set_master_volume(master_volume)
+	set_sfx_volume(sfx_volume)
+
+func set_master_volume(value: float):
+	master_volume = value
+	var bus_idx = AudioServer.get_bus_index("Master")
+	if value <= 0.0:
+		AudioServer.set_bus_mute(bus_idx, true)
+	else:
+		AudioServer.set_bus_mute(bus_idx, false)
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value / 100.0))
+
+func set_sfx_volume(value: float):
+	sfx_volume = value
+	if _sfx_bus_idx == -1:
+		_sfx_bus_idx = AudioServer.get_bus_index("SFX")
+	if _sfx_bus_idx == -1:
+		return
+	if value <= 0.0:
+		AudioServer.set_bus_mute(_sfx_bus_idx, true)
+	else:
+		AudioServer.set_bus_mute(_sfx_bus_idx, false)
+		AudioServer.set_bus_volume_db(_sfx_bus_idx, linear_to_db(value / 100.0))
 
 func setup_inputs():
 	var actions = {

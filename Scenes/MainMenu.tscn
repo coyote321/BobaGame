@@ -92,6 +92,6 @@ text = "QUIT"
 script = ExtResource("5_menu_btn")
 
 [node name="TheBoba" type="Sprite2D" parent="."]
-position = Vector2(963, 378)
-scale = Vector2(1.6904293, 2.1123044)
+position = Vector2(1008, 425)
+scale = Vector2(2.6289067, 2.8027341)
 texture = ExtResource("6_8um5k")

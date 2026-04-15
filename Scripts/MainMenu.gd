@@ -77,8 +77,8 @@ func _show_options_panel() -> void:
 	title.add_theme_color_override("font_color", ACCENT_GOLD)
 	vbox.add_child(title)
 
-	_add_slider(vbox, "MASTER VOLUME", 80)
-	_add_slider(vbox, "SFX VOLUME", 80)
+	_add_slider(vbox, "MASTER VOLUME", GameManager.master_volume, GameManager.set_master_volume)
+	_add_slider(vbox, "SFX VOLUME", GameManager.sfx_volume, GameManager.set_sfx_volume)
 
 	var controls := Label.new()
 	controls.text = "WASD Move  |  Shift Sprint  |  Ctrl Crouch\nE Interact  |  1/2 Weapons  |  G Dash\nLMB Attack  |  RMB Aim"
@@ -96,7 +96,7 @@ func _show_options_panel() -> void:
 	close_btn.pressed.connect(func(): options_panel.visible = false)
 	vbox.add_child(close_btn)
 
-func _add_slider(parent: VBoxContainer, label_text: String, default_val: float) -> void:
+func _add_slider(parent: VBoxContainer, label_text: String, default_val: float, callback: Callable) -> void:
 	var lbl := Label.new()
 	lbl.text = label_text
 	lbl.add_theme_font_size_override("font_size", 12)
@@ -108,4 +108,6 @@ func _add_slider(parent: VBoxContainer, label_text: String, default_val: float) 
 	slider.max_value = 100
 	slider.value = default_val
 	slider.custom_minimum_size = Vector2(0, 24)
+	slider.focus_mode = Control.FOCUS_NONE
+	slider.value_changed.connect(callback)
 	parent.add_child(slider)

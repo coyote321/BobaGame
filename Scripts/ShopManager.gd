@@ -1099,6 +1099,8 @@ func _on_serve_drink():
 			_close_panel(ui_boba_panel)
 			GameManager.add_money(10)
 			GameManager.add_xp(10)
+		else:
+			_show_floating_text("Wrong order!", TEXT_RED, target_customer.global_position)
 
 # ─── DAY END ─────────────────────────────────────────────────
 

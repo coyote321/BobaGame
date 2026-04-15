@@ -18,10 +18,10 @@ func _ready() -> void:
 	body_exited.connect(_on_body_exited)
 	_base_y = position.y
 	
-	# Pickup sound effect
 	_pickup_sfx = AudioStreamPlayer.new()
 	_pickup_sfx.stream = preload("res://Assets/Audio/Pickup (1).mp3")
 	_pickup_sfx.volume_db = 10.0
+	_pickup_sfx.bus = "SFX"
 	add_child(_pickup_sfx)
 
 	# Create the "Press E to heal" prompt (hidden by default)

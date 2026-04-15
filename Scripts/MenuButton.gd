@@ -11,6 +11,7 @@ var _tween: Tween
 
 func _ready() -> void:
 	flat = true
+	focus_mode = Control.FOCUS_NONE
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 	add_theme_color_override("font_color", COLOR_DEFAULT)
