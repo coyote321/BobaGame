@@ -34,8 +34,9 @@ func _ready():
 	
 	# Damage sound effect
 	_damage_sfx = AudioStreamPlayer.new()
-	_damage_sfx.stream = preload("res://Assets/Audio/PlayerTakesDamage (1).wav")
+	_damage_sfx.stream = preload("res://Assets/Audio/sfx/sfx_playerdamage.wav")
 	_damage_sfx.volume_db = -5.0
+	_damage_sfx.bus = &"SFX"
 	add_child(_damage_sfx)
 	
 	await get_tree().process_frame
