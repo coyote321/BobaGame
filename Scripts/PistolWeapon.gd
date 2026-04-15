@@ -7,8 +7,9 @@ var _gun_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
 	_gun_sfx = AudioStreamPlayer.new()
-	_gun_sfx.stream = preload("res://Assets/Audio/boba-gun sounds.mp3")
+	_gun_sfx.stream = preload("res://Assets/Audio/sfx/sfx_boba_gun.mp3")
 	_gun_sfx.volume_db = 0.0
+	_gun_sfx.bus = &"SFX"
 	add_child(_gun_sfx)
 
 func attack() -> void:

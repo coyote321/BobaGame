@@ -42,8 +42,10 @@ func _on_exit_button_pressed() -> void:
 	get_tree().quit()
 
 func _show_options_panel() -> void:
-	if options_panel:
-		options_panel.visible = !options_panel.visible
+	# Always rebuild the panel so sliders read the current audio state
+	if options_panel and is_instance_valid(options_panel):
+		options_panel.queue_free()
+		options_panel = null
 		return
 
 	options_panel = Panel.new()
@@ -77,8 +79,8 @@ func _show_options_panel() -> void:
 	title.add_theme_color_override("font_color", ACCENT_GOLD)
 	vbox.add_child(title)
 
-	_add_slider(vbox, "MASTER VOLUME", 80)
-	_add_slider(vbox, "SFX VOLUME", 80)
+	_add_slider(vbox, "MASTER VOLUME", "Master")
+	_add_slider(vbox, "SFX VOLUME", "SFX")
 
 	var controls := Label.new()
 	controls.text = "WASD Move  |  Shift Sprint  |  Ctrl Crouch\nE Interact  |  1/2 Weapons  |  G Dash\nLMB Attack  |  RMB Aim"
@@ -93,19 +95,40 @@ func _show_options_panel() -> void:
 	close_btn.add_theme_font_size_override("font_size", 14)
 	close_btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	close_btn.add_theme_color_override("font_hover_color", ACCENT_GOLD)
-	close_btn.pressed.connect(func(): options_panel.visible = false)
+	close_btn.pressed.connect(func(): options_panel.queue_free(); options_panel = null)
 	vbox.add_child(close_btn)
 
-func _add_slider(parent: VBoxContainer, label_text: String, default_val: float) -> void:
+func _add_slider(parent: VBoxContainer, label_text: String, bus_name: String) -> void:
 	var lbl := Label.new()
 	lbl.text = label_text
 	lbl.add_theme_font_size_override("font_size", 12)
 	lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 	parent.add_child(lbl)
 
+	# Read the current volume from AudioServer so the slider matches
+	var bus_idx := AudioServer.get_bus_index(bus_name)
+	var current_val := 80.0
+	if bus_idx >= 0:
+		if AudioServer.is_bus_mute(bus_idx):
+			current_val = 0.0
+		else:
+			current_val = db_to_linear(AudioServer.get_bus_volume_db(bus_idx)) * 100.0
+
 	var slider := HSlider.new()
 	slider.min_value = 0
 	slider.max_value = 100
-	slider.value = default_val
+	slider.step = 1
+	slider.value = current_val
 	slider.custom_minimum_size = Vector2(0, 24)
 	parent.add_child(slider)
+
+	# Connect slider changes to AudioServer
+	slider.value_changed.connect(func(val: float):
+		var idx := AudioServer.get_bus_index(bus_name)
+		if idx >= 0:
+			if val <= 0.0:
+				AudioServer.set_bus_mute(idx, true)
+			else:
+				AudioServer.set_bus_mute(idx, false)
+				AudioServer.set_bus_volume_db(idx, linear_to_db(val / 100.0))
+	)
