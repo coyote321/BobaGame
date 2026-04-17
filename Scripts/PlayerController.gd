@@ -9,11 +9,11 @@ var health = 100
 var is_crouching = false
 var is_aiming = false
 
-
+# Reference to external HUD
 var hud_node = null
 
-
-var current_weapon_idx = 1
+# Weapon State
+var current_weapon_idx = 1 # 1 = Main, 2 = Melee, 3 = Special
 
 var fire_cooldown = 0.0
 var ability_cooldown = 0.0
@@ -32,10 +32,11 @@ func _ready():
 	add_to_group("player")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
+	# Damage sound effect
 	_damage_sfx = AudioStreamPlayer.new()
-	_damage_sfx.stream = preload("res://Assets/Audio/PlayerTakesDamage (1).wav")
+	_damage_sfx.stream = preload("res://Assets/Audio/sfx/sfx_playerdamage.wav")
 	_damage_sfx.volume_db = -5.0
-	_damage_sfx.bus = "SFX"
+	_damage_sfx.bus = &"SFX"
 	add_child(_damage_sfx)
 	
 	await get_tree().process_frame
@@ -68,7 +69,7 @@ func _physics_process(delta):
 		
 	velocity = direction * current_speed
 	
-
+	# Animations
 	if velocity.length() > 0:
 		if has_node("AnimationPlayer"):
 			$AnimationPlayer.play("walk")
@@ -81,12 +82,12 @@ func _physics_process(delta):
 	move_and_slide()
 	
 	if GameManager.current_phase == "MISSION":
-
+		# Attack (left click). Using the "aim" mouse button to steady aim only.
 		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			if fire_cooldown <= 0.0:
 				attack()
 		
-
+		# Ability
 		if Input.is_action_just_pressed("ability"):
 			if ability_cooldown <= 0.0:
 				use_ability()
@@ -99,7 +100,7 @@ func update_trail():
 			trail.remove_point(0)
 
 func handle_state_inputs():
-
+	# Crouch
 	if Input.is_action_pressed("crouch"):
 		is_crouching = true
 		if has_node("Visuals"):
@@ -109,10 +110,10 @@ func handle_state_inputs():
 		if has_node("Visuals") and not (has_node("AnimationPlayer") and $AnimationPlayer.is_playing()):
 			$Visuals.scale = Vector2(1, 1)
 
-
+	# Aim
 	is_aiming = Input.is_action_pressed("aim")
 
-
+	# Weapon Switching
 	if Input.is_action_just_pressed("weapon_1"):
 		switch_weapon(1)
 	elif Input.is_action_just_pressed("weapon_2"):
@@ -133,7 +134,7 @@ func switch_weapon(idx):
 	elif idx == 3:
 		weapon_name = GameManager.equipped_special
 	
-
+	# Update HUD
 	if hud_node and hud_node.has_method("update_weapon"):
 		hud_node.update_weapon(idx, weapon_name)
 	_update_weapon_scene()
@@ -141,14 +142,14 @@ func switch_weapon(idx):
 func _update_weapon_scene() -> void:
 	if not has_node("Visuals"):
 		return
-
+	# Remove old weapon scene
 	if _current_weapon_node and is_instance_valid(_current_weapon_node):
 		_current_weapon_node.queue_free()
 		_current_weapon_node = null
-
+	# No weapons in shop phase
 	if GameManager.current_phase == "SHOP":
 		return
-
+	# Get weapon scene path
 	var weapon_name = _get_current_weapon_name()
 	var weapon_data = GameManager.weapons.get(weapon_name, {})
 	var scene_path = weapon_data.get("weapon_scene", "")
@@ -160,7 +161,7 @@ func _update_weapon_scene() -> void:
 		var offset = weapon_data.get("hold_offset", Vector2(32, 8))
 		_current_weapon_node.position = offset
 		$Visuals.add_child(_current_weapon_node)
-
+		# Initialize the weapon script
 		if _current_weapon_node.has_method("init_weapon"):
 			_current_weapon_node.init_weapon(self, weapon_name)
 
@@ -368,22 +369,22 @@ func take_damage(amount):
 	if health < 0:
 		health = 0
 	
-
+	# Play damage sound
 	if _damage_sfx:
 		_damage_sfx.play()
 	
-
+	# Flash red
 	modulate = Color(1, 0.3, 0.3)
 	var t := get_tree().create_timer(0.1)
 	await t.timeout
 	if is_instance_valid(self):
 		modulate = Color.WHITE
 	
-
+	# Update HUD
 	if hud_node and hud_node.has_method("update_health"):
 		hud_node.update_health(health, GameManager.max_health)
 	
-
+	# Screen shake
 	if has_node("Camera2D"):
 		var cam = $Camera2D
 		var shake_tween = create_tween()
@@ -397,14 +398,14 @@ func take_damage(amount):
 func heal(amount: int) -> void:
 	health = min(health + amount, GameManager.max_health)
 	
-
+	# Flash green
 	modulate = Color(0.3, 1.0, 0.5)
 	var t := get_tree().create_timer(0.15)
 	await t.timeout
 	if is_instance_valid(self):
 		modulate = Color.WHITE
 	
-
+	# Update HUD
 	if hud_node and hud_node.has_method("update_health"):
 		hud_node.update_health(health, GameManager.max_health)
 
@@ -416,16 +417,16 @@ func die():
 	is_game_over = true
 	set_physics_process(false)
 	
-
+	# Hide the HUD
 	if hud_node and hud_node.has_method("hide_hud"):
 		hud_node.hide_hud()
 	
-
+	# Brief red flash before transition
 	modulate = Color(1, 0.2, 0.2)
 	
-
+	# Short delay for impact
 	await get_tree().create_timer(0.8).timeout
 	
-
+	# Transition to the end screen
 	GameManager.health = GameManager.max_health
 	get_tree().change_scene_to_file("res://Scenes/EndScreen.tscn")

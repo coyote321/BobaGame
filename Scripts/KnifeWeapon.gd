@@ -1,5 +1,5 @@
 extends "res://Scripts/WeaponBase.gd"
-
+## Kitchen Knife / melee weapon — swing attack with slash arc VFX.
 
 func attack() -> void:
 	if weapon_name == "":
@@ -32,15 +32,21 @@ func attack() -> void:
 
 	player.fire_cooldown = _get_fire_rate()
 
+# ---------------------------------------------------------------------------
+#  Knife sound effect
+# ---------------------------------------------------------------------------
 
 func _play_knife_sound() -> void:
 	var sfx = AudioStreamPlayer.new()
 	sfx.volume_db = 0.0
-	sfx.bus = "SFX"
+	sfx.bus = &"SFX"
 	player.get_parent().add_child(sfx)
 	sfx.play()
 	sfx.finished.connect(sfx.queue_free)
 
+# ---------------------------------------------------------------------------
+#  Melee swing animation
+# ---------------------------------------------------------------------------
 
 func _play_melee_swing(tuning: Dictionary) -> void:
 	var swing_duration = (float(tuning.get("kick_duration", 0.06)) + float(tuning.get("recover_duration", 0.09))) * 2.5
@@ -50,15 +56,18 @@ func _play_melee_swing(tuning: Dictionary) -> void:
 	var start_scale = scale
 
 	var tween = player.create_tween()
-
+	# Wind up (rotate back, scale up)
 	tween.tween_property(self, "rotation", start_rot - swing_angle * 2.5, swing_duration * 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.parallel().tween_property(self, "scale", start_scale * 1.3, swing_duration * 0.15)
-
+	# Slash forward (fast, big arc)
 	tween.tween_property(self, "rotation", start_rot + swing_angle * 5.0, swing_duration * 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-
+	# Recover
 	tween.tween_property(self, "rotation", start_rot, swing_duration * 0.6).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(self, "scale", start_scale, swing_duration * 0.4).set_trans(Tween.TRANS_SINE)
 
+# ---------------------------------------------------------------------------
+#  Slash arc VFX
+# ---------------------------------------------------------------------------
 
 func _spawn_slash_arc(direction: Vector2, radius: float, color: Color, tuning: Dictionary) -> void:
 	var arc = Polygon2D.new()
@@ -118,6 +127,9 @@ func _spawn_slash_arc(direction: Vector2, radius: float, color: Color, tuning: D
 	player.get_parent().add_child(slash_particles)
 	_auto_free_after(slash_particles, 0.5)
 
+# ---------------------------------------------------------------------------
+#  Hit effect
+# ---------------------------------------------------------------------------
 
 func _spawn_melee_hit_effect(pos: Vector2, color: Color) -> void:
 	var hit = CPUParticles2D.new()

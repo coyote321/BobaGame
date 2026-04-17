@@ -12,13 +12,14 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	
+	# Pickup sound effect
 	_pickup_sfx = AudioStreamPlayer.new()
-	_pickup_sfx.stream = preload("res://Assets/Audio/Pickup (1).mp3")
+	_pickup_sfx.stream = preload("res://Assets/Audio/sfx/sfx_item_pick_up.mp3")
 	_pickup_sfx.volume_db = 10.0
-	_pickup_sfx.bus = "SFX"
+	_pickup_sfx.bus = &"SFX"
 	add_child(_pickup_sfx)
 	
-
+	# Create the "Press E" prompt (hidden by default)
 	_prompt_label = Label.new()
 	_prompt_label.text = "Press E to pick up"
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -64,7 +65,7 @@ func _pick_up() -> void:
 
 	_picked_up = true
 
-
+	# Play pickup sound
 	if _pickup_sfx:
 		_pickup_sfx.play()
 
@@ -94,7 +95,7 @@ func _pick_up() -> void:
 	if weapon_name not in GameManager.owned_weapons:
 		GameManager.owned_weapons.append(weapon_name)
 
-
+	# Figure out which slot the weapon ended up in and swap to it
 	var equipped_slot := 0
 	if GameManager.equipped_main == weapon_name:
 		equipped_slot = 1
@@ -106,7 +107,7 @@ func _pick_up() -> void:
 	if _player_in_range and _player_in_range.has_method("switch_weapon") and equipped_slot > 0:
 		_player_in_range.switch_weapon(equipped_slot)
 	
-
+	# Pickup flash effect — scale up and fade out
 	if _prompt_label:
 		_prompt_label.visible = false
 	var tween = create_tween()

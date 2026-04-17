@@ -1,32 +1,15 @@
 extends "res://Scripts/WeaponBase.gd"
-
+## Pistol / ranged weapon — shoots boba projectiles.
 
 const BOBA_PROJECTILE_SCRIPT := preload("res://Scripts/BobaProjectile.gd")
-
-
-static var _projectile_light_tex: GradientTexture2D
-
-static func _ensure_projectile_light_tex() -> void:
-	if _projectile_light_tex != null:
-		return
-	_projectile_light_tex = GradientTexture2D.new()
-	_projectile_light_tex.gradient = Gradient.new()
-	_projectile_light_tex.gradient.set_color(0, Color.WHITE)
-	_projectile_light_tex.gradient.set_color(1, Color.TRANSPARENT)
-	_projectile_light_tex.fill = GradientTexture2D.FILL_RADIAL
-	_projectile_light_tex.fill_from = Vector2(0.5, 0.5)
-	_projectile_light_tex.fill_to = Vector2(0.5, 0.0)
-	_projectile_light_tex.width = 64
-	_projectile_light_tex.height = 64
 
 var _gun_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
-	_ensure_projectile_light_tex()
 	_gun_sfx = AudioStreamPlayer.new()
-	_gun_sfx.stream = preload("res://Assets/Audio/boba-gun sounds.mp3")
+	_gun_sfx.stream = preload("res://Assets/Audio/sfx/sfx_boba_gun.mp3")
 	_gun_sfx.volume_db = 0.0
-	_gun_sfx.bus = "SFX"
+	_gun_sfx.bus = &"SFX"
 	add_child(_gun_sfx)
 
 func attack() -> void:
@@ -43,11 +26,11 @@ func attack() -> void:
 	_play_shot_animation(_get_facing_direction(), tuning)
 	_spawn_shell_casing(direction, tuning)
 
-
+	# Play boba gun sound
 	if _gun_sfx:
 		_gun_sfx.play()
 
-
+	# Fire-rate cooldown is set on the player
 	player.fire_cooldown = _get_fire_rate()
 
 	var cluster_count = int(tuning.get("cluster_count", 1))
@@ -120,7 +103,16 @@ func _spawn_boba_projectile(direction: Vector2, damage: float, tuning: Dictionar
 	glow.color = projectile_color
 	glow.energy = 0.6
 	glow.texture_scale = 0.15 + (projectile_size / 60.0)
-	glow.texture = _projectile_light_tex
+	var light_tex = GradientTexture2D.new()
+	light_tex.gradient = Gradient.new()
+	light_tex.gradient.set_color(0, Color.WHITE)
+	light_tex.gradient.set_color(1, Color.TRANSPARENT)
+	light_tex.fill = GradientTexture2D.FILL_RADIAL
+	light_tex.fill_from = Vector2(0.5, 0.5)
+	light_tex.fill_to = Vector2(0.5, 0.0)
+	light_tex.width = 64
+	light_tex.height = 64
+	glow.texture = light_tex
 	projectile.add_child(glow)
 
 	var shape = CollisionShape2D.new()

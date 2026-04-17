@@ -1,19 +1,17 @@
-[gd_scene load_steps=18 format=3 uid="uid://shopscene123"]
+[gd_scene load_steps=16 format=3 uid="uid://shopscene123"]
 
 [ext_resource type="Script" uid="uid://ct3ygntqv3fsk" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
-[ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes/Wall.tscn" id="3_wall"]
+[ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes copy/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes copy/Wall.tscn" id="3_wall"]
 [ext_resource type="PackedScene" path="res://Scenes/Prop.tscn" id="4_prop"]
-[ext_resource type="Texture2D" uid="uid://bgjrg23a0u72c" path="res://Assets/Sprites/logo_shop.svg" id="5_logo_shop"]
-[ext_resource type="Texture2D" uid="uid://dxihbl6j2rwg1" path="res://Assets/Sprites/logo_weapon.svg" id="6_logo_weapon"]
-[ext_resource type="Texture2D" uid="uid://bwmbxl04uktew" path="res://Assets/Sprites/bookshelf.svg" id="7_bookshelf"]
-[ext_resource type="Texture2D" uid="uid://do80ekbih5ms6" path="res://Assets/Sprites/table.svg" id="8_table"]
-[ext_resource type="Texture2D" uid="uid://dga70jbpe0se8" path="res://Assets/Sprites/logo_mission.svg" id="9_logo_mission"]
+[ext_resource type="Texture2D" uid="uid://bgjrg23a0u72c" path="res://Assets copy/Sprites/logo_shop.svg" id="5_logo_shop"]
+[ext_resource type="Texture2D" uid="uid://dxihbl6j2rwg1" path="res://Assets copy/Sprites/logo_weapon.svg" id="6_logo_weapon"]
+[ext_resource type="Texture2D" uid="uid://bwmbxl04uktew" path="res://Assets copy/Sprites/bookshelf.svg" id="7_bookshelf"]
+[ext_resource type="Texture2D" uid="uid://do80ekbih5ms6" path="res://Assets copy/Sprites/table.svg" id="8_table"]
+[ext_resource type="Texture2D" uid="uid://dga70jbpe0se8" path="res://Assets copy/Sprites/logo_mission.svg" id="9_logo_mission"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="10_hotbar"]
 [ext_resource type="PackedScene" path="res://Scenes/MoneyDisplay.tscn" id="11_money"]
-[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="12_font_bold"]
-[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets/Fonts/Montserrat-SemiBold.ttf" id="13_font_semi"]
-[ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="14_font_medium"]
+[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets copy/Fonts/Montserrat-SemiBold.ttf" id="13_font_semi"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
 size = Vector2(110, 110)
@@ -60,8 +58,6 @@ offset_bottom = 2000.0
 color = Color(0.22, 0.2, 0.18, 1)
 
 [node name="FloorTile" type="ColorRect" parent="."]
-offset_left = 0.0
-offset_top = 0.0
 offset_right = 1280.0
 offset_bottom = 1200.0
 color = Color(0.28, 0.25, 0.22, 1)
@@ -149,15 +145,15 @@ scale = Vector2(0.75, 0.75)
 texture = ExtResource("5_logo_shop")
 
 [node name="ZoneLabel" type="Label" parent="CounterZone"]
-offset_left = -80.0
+offset_left = -50.0
 offset_top = 60.0
-offset_right = 80.0
-offset_bottom = 90.0
-theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 1)
-theme_override_constants/outline_size = 6
-theme_override_fonts/font = ExtResource("12_font_bold")
-theme_override_font_sizes/font_size = 16
+offset_right = 50.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 0.7)
+theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("13_font_semi")
+theme_override_font_sizes/font_size = 11
 text = "BOBA COUNTER"
 horizontal_alignment = 1
 uppercase = true
@@ -176,15 +172,15 @@ scale = Vector2(0.75, 0.75)
 texture = ExtResource("6_logo_weapon")
 
 [node name="ZoneLabel" type="Label" parent="UpgradeZone"]
-offset_left = -80.0
+offset_left = -50.0
 offset_top = 60.0
-offset_right = 80.0
-offset_bottom = 90.0
-theme_override_colors/font_color = Color(0.45, 0.8, 1.0, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 1)
-theme_override_constants/outline_size = 6
-theme_override_fonts/font = ExtResource("12_font_bold")
-theme_override_font_sizes/font_size = 16
+offset_right = 50.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.45, 0.7, 1, 0.7)
+theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("13_font_semi")
+theme_override_font_sizes/font_size = 11
 text = "WEAPON SHOP"
 horizontal_alignment = 1
 uppercase = true
@@ -203,15 +199,15 @@ scale = Vector2(0.75, 0.75)
 texture = ExtResource("9_logo_mission")
 
 [node name="ZoneLabel" type="Label" parent="MissionZone"]
-offset_left = -80.0
+offset_left = -50.0
 offset_top = 60.0
-offset_right = 80.0
-offset_bottom = 90.0
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 1)
-theme_override_constants/outline_size = 6
-theme_override_fonts/font = ExtResource("12_font_bold")
-theme_override_font_sizes/font_size = 16
+offset_right = 50.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 0.7)
+theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("13_font_semi")
+theme_override_font_sizes/font_size = 11
 text = "CONTRACTS"
 horizontal_alignment = 1
 uppercase = true
@@ -234,11 +230,11 @@ offset_right = 180.0
 offset_bottom = -70.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 1)
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 0.95)
+theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 0.95)
 theme_override_constants/outline_size = 8
-theme_override_fonts/font = ExtResource("12_font_bold")
-theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = ExtResource("13_font_semi")
+theme_override_font_sizes/font_size = 15
 text = "Press 'E' to Interact"
 horizontal_alignment = 1
 uppercase = true
@@ -250,17 +246,16 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -440.0
-offset_top = -290.0
-offset_right = -14.0
-offset_bottom = 290.0
+offset_left = -310.0
+offset_top = -240.0
+offset_right = -12.0
+offset_bottom = 240.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_boba_panel")
 
 [node name="CloseBoba" type="Button" parent="UI_Layer/BobaPanel"]
 layout_mode = 0
-anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -44.0
@@ -292,7 +287,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
 
 [node name="CloseUpgrade" type="Button" parent="UI_Layer/UpgradePanel"]
 layout_mode = 0
-anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -44.0
@@ -324,7 +318,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
 
 [node name="CloseMission" type="Button" parent="UI_Layer/MissionPanel"]
 layout_mode = 0
-anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -44.0
