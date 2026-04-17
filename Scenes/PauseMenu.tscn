@@ -142,7 +142,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_ButtonHover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_Button")
 text = "RESUME"
 
-[node name="MenuButton" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="OptionsButton" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.92, 0.92, 1)
 theme_override_colors/font_pressed_color = Color(0.77, 0.65, 0.25, 1)
@@ -153,7 +153,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_Button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_ButtonPressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_ButtonHover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_Button")
-text = "MAIN MENU"
+text = "OPTIONS"
 
 [node name="QuitButton" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2

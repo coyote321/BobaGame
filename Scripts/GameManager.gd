@@ -1,16 +1,16 @@
 extends Node
 
-# Currency & Time
+
 var money: int = 0
 var day: int = 1
-var current_phase: String = "SHOP" # "SHOP" or "MISSION"
+var current_phase: String = "SHOP"
 
-# Progression
+
 var xp: int = 0
 var level: int = 1
-const XP_PER_LEVEL: int = 50  # XP needed to level up (multiplied by level)
+const XP_PER_LEVEL: int = 50
 
-# Shop Progression
+
 var reputation: int = 0
 var shop_level: int = 1
 var unlocked_ingredients: Array = ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar"]
@@ -22,11 +22,11 @@ var inventory: Dictionary = {
 	"Sugar": 999
 }
 
-# Player stats
+
 var health: int = 100
 var max_health: int = 100
 
-# Weapons System
+
 var weapons: Dictionary = {
 	"Pistol": {
 		"damage": 10, "fire_rate": 0.4, "unlock_level": 1, "cost": 0, "type": "ranged",
@@ -103,7 +103,7 @@ var equipped_melee: String = "Kitchen Knife"
 var equipped_special: String = "Tapioca Launcher"
 var player_damage_multiplier: float = 1.0
 
-# Ability System
+
 var active_abilities: Dictionary = {
 	"Shadow Dash": {
 		"desc": "Dash forward at lightning speed",
@@ -171,14 +171,17 @@ var speed_bonus: float = 0.0
 var max_health_bonus: int = 0
 var cooldown_reduction: float = 0.0
 
-# Mission/Contract System
+
 var target_order_received: bool = false
 var current_contract: Dictionary = {}
 var contracts_completed: int = 0
 var daily_earnings: int = 0
 var customers_served_today: int = 0
 
-# Daily Quests
+
+var mission_profile: Dictionary = {}
+
+
 var daily_quests: Array = []
 var quest_progress: Dictionary = {}
 
@@ -246,14 +249,14 @@ func setup_inputs():
 			ev.physical_keycode = actions[action]
 			InputMap.action_add_event(action, ev)
 			
-	# Mouse inputs
+
 	if not InputMap.has_action("aim"):
 		InputMap.add_action("aim")
 		var ev_aim = InputEventMouseButton.new()
 		ev_aim.button_index = MOUSE_BUTTON_RIGHT
 		InputMap.action_add_event("aim", ev_aim)
 
-# XP & Leveling
+
 func add_xp(amount: int):
 	xp += amount
 	print("XP gained: ", amount, " | Total: ", xp)
@@ -269,7 +272,7 @@ func check_level_up():
 		xp_needed = level * XP_PER_LEVEL
 
 func on_level_up():
-	# Unlock new ingredients based on level
+
 	var level_unlocks = {
 		2: "Honey",
 		3: "Matcha",
@@ -285,7 +288,7 @@ func get_xp_progress() -> float:
 	var xp_needed = level * XP_PER_LEVEL
 	return float(xp) / float(xp_needed)
 
-# Money
+
 func add_money(amount: int):
 	money += amount
 	daily_earnings += amount
@@ -294,17 +297,18 @@ func add_money(amount: int):
 func spend_money(amount: int) -> bool:
 	if money >= amount:
 		money -= amount
+		update_quest_progress("spend_money", amount)
 		return true
 	return false
 
-# Reputation
+
 func add_reputation(amount: int):
 	reputation += amount
 	if reputation > shop_level * 100:
 		shop_level += 1
 		print("SHOP LEVEL UP! Level: ", shop_level)
 
-# Contracts
+
 func receive_contract(target_name: String, reward: int):
 	current_contract = {
 		"target": target_name,
@@ -323,18 +327,19 @@ func complete_contract():
 		target_order_received = false
 		print("Contract completed! Total contracts: ", contracts_completed)
 
-# Daily Quests
+
 func generate_daily_quests():
-	daily_quests = [
-		{"id": "serve_customers", "desc": "Serve 5 customers", "target": 5, "reward_xp": 25, "reward_money": 20, "completed": false},
-		{"id": "earn_tips", "desc": "Earn $50 in tips", "target": 50, "reward_xp": 30, "reward_money": 25, "completed": false},
-		{"id": "complete_mission", "desc": "Complete a mission", "target": 1, "reward_xp": 50, "reward_money": 50, "completed": false}
-	]
-	quest_progress = {
-		"serve_customers": 0,
-		"earn_tips": 0,
-		"complete_mission": 0
-	}
+	var pool := QUEST_POOL.duplicate()
+	pool.shuffle()
+	daily_quests = []
+	quest_progress = {}
+	var count: int = mini(3, pool.size())
+	for i in range(count):
+		var q = pool[i].duplicate()
+		q["completed"] = false
+		q["desc"] = q["desc"] % q["target"]
+		daily_quests.append(q)
+		quest_progress[q["id"]] = 0
 
 func update_quest_progress(quest_id: String, amount: int):
 	if quest_id in quest_progress:
@@ -352,7 +357,86 @@ func check_quest_completion(quest_id: String):
 				quest["completed"] = true
 				print("Quest completed: ", quest["desc"])
 
-# Phase transitions
+
+const MISSION_CATALOG := [
+	{"type": "extermination", "label": "Extermination", "desc": "Eliminate every enemy in the zone.",
+	 "base_reward": 60, "base_xp": 40, "unlock_level": 1, "unlock_contracts": 0,
+	 "color": Color(0.45, 0.72, 1.0)},
+	{"type": "timed_hunt", "label": "Timed Hunt", "desc": "Clear all enemies before the timer hits zero.",
+	 "base_reward": 95, "base_xp": 65, "time_limit": 60.0, "unlock_level": 1, "unlock_contracts": 1,
+	 "color": Color(1.0, 0.7, 0.3)},
+	{"type": "boss_hunt", "label": "Boss Hunt", "desc": "Take down a fortified mini-boss and its guards.",
+	 "base_reward": 140, "base_xp": 100, "unlock_level": 2, "unlock_contracts": 2,
+	 "color": Color(1.0, 0.3, 0.4)},
+	{"type": "survival", "label": "Survival", "desc": "Outlast 3 waves of spawning enemies.",
+	 "base_reward": 180, "base_xp": 120, "unlock_level": 2, "unlock_contracts": 3,
+	 "waves": 3, "time_limit": 120.0,
+	 "color": Color(0.7, 0.45, 1.0)},
+]
+
+func get_available_missions() -> Array:
+	var result := []
+	for entry in MISSION_CATALOG:
+		var max_tier := _max_unlocked_tier(entry)
+		if max_tier < 1:
+			continue
+		for tier in range(1, max_tier + 1):
+			var card = entry.duplicate()
+			card["tier"] = tier
+			card["reward_money"] = int(entry["base_reward"] * _tier_reward_mult(tier))
+			card["reward_xp"] = int(entry["base_xp"] * _tier_reward_mult(tier))
+			if entry.has("time_limit"):
+				card["time_limit"] = entry["time_limit"] - (tier - 1) * 10.0
+				if card["time_limit"] < 30.0:
+					card["time_limit"] = 30.0
+			result.append(card)
+	return result
+
+func _max_unlocked_tier(entry: Dictionary) -> int:
+	if level < entry.get("unlock_level", 1):
+		return 0
+	if contracts_completed < entry.get("unlock_contracts", 0):
+		return 0
+	var base_tier := 1
+	if contracts_completed >= 5:
+		base_tier = 3
+	elif contracts_completed >= 2:
+		base_tier = 2
+	return base_tier
+
+func _tier_reward_mult(tier: int) -> float:
+	return 1.0 + (tier - 1) * 0.5
+
+func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp: int, time_limit: float = 0.0, contract_target: String = "", waves: int = 0) -> Dictionary:
+	return {
+		"type": type,
+		"tier": tier,
+		"time_limit": time_limit,
+		"reward_money": reward_money,
+		"reward_xp": reward_xp,
+		"contract_target_name": contract_target,
+		"waves": waves,
+	}
+
+func tier_difficulty_scale(tier: int) -> float:
+
+	return 1.0 + (tier - 1) * 0.4
+
+func tier_enemy_bonus_count(tier: int) -> int:
+
+	return max(0, tier - 1) * 2
+
+
+const QUEST_POOL := [
+	{"id": "serve_customers", "desc": "Serve %d customers", "target": 5, "reward_xp": 25, "reward_money": 20},
+	{"id": "earn_tips", "desc": "Earn $%d in tips", "target": 50, "reward_xp": 30, "reward_money": 25},
+	{"id": "complete_mission", "desc": "Complete %d mission(s)", "target": 1, "reward_xp": 50, "reward_money": 50},
+	{"id": "kill_enemies", "desc": "Defeat %d enemies in missions", "target": 10, "reward_xp": 40, "reward_money": 35},
+	{"id": "boss_hunt", "desc": "Clear %d boss contract(s)", "target": 1, "reward_xp": 80, "reward_money": 75},
+	{"id": "spend_money", "desc": "Spend $%d on upgrades", "target": 100, "reward_xp": 30, "reward_money": 0},
+]
+
+
 func start_mission():
 	current_phase = "MISSION"
 	print("Starting Mission Phase...")
@@ -362,16 +446,17 @@ func start_shop():
 	day += 1
 	daily_earnings = 0
 	customers_served_today = 0
+	mission_profile = {}
 	generate_daily_quests()
 	print("Starting Shop Phase - Day ", day)
 
 func end_day():
 	print("Day ", day, " ended. Earnings: $", daily_earnings)
-	# XP bonus based on performance
+
 	var performance_xp = (customers_served_today * 5) + (daily_earnings / 10)
 	add_xp(performance_xp)
 
-# Weapon Management
+
 func get_available_weapons() -> Array:
 	var available = []
 	for weapon_name in weapons:
@@ -404,7 +489,7 @@ func get_weapon_damage(weapon_name: String) -> float:
 		return weapons[weapon_name]["damage"] * player_damage_multiplier
 	return 10.0
 
-# Ability Management
+
 func buy_ability(ability_name: String) -> bool:
 	if ability_name in active_abilities and ability_name not in owned_active_abilities:
 		var cost = active_abilities[ability_name]["cost"]
@@ -456,7 +541,7 @@ func get_passive_next_cost(passive_name: String) -> int:
 	return data["costs"][current_tier]
 
 func reset_game():
-	# Reset all game state for a fresh start
+
 	health = max_health
 	money = 0
 	day = 1
@@ -468,6 +553,7 @@ func reset_game():
 	contracts_completed = 0
 	daily_earnings = 0
 	customers_served_today = 0
+	mission_profile = {}
 	reputation = 0
 	shop_level = 1
 	owned_weapons = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]

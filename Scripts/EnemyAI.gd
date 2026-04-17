@@ -1,40 +1,40 @@
 extends CharacterBody2D
 
-# == Combat Stats ==
+
 @export var max_health: float = 60.0
 var health: float = 60.0
 var is_dead: bool = false
 
-# == State Machine ==
+
 enum State { IDLE, PATROL, ALERT, CHASE, ATTACK, HURT, DEAD }
 var state: State = State.PATROL
 
-# == Movement ==
+
 var speed: float = 180.0
 var chase_speed: float = 280.0
 var patrol_points: Array = []
 var patrol_index: int = 0
 var patrol_wait_timer: float = 0.0
 
-# == Detection ==
+
 var detection_range: float = 250.0
 var attack_range: float = 80.0
 var player: CharacterBody2D = null
 
-# == Combat ==
+
 var attack_damage: float = 5.0
 var attack_cooldown: float = 0.0
 const ATTACK_RATE: float = 0.3
 var hurt_timer: float = 0.0
 
-# == Alert ==
+
 var alert_timer: float = 0.0
 const ALERT_DURATION: float = 1.5
 
-# == Target for contract missions ==
+
 var is_target: bool = false
 
-# == Visuals ==
+
 var body_rect: ColorRect
 var health_bar: ProgressBar
 var alert_indicator: Label
@@ -44,17 +44,17 @@ func _ready():
 	health = max_health
 	setup_visuals()
 	
-	# Find player
+
 	await get_tree().process_frame
 	var players = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		player = players[0]
 	
-	# Setup patrol points around spawn
+
 	setup_patrol_points()
 
 func setup_visuals():
-	# Get or create body rect
+
 	if has_node("Body") and $Body is ColorRect:
 		body_rect = $Body
 	else:
@@ -65,11 +65,11 @@ func setup_visuals():
 		body_rect.color = Color(0.2, 0.5, 0.9, 1)
 		add_child(body_rect)
 	
-	# Target enemies are gold colored
+
 	if is_target:
 		body_rect.color = Color(1, 0.85, 0)
 	
-	# Health bar (use existing one if present in the scene)
+
 	if has_node("HealthBar") and $HealthBar is ProgressBar:
 		health_bar = $HealthBar
 		health_bar.show_percentage = false
@@ -87,11 +87,11 @@ func setup_visuals():
 		health_bar.add_theme_stylebox_override("fill", fill)
 		add_child(health_bar)
 	
-	# Drive the bar in "HP units" so scene defaults don't matter.
+
 	health_bar.max_value = max_health
 	health_bar.value = health
 	
-	# Alert indicator
+
 	alert_indicator = Label.new()
 	alert_indicator.text = "❗"
 	alert_indicator.position = Vector2(-10, -70)
@@ -143,8 +143,7 @@ func process_patrol(delta):
 	velocity = dir * speed
 	move_and_slide()
 	
-	# (no flip needed for solid square)
-	
+
 	if global_position.distance_to(target) < 10:
 		patrol_index = (patrol_index + 1) % patrol_points.size()
 		state = State.IDLE
@@ -157,7 +156,7 @@ func process_alert(delta):
 	velocity = Vector2.ZERO
 	move_and_slide()
 	
-	# Flash alert indicator
+
 	alert_indicator.visible = int(alert_timer * 4) % 2 == 0
 	
 	if alert_timer <= 0:
@@ -171,22 +170,21 @@ func process_chase(delta):
 	
 	var distance = global_position.distance_to(player.global_position)
 	
-	# Lost sight?
+
 	if distance > detection_range * 1.5:
 		state = State.PATROL
 		return
 	
-	# In attack range?
+
 	if distance < attack_range:
 		state = State.ATTACK
 		return
 	
-	# Chase
+
 	var dir = (player.global_position - global_position).normalized()
 	velocity = dir * chase_speed
 	move_and_slide()
 	
-	# (no flip needed for solid square)
 
 func process_attack(delta):
 	if not player or not is_instance_valid(player):
@@ -207,7 +205,7 @@ func process_attack(delta):
 		attack_cooldown = ATTACK_RATE
 
 func process_hurt(delta):
-	# Brief stun after being hit without spawning new timers each frame
+
 	velocity = Vector2.ZERO
 	move_and_slide()
 	hurt_timer -= delta
@@ -217,7 +215,7 @@ func process_hurt(delta):
 func perform_attack():
 	if player and player.has_method("take_damage"):
 		player.take_damage(attack_damage)
-		# Visual lunge effect (use offset so it doesn't teleport)
+
 		var lunge_dir = (player.global_position - global_position).normalized()
 		var original_pos = position
 		var tween = create_tween()
@@ -231,7 +229,7 @@ func check_player_detection():
 	var distance = global_position.distance_to(player.global_position)
 	var effective_range = detection_range
 	
-	# Harder to detect crouching player
+
 	var player_crouching = false
 	if player.has_method("is_crouching_state"):
 		player_crouching = player.is_crouching_state()
@@ -251,7 +249,7 @@ func take_damage(amount: float):
 	health -= amount
 	health_bar.value = health
 	
-	# Update health bar color
+
 	var fill = StyleBoxFlat.new()
 	if health > max_health * 0.5:
 		fill.bg_color = Color(0.2, 0.8, 0.2)
@@ -261,14 +259,14 @@ func take_damage(amount: float):
 		fill.bg_color = Color(0.8, 0.2, 0.2)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	
-	# Flash white
+
 	if body_rect:
 		var orig_color = body_rect.color
 		body_rect.color = Color.WHITE
 		await get_tree().create_timer(0.1).timeout
 		body_rect.color = orig_color
 	
-	# Show damage number
+
 	show_damage_number(amount)
 	
 	if health <= 0:
@@ -294,7 +292,7 @@ func die():
 	is_dead = true
 	state = State.DEAD
 	
-	# Complete contract if this was the target
+
 	if is_target:
 		GameManager.complete_contract()
 		GameManager.add_xp(100)
@@ -302,8 +300,9 @@ func die():
 		GameManager.add_xp(25)
 	
 	GameManager.add_money(10)
+	GameManager.update_quest_progress("kill_enemies", 1)
 	
-	# Death animation
+
 	var tween = create_tween()
 	tween.tween_property(body_rect, "modulate:a", 0.0, 0.5)
 	tween.parallel().tween_property(self, "scale", Vector2(1.2, 0.3), 0.5)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://c8ungd4jd7yww"]
+[gd_scene load_steps=11 format=3 uid="uid://c8ungd4jd7yww"]
 
 [ext_resource type="Script" uid="uid://coltxto0566oy" path="res://Scripts/HUD.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="6_hotbar"]
@@ -7,12 +7,12 @@
 [ext_resource type="FontFile" uid="uid://djw3hdaipqwq" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="9_font_medium"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
-bg_color = Color(0.07, 0.07, 0.09, 0.92)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.91, 0.76, 0.29, 0.2)
+bg_color = Color(0.05, 0.05, 0.08, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.91, 0.76, 0.29, 0.65)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -26,19 +26,31 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar_fill"]
-bg_color = Color(0.35, 0.75, 0.35, 1)
+bg_color = Color(0.35, 0.85, 0.35, 1)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.07, 0.07, 0.09, 0.92)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.91, 0.76, 0.29, 0.2)
+bg_color = Color(0.05, 0.05, 0.08, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.7, 1.0, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_money_panel"]
+bg_color = Color(0.05, 0.05, 0.08, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.45, 0.9, 0.45, 0.6)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -51,27 +63,27 @@ script = ExtResource("1_script")
 [node name="HealthPanel" type="Panel" parent="."]
 offset_left = 16.0
 offset_top = 12.0
-offset_right = 300.0
-offset_bottom = 56.0
+offset_right = 340.0
+offset_bottom = 68.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hp_bg")
 
 [node name="HPLabel" type="Label" parent="HealthPanel"]
 layout_mode = 0
-offset_left = 12.0
-offset_top = 10.0
-offset_right = 38.0
-offset_bottom = 30.0
-theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 0.7)
-theme_override_fonts/font = ExtResource("8_font_semi")
-theme_override_font_sizes/font_size = 13
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 50.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 20
 text = "HP"
 
 [node name="HealthBar" type="ProgressBar" parent="HealthPanel"]
 layout_mode = 0
-offset_left = 42.0
-offset_top = 12.0
-offset_right = 210.0
-offset_bottom = 32.0
+offset_left = 56.0
+offset_top = 16.0
+offset_right = 220.0
+offset_bottom = 40.0
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_bar_fill")
 value = 100.0
@@ -79,68 +91,148 @@ show_percentage = false
 
 [node name="HealthText" type="Label" parent="HealthPanel"]
 layout_mode = 0
-offset_left = 218.0
-offset_top = 10.0
-offset_right = 280.0
-offset_bottom = 30.0
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_fonts/font = ExtResource("9_font_medium")
-theme_override_font_sizes/font_size = 13
+offset_left = 228.0
+offset_top = 14.0
+offset_right = 320.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 18
 text = "100 / 100"
 
 [node name="MissionPanel" type="Panel" parent="."]
 offset_left = 16.0
-offset_top = 62.0
-offset_right = 370.0
-offset_bottom = 136.0
+offset_top = 76.0
+offset_right = 420.0
+offset_bottom = 172.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="ObjectiveLabel" type="Label" parent="MissionPanel"]
 layout_mode = 0
 offset_left = 14.0
-offset_top = 10.0
-offset_right = 346.0
-offset_bottom = 30.0
-theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_fonts/font = ExtResource("8_font_semi")
-theme_override_font_sizes/font_size = 15
+offset_top = 12.0
+offset_right = 396.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(0.45, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 22
 text = "ELIMINATE ALL ENEMIES"
+
+[node name="TimerLabel" type="Label" parent="MissionPanel"]
+visible = false
+layout_mode = 0
+offset_left = 14.0
+offset_top = 44.0
+offset_right = 396.0
+offset_bottom = 72.0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 18
+text = "TIME: 60s"
 
 [node name="AbortButton" type="Button" parent="MissionPanel"]
 layout_mode = 0
 offset_left = 14.0
-offset_top = 38.0
-offset_right = 160.0
-offset_bottom = 64.0
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_colors/font_hover_color = Color(1, 0.4, 0.4, 1)
-theme_override_fonts/font = ExtResource("8_font_semi")
-theme_override_font_sizes/font_size = 12
-text = "ABORT MISSION"
+offset_top = 70.0
+offset_right = 190.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.45, 0.45, 1)
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 16
+text = "ABORT (B)"
 flat = true
 
 [node name="ReturnButton" type="Button" parent="MissionPanel"]
 visible = false
 layout_mode = 0
-offset_left = 172.0
-offset_top = 38.0
-offset_right = 340.0
-offset_bottom = 64.0
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+offset_left = 200.0
+offset_top = 70.0
+offset_right = 396.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_fonts/font = ExtResource("8_font_semi")
-theme_override_font_sizes/font_size = 12
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 16
 text = "RETURN TO SHOP"
 flat = true
 
-[node name="MoneyLabel" type="Label" parent="."]
-offset_left = 1080.0
-offset_top = 16.0
-offset_right = 1260.0
+[node name="MoneyPanel" type="Panel" parent="."]
+offset_left = 1040.0
+offset_top = 12.0
+offset_right = 1264.0
+offset_bottom = 60.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_money_panel")
+
+[node name="MoneyLabel" type="Label" parent="MoneyPanel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 6.0
+offset_right = 210.0
 offset_bottom = 42.0
-theme_override_colors/font_color = Color(0.5, 0.85, 0.5, 1)
-theme_override_fonts/font = ExtResource("8_font_semi")
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.55, 1, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 26
 text = "$ 0"
+
+[node name="ProgressionPanel" type="Panel" parent="."]
+offset_left = 1040.0
+offset_top = 68.0
+offset_right = 1264.0
+offset_bottom = 172.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hp_bg")
+
+[node name="LevelLabel" type="Label" parent="ProgressionPanel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 210.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 18
+text = "LVL 1"
+
+[node name="XPLabel" type="Label" parent="ProgressionPanel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 36.0
+offset_right = 210.0
+offset_bottom = 58.0
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_fonts/font = ExtResource("9_font_medium")
+theme_override_font_sizes/font_size = 14
+text = "XP 0 / 50"
+
+[node name="XPBar" type="ProgressBar" parent="ProgressionPanel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 62.0
+offset_right = 210.0
+offset_bottom = 78.0
+max_value = 50.0
+value = 0.0
+show_percentage = false
+
+[node name="EnemyLabel" type="Label" parent="ProgressionPanel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 80.0
+offset_right = 210.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 0.55, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("8_font_semi")
+theme_override_font_sizes/font_size = 14
+text = "ENEMIES: 0"
 
 [node name="Hotbar" parent="." instance=ExtResource("6_hotbar")]

@@ -1,7 +1,7 @@
 extends Node
 class_name CraftingSystem
 
-# Simple ingredient matching
+
 static func validate_mix(mix: Array, order: Dictionary) -> Dictionary:
 	var result = {
 		"base": "Unknown",
@@ -9,17 +9,17 @@ static func validate_mix(mix: Array, order: Dictionary) -> Dictionary:
 		"topping": "None"
 	}
 	
-	# Identify Base
+
 	if "Black Tea" in mix:
 		result["base"] = "Black Tea"
 	elif "Green Tea" in mix:
 		result["base"] = "Green Tea"
 	
-	# Identify Milk
+
 	if "Milk" in mix:
 		result["milk"] = "Milk"
 	
-	# Identify Toppings (first match wins)
+
 	if "Tapioca" in mix:
 		result["topping"] = "Tapioca"
 	elif "Sugar" in mix:

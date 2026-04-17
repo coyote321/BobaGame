@@ -50,8 +50,8 @@ func _process(delta):
 			leave_angry()
 
 func generate_order():
-	# SIMPLE: Only order from EXACTLY what's unlocked
-	# Bases
+
+
 	var available_bases = []
 	if "Black Tea" in GameManager.unlocked_ingredients:
 		available_bases.append("Black Tea")
@@ -60,10 +60,10 @@ func generate_order():
 	if available_bases.is_empty():
 		available_bases = ["Black Tea"]
 	
-	# Milk - only if player has it
+
 	var use_milk = "Milk" in GameManager.unlocked_ingredients and randf() > 0.5
 	
-	# Toppings
+
 	var available_toppings = []
 	if "Tapioca" in GameManager.unlocked_ingredients:
 		available_toppings.append("Tapioca")
@@ -72,7 +72,7 @@ func generate_order():
 	if "Honey" in GameManager.unlocked_ingredients:
 		available_toppings.append("Honey")
 	
-	# Build order
+
 	order = {
 		"base": available_bases.pick_random(),
 		"milk": "Milk" if use_milk else "No Milk",
@@ -97,7 +97,6 @@ func update_order_display():
 		text += " + " + order["topping"]
 	
 
-	
 	order_label.text = text
 
 func update_ui():

@@ -1,20 +1,19 @@
 extends Area2D
 
-## A short-lived flame burst that pierces through enemies, dealing tick damage.
 
 var direction: Vector2 = Vector2.RIGHT
 var speed: float = 300.0
 var damage: float = 5.0
 var lifetime: float = 0.4
 
-# Track per-enemy cooldowns so we don't damage every frame
+
 var _hit_cooldowns: Dictionary = {}
 const HIT_INTERVAL: float = 0.15
 
 func _physics_process(delta: float) -> void:
 	position += direction * speed * delta
 
-	# Tick down hit cooldowns
+
 	var to_erase: Array = []
 	for key in _hit_cooldowns:
 		_hit_cooldowns[key] -= delta
@@ -30,7 +29,7 @@ func _try_damage(body: Node2D) -> void:
 	if body.name == "Player" or body.is_in_group("player"):
 		return
 
-	# Wall collision — just ignore, let the flame pass (short lifetime handles cleanup)
+
 	if not body.has_method("take_damage"):
 		return
 

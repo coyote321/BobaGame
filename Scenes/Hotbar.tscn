@@ -1,25 +1,30 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets/Fonts/Montserrat-SemiBold.ttf" id="1_font_semi"]
+[ext_resource type="FontFile" uid="uid://dn5unlqgldrcv" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="1_font_bold"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.1, 0.1, 0.12, 0.5)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+bg_color = Color(0.07, 0.07, 0.1, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.35, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selected"]
-bg_color = Color(0.14, 0.14, 0.17, 0.6)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.91, 0.76, 0.29, 0.4)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+bg_color = Color(0.18, 0.15, 0.08, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.91, 0.76, 0.29, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="Hotbar" type="Control"]
 layout_mode = 3
@@ -28,10 +33,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -210.0
-offset_top = -60.0
-offset_right = 210.0
-offset_bottom = -10.0
+offset_left = -280.0
+offset_top = -66.0
+offset_right = 280.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -43,10 +48,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="Slot1" type="Panel" parent="HBox"]
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(160, 50)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_selected")
 
@@ -57,16 +62,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
-theme_override_fonts/font = ExtResource("1_font_semi")
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_font_bold")
+theme_override_font_sizes/font_size = 14
 text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 
 [node name="Slot2" type="Panel" parent="HBox"]
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(160, 50)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
@@ -77,16 +84,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
-theme_override_fonts/font = ExtResource("1_font_semi")
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_font_bold")
+theme_override_font_sizes/font_size = 14
 text = "2"
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 
 [node name="Slot3" type="Panel" parent="HBox"]
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(160, 50)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
@@ -97,9 +106,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
-theme_override_fonts/font = ExtResource("1_font_semi")
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_font_bold")
+theme_override_font_sizes/font_size = 14
 text = "3"
 horizontal_alignment = 1
 vertical_alignment = 1

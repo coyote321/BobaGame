@@ -11,6 +11,34 @@ var poison_interval: float = 1.0
 
 var _age: float = 0.0
 
+
+static var _hit_scale_curve: Curve
+static var _hit_flash_tex: GradientTexture2D
+static var _shared_built: bool = false
+
+static func _build_shared() -> void:
+	if _shared_built:
+		return
+	_shared_built = true
+
+	_hit_scale_curve = Curve.new()
+	_hit_scale_curve.add_point(Vector2(0.0, 0.5))
+	_hit_scale_curve.add_point(Vector2(0.15, 1.0))
+	_hit_scale_curve.add_point(Vector2(1.0, 0.0))
+
+	_hit_flash_tex = GradientTexture2D.new()
+	_hit_flash_tex.gradient = Gradient.new()
+	_hit_flash_tex.gradient.set_color(0, Color.WHITE)
+	_hit_flash_tex.gradient.set_color(1, Color.TRANSPARENT)
+	_hit_flash_tex.fill = GradientTexture2D.FILL_RADIAL
+	_hit_flash_tex.fill_from = Vector2(0.5, 0.5)
+	_hit_flash_tex.fill_to = Vector2(0.5, 0.0)
+	_hit_flash_tex.width = 64
+	_hit_flash_tex.height = 64
+
+func _ready() -> void:
+	_build_shared()
+
 func _physics_process(delta):
 	position += direction * speed * delta
 	_age += delta
@@ -133,7 +161,7 @@ func _spawn_hit_particles(pos: Vector2, color: Color, is_enemy: bool) -> void:
 	var particles = CPUParticles2D.new()
 	particles.emitting = true
 	particles.one_shot = true
-	particles.amount = 14 if is_enemy else 8
+	particles.amount = 12 if is_enemy else 6
 	particles.lifetime = 0.3
 	particles.explosiveness = 0.92
 	particles.randomness = 0.5
@@ -147,6 +175,7 @@ func _spawn_hit_particles(pos: Vector2, color: Color, is_enemy: bool) -> void:
 	particles.scale_amount_min = 2.0
 	particles.scale_amount_max = 4.0
 
+
 	var grad = Gradient.new()
 	grad.set_offset(0, 0.0)
 	grad.set_color(0, Color(1.0, 1.0, 1.0, 1.0))
@@ -156,12 +185,7 @@ func _spawn_hit_particles(pos: Vector2, color: Color, is_enemy: bool) -> void:
 	grad.set_offset(1, 1.0)
 	grad.set_color(1, Color(color.r, color.g, color.b, 0.0))
 	particles.color_ramp = grad
-
-	var scale_curve = Curve.new()
-	scale_curve.add_point(Vector2(0.0, 0.5))
-	scale_curve.add_point(Vector2(0.15, 1.0))
-	scale_curve.add_point(Vector2(1.0, 0.0))
-	particles.scale_amount_curve = scale_curve
+	particles.scale_amount_curve = _hit_scale_curve
 
 	particles.global_position = pos
 	particles.z_index = 110
@@ -172,16 +196,7 @@ func _spawn_hit_particles(pos: Vector2, color: Color, is_enemy: bool) -> void:
 		flash.color = color
 		flash.energy = 1.2
 		flash.texture_scale = 0.2
-		var tex = GradientTexture2D.new()
-		tex.gradient = Gradient.new()
-		tex.gradient.set_color(0, Color.WHITE)
-		tex.gradient.set_color(1, Color.TRANSPARENT)
-		tex.fill = GradientTexture2D.FILL_RADIAL
-		tex.fill_from = Vector2(0.5, 0.5)
-		tex.fill_to = Vector2(0.5, 0.0)
-		tex.width = 64
-		tex.height = 64
-		flash.texture = tex
+		flash.texture = _hit_flash_tex
 		flash.global_position = pos
 		get_tree().current_scene.add_child(flash)
 

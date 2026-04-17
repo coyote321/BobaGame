@@ -1,45 +1,45 @@
 extends CharacterBody2D
 
-# == Combat Stats ==
+
 @export var max_health: float = 200.0
 var health: float = 200.0
 var is_dead: bool = false
 
-# == State Machine ==
+
 enum State { IDLE, PATROL, ALERT, CHASE, ATTACK, HURT, DEAD }
 var state: State = State.PATROL
 
-# == Movement ==
+
 var speed: float = 40.0
 var chase_speed: float = 55.0
 var patrol_points: Array = []
 var patrol_index: int = 0
 var patrol_wait_timer: float = 0.0
 
-# == Detection ==
+
 var detection_range: float = 400.0
 var attack_range: float = 300.0
 var player: CharacterBody2D = null
 
-# == Combat ==
+
 var attack_damage: float = 25.0
 var attack_cooldown: float = 0.0
 const ATTACK_RATE: float = 2.5
 var hurt_timer: float = 0.0
 
-# == Alert ==
+
 var alert_timer: float = 0.0
 const ALERT_DURATION: float = 1.0
 
-# == Target for contract missions ==
+
 var is_target: bool = false
 
-# == Visuals ==
+
 var body_rect: ColorRect
 var health_bar: ProgressBar
 var alert_indicator: Label
 
-# == Projectile ==
+
 const PROJECTILE_SCRIPT = preload("res://Scripts/EnemyProjectile.gd")
 
 func _ready():
@@ -47,17 +47,17 @@ func _ready():
 	health = max_health
 	setup_visuals()
 	
-	# Find player
+
 	await get_tree().process_frame
 	var players = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		player = players[0]
 	
-	# Setup patrol points around spawn
+
 	setup_patrol_points()
 
 func setup_visuals():
-	# Get or create body rect
+
 	if has_node("Body") and $Body is ColorRect:
 		body_rect = $Body
 	else:
@@ -68,11 +68,11 @@ func setup_visuals():
 		body_rect.color = Color(0.6, 0.2, 0.7, 1)
 		add_child(body_rect)
 	
-	# Target enemies are gold colored
+
 	if is_target:
 		body_rect.color = Color(1, 0.85, 0)
 	
-	# Health bar (use existing one if present in the scene)
+
 	if has_node("HealthBar") and $HealthBar is ProgressBar:
 		health_bar = $HealthBar
 		health_bar.show_percentage = false
@@ -90,11 +90,11 @@ func setup_visuals():
 		health_bar.add_theme_stylebox_override("fill", fill)
 		add_child(health_bar)
 	
-	# Drive the bar in "HP units" so scene defaults don't matter.
+
 	health_bar.max_value = max_health
 	health_bar.value = health
 	
-	# Alert indicator
+
 	alert_indicator = Label.new()
 	alert_indicator.text = "!"
 	alert_indicator.position = Vector2(-5, -80)
@@ -147,8 +147,7 @@ func process_patrol(delta):
 	velocity = dir * speed
 	move_and_slide()
 	
-	# (no flip needed for solid square)
-	
+
 	if global_position.distance_to(target) < 10:
 		patrol_index = (patrol_index + 1) % patrol_points.size()
 		state = State.IDLE
@@ -161,7 +160,7 @@ func process_alert(delta):
 	velocity = Vector2.ZERO
 	move_and_slide()
 	
-	# Flash alert indicator
+
 	alert_indicator.visible = int(alert_timer * 6) % 2 == 0
 	
 	if alert_timer <= 0:
@@ -175,22 +174,21 @@ func process_chase(delta):
 	
 	var distance = global_position.distance_to(player.global_position)
 	
-	# Lost sight?
+
 	if distance > detection_range * 1.5:
 		state = State.PATROL
 		return
 	
-	# In attack range?
+
 	if distance < attack_range:
 		state = State.ATTACK
 		return
 	
-	# Chase
+
 	var dir = (player.global_position - global_position).normalized()
 	velocity = dir * chase_speed
 	move_and_slide()
 	
-	# (no flip needed for solid square)
 
 func process_attack(delta):
 	if not player or not is_instance_valid(player):
@@ -199,25 +197,23 @@ func process_attack(delta):
 	
 	var distance = global_position.distance_to(player.global_position)
 	
-	# If player moves out of range, chase again
+
 	if distance > attack_range * 1.2:
 		state = State.CHASE
 		return
 	
-	# Slowly advance while shooting (tank creeps toward you)
+
 	var dir = (player.global_position - global_position).normalized()
-	velocity = dir * speed * 0.5  # Half patrol speed while shooting
+	velocity = dir * speed * 0.5
 	move_and_slide()
 	
-	# Face player
-	# (no flip needed for solid square)
-	
+
 	if attack_cooldown <= 0:
 		perform_attack()
 		attack_cooldown = ATTACK_RATE
 
 func process_hurt(delta):
-	# Brief stun
+
 	velocity = Vector2.ZERO
 	move_and_slide()
 	hurt_timer -= delta
@@ -228,12 +224,11 @@ func perform_attack():
 	if not player:
 		return
 		
-	# Spawn Projectile
+
 	var projectile = Area2D.new()
 	projectile.name = "EnemyProj_" + str(randi())
 	
-	# Collision: Layer 5 (16) for Enemy Projectile
-	# Mask: Player (2) + Wall (1) -> 3
+
 	projectile.collision_layer = 16 
 	projectile.collision_mask = 1 | 2
 	
@@ -242,7 +237,7 @@ func perform_attack():
 	projectile.damage = attack_damage
 	projectile.speed = 350.0
 	
-	# Visual - dark red square (gray-box prototype)
+
 	var p_rect = ColorRect.new()
 	p_rect.color = Color(0.7, 0.15, 0.1)
 	p_rect.size = Vector2(12, 12)
@@ -287,7 +282,7 @@ func take_damage(amount: float):
 	health -= amount
 	health_bar.value = health
 	
-	# Update health bar color
+
 	var fill = StyleBoxFlat.new()
 	if health > max_health * 0.5:
 		fill.bg_color = Color(0.2, 0.8, 0.2)
@@ -297,14 +292,14 @@ func take_damage(amount: float):
 		fill.bg_color = Color(0.8, 0.2, 0.2)
 	health_bar.add_theme_stylebox_override("fill", fill)
 	
-	# Flash white
+
 	if body_rect:
 		var orig_color = body_rect.color
 		body_rect.color = Color.WHITE
 		await get_tree().create_timer(0.1).timeout
 		body_rect.color = orig_color
 	
-	# Show damage number
+
 	show_damage_number(amount)
 	
 	if health <= 0:
@@ -330,7 +325,7 @@ func die():
 	is_dead = true
 	state = State.DEAD
 	
-	# Complete contract if this was the target
+
 	if is_target:
 		GameManager.complete_contract()
 		GameManager.add_xp(150)
@@ -338,8 +333,9 @@ func die():
 		GameManager.add_xp(40)
 	
 	GameManager.add_money(15)
+	GameManager.update_quest_progress("kill_enemies", 1)
 	
-	# Death animation
+
 	var tween = create_tween()
 	tween.tween_property(body_rect, "modulate:a", 0.0, 0.5)
 	tween.parallel().tween_property(self, "scale", Vector2(1.2, 0.3), 0.5)

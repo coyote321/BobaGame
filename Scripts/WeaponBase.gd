@@ -1,15 +1,35 @@
 extends Node2D
-## Base class for all weapon scripts. Attach to weapon scene root nodes.
-## Subclasses override attack() to implement weapon-specific behavior.
 
-# Set by PlayerController after instantiation
+
 var player: CharacterBody2D = null
 var weapon_name: String = ""
 
-# VFX nodes created at init
+
 var _weapon_muzzle_flash: Polygon2D
 var _muzzle_flash_inner: Polygon2D
 var _shot_anim_tween: Tween
+
+
+static var _muzzle_burst_scale_curve: Curve
+static var _trail_scale_tex: CurveTexture
+static var _shared_fx_built: bool = false
+
+static func _ensure_shared_fx() -> void:
+	if _shared_fx_built:
+		return
+	_shared_fx_built = true
+
+	_muzzle_burst_scale_curve = Curve.new()
+	_muzzle_burst_scale_curve.add_point(Vector2(0.0, 1.0))
+	_muzzle_burst_scale_curve.add_point(Vector2(0.3, 0.7))
+	_muzzle_burst_scale_curve.add_point(Vector2(1.0, 0.0))
+
+	var trail_curve := Curve.new()
+	trail_curve.add_point(Vector2(0.0, 1.0))
+	trail_curve.add_point(Vector2(0.5, 0.6))
+	trail_curve.add_point(Vector2(1.0, 0.0))
+	_trail_scale_tex = CurveTexture.new()
+	_trail_scale_tex.curve = trail_curve
 
 const DEFAULT_WEAPON_TUNING := {
 	"projectile_speed": 800.0,
@@ -37,15 +57,13 @@ const DEFAULT_WEAPON_TUNING := {
 func init_weapon(p_player: CharacterBody2D, p_weapon_name: String) -> void:
 	player = p_player
 	weapon_name = p_weapon_name
+	_ensure_shared_fx()
 	_ensure_weapon_vfx_nodes()
 
-## Override in subclasses to implement weapon-specific attack behavior.
+
 func attack() -> void:
 	pass
 
-# ---------------------------------------------------------------------------
-#  Tuning helpers
-# ---------------------------------------------------------------------------
 
 func _get_tuning() -> Dictionary:
 	var tuning := DEFAULT_WEAPON_TUNING.duplicate(true)
@@ -61,9 +79,6 @@ func _get_fire_rate() -> float:
 func _get_damage() -> float:
 	return GameManager.get_weapon_damage(weapon_name)
 
-# ---------------------------------------------------------------------------
-#  Facing / muzzle helpers
-# ---------------------------------------------------------------------------
 
 func _get_facing_direction() -> Vector2:
 	if player and player.has_node("Visuals"):
@@ -74,7 +89,7 @@ func _get_muzzle_global_position() -> Vector2:
 	var muzzle = get_node_or_null("Muzzle")
 	if muzzle:
 		return muzzle.global_position
-	# Fallback
+
 	if player:
 		return player.global_position + _get_facing_direction() * 34.0
 	return global_position
@@ -85,9 +100,6 @@ func _get_muzzle_local_position() -> Vector2:
 		return position + muzzle.position
 	return Vector2(34, 0)
 
-# ---------------------------------------------------------------------------
-#  Muzzle flash VFX
-# ---------------------------------------------------------------------------
 
 func _ensure_weapon_vfx_nodes() -> void:
 	if _weapon_muzzle_flash and is_instance_valid(_weapon_muzzle_flash):
@@ -120,9 +132,6 @@ func _make_star_polygon(outer_r: float, inner_r: float, points: int) -> PackedVe
 		verts.append(Vector2(cos(angle) * r, sin(angle) * r))
 	return verts
 
-# ---------------------------------------------------------------------------
-#  Shot animation (recoil + muzzle flash + particles)
-# ---------------------------------------------------------------------------
 
 func _play_shot_animation(direction: Vector2, tuning: Dictionary) -> void:
 	if not player or not player.has_node("Visuals"):
@@ -177,9 +186,6 @@ func _play_shot_animation(direction: Vector2, tuning: Dictionary) -> void:
 	_spawn_muzzle_burst_particles(direction, tuning)
 	_apply_shot_camera_shake(float(tuning.get("camera_shake", 2.0)))
 
-# ---------------------------------------------------------------------------
-#  Particle effects
-# ---------------------------------------------------------------------------
 
 func _spawn_muzzle_burst_particles(direction: Vector2, tuning: Dictionary) -> void:
 	var burst_color: Color = tuning.get("burst_color", tuning.get("flash_color", Color(1.0, 0.9, 0.7)))
@@ -209,12 +215,7 @@ func _spawn_muzzle_burst_particles(direction: Vector2, tuning: Dictionary) -> vo
 	grad.set_offset(1, 1.0)
 	grad.set_color(1, Color(burst_color.r, burst_color.g, burst_color.b, 0.0))
 	particles.color_ramp = grad
-
-	var scale_curve = Curve.new()
-	scale_curve.add_point(Vector2(0.0, 1.0))
-	scale_curve.add_point(Vector2(0.3, 0.7))
-	scale_curve.add_point(Vector2(1.0, 0.0))
-	particles.scale_amount_curve = scale_curve
+	particles.scale_amount_curve = _muzzle_burst_scale_curve
 
 	particles.global_position = _get_muzzle_global_position()
 	particles.z_index = 115
@@ -266,9 +267,6 @@ func _apply_shot_camera_shake(intensity: float) -> void:
 	tween.tween_property(cam, "offset", shake1 * 0.2, 0.025)
 	tween.tween_property(cam, "offset", Vector2.ZERO, 0.04).set_trans(Tween.TRANS_SINE)
 
-# ---------------------------------------------------------------------------
-#  Projectile trail helper
-# ---------------------------------------------------------------------------
 
 func _create_projectile_trail(color: Color, size: float) -> GPUParticles2D:
 	var trail = GPUParticles2D.new()
@@ -301,21 +299,11 @@ func _create_projectile_trail(color: Color, size: float) -> GPUParticles2D:
 	var grad_tex = GradientTexture1D.new()
 	grad_tex.gradient = grad
 	mat.color_ramp = grad_tex
-
-	var scale_curve = Curve.new()
-	scale_curve.add_point(Vector2(0.0, 1.0))
-	scale_curve.add_point(Vector2(0.5, 0.6))
-	scale_curve.add_point(Vector2(1.0, 0.0))
-	var scale_tex = CurveTexture.new()
-	scale_tex.curve = scale_curve
-	mat.scale_curve = scale_tex
+	mat.scale_curve = _trail_scale_tex
 
 	trail.process_material = mat
 	return trail
 
-# ---------------------------------------------------------------------------
-#  Utility
-# ---------------------------------------------------------------------------
 
 func _auto_free_after(node: Node, duration: float) -> void:
 	await get_tree().create_timer(duration).timeout

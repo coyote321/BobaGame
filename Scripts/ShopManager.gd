@@ -128,7 +128,6 @@ func _process(delta):
 	elif Input.is_action_just_pressed("weapon_3"):
 		_select_hotbar_slot(3)
 
-# ─── STYLE HELPERS ────────────────────────────────────────────
 
 func _make_panel_style(bg: Color = BG_DARK, border: Color = ACCENT_GOLD_DIM, radius: int = 8) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
@@ -187,7 +186,6 @@ func _make_spacer(height: float = 8.0) -> Control:
 	s.custom_minimum_size = Vector2(0, height)
 	return s
 
-# ─── PANEL ANIMATIONS ────────────────────────────────────────
 
 func _open_panel(panel: Control):
 	_panel_cooldown = PANEL_ANIM_SPEED + 0.1
@@ -223,7 +221,6 @@ func _is_any_panel_open() -> bool:
 		return true
 	return false
 
-# ─── HOTBAR ───────────────────────────────────────────────────
 
 func setup_hotbar() -> void:
 	var hotbar = get_node_or_null("UI_Layer/Hotbar")
@@ -267,7 +264,6 @@ func refresh_hotbar_labels() -> void:
 	_set_hotbar_label(_hotbar_slot2, "2: " + GameManager.equipped_melee)
 	_set_hotbar_label(_hotbar_slot3, "3: " + GameManager.equipped_special)
 
-# ─── HUD ─────────────────────────────────────────────────────
 
 func setup_hud():
 	hud_container = Control.new()
@@ -289,7 +285,7 @@ func setup_hud():
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_container.add_child(bg)
 
-	# Left cluster: Day + Time
+
 	var left_col := VBoxContainer.new()
 	left_col.position = Vector2(20, 8)
 	left_col.add_theme_constant_override("separation", 0)
@@ -306,17 +302,17 @@ func setup_hud():
 	var clock_icon = _styled_label("⏱", font_medium, 14, TEXT_DIM)
 	time_row.add_child(clock_icon)
 
-	lbl_time = _styled_label("02:00", font_semi, 16, TEXT_DIM)
+	lbl_time = _styled_label("02:00", font_bold, 18, TEXT_WHITE)
 	time_row.add_child(lbl_time)
 
-	# Vertical separator
+
 	var sep1 := ColorRect.new()
 	sep1.color = Color(0.3, 0.3, 0.35, 0.4)
 	sep1.position = Vector2(140, 12)
 	sep1.size = Vector2(1, 48)
 	hud_container.add_child(sep1)
 
-	# Center-left: Money
+
 	var money_col := VBoxContainer.new()
 	money_col.position = Vector2(160, 8)
 	money_col.add_theme_constant_override("separation", 0)
@@ -326,7 +322,7 @@ func setup_hud():
 	lbl_money = _styled_label("$0", font_bold, 22, TEXT_GREEN)
 	money_col.add_child(lbl_money)
 
-	lbl_customers = _styled_label("0 served", font_medium, 13, TEXT_DIM)
+	lbl_customers = _styled_label("0 served", font_semi, 15, TEXT_WHITE)
 	money_col.add_child(lbl_customers)
 
 	var sep2 := ColorRect.new()
@@ -335,7 +331,7 @@ func setup_hud():
 	sep2.size = Vector2(1, 48)
 	hud_container.add_child(sep2)
 
-	# Center: XP bar
+
 	var xp_col := VBoxContainer.new()
 	xp_col.position = Vector2(360, 10)
 	xp_col.add_theme_constant_override("separation", 4)
@@ -362,8 +358,8 @@ func setup_hud():
 	lbl_xp.add_theme_stylebox_override("fill", xp_fill)
 	xp_col.add_child(lbl_xp)
 
-	# Right side: contract alert
-	lbl_contract = _styled_label("", font_medium, 12, Color(0.85, 0.65, 0.45, 0.8))
+
+	lbl_contract = _styled_label("", font_bold, 16, Color(1.0, 0.7, 0.3, 1.0))
 	lbl_contract.position = Vector2(0, 0)
 	lbl_contract.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	lbl_contract.offset_left = -220.0
@@ -374,15 +370,15 @@ func setup_hud():
 	lbl_contract.visible = false
 	hud_container.add_child(lbl_contract)
 
-	# Quest tracker (right side under HUD)
+
 	quest_container = VBoxContainer.new()
 	quest_container.name = "QuestTracker"
 	quest_container.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	quest_container.offset_left = -240.0
+	quest_container.offset_left = -360.0
 	quest_container.offset_top = 80.0
 	quest_container.offset_right = -12.0
-	quest_container.offset_bottom = 300.0
-	quest_container.add_theme_constant_override("separation", 4)
+	quest_container.offset_bottom = 360.0
+	quest_container.add_theme_constant_override("separation", 6)
 	quest_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$UI_Layer.add_child(quest_container)
 	_build_quest_tracker()
@@ -391,35 +387,47 @@ func _build_quest_tracker():
 	for c in quest_container.get_children():
 		c.queue_free()
 
-	var header = _styled_label("DAILY QUESTS", font_semi, 11, ACCENT_GOLD_DIM)
+	var header = _styled_label("DAILY QUESTS", font_bold, 15, ACCENT_GOLD)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	quest_container.add_child(header)
 
 	for quest in GameManager.daily_quests:
 		var progress = GameManager.quest_progress.get(quest["id"], 0)
 		var completed = quest.get("completed", false)
 		var target = quest["target"]
-		var color = TEXT_GREEN if completed else TEXT_DIM
+		var color = TEXT_GREEN if completed else TEXT_WHITE
+
 
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 6)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		quest_container.add_child(row)
 
-		var spacer := Control.new()
-		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(spacer)
-
-		var check = _styled_label("✓" if completed else "○", font_medium, 12, color)
+		var check = _styled_label("✓" if completed else "○", font_bold, 16, color)
+		check.custom_minimum_size = Vector2(20, 0)
+		check.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		row.add_child(check)
 
-		var desc = _styled_label(quest["desc"], font_medium, 11, color)
+		var desc = _styled_label(quest["desc"], font_semi, 14, color)
+		desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		desc.clip_text = false
 		row.add_child(desc)
 
-		if not completed:
-			var prog_text = " (%d/%d)" % [mini(progress, target), target]
-			var prog_lbl = _styled_label(prog_text, font_medium, 11,
-				TEXT_DIM.lerp(TEXT_GREEN, float(progress) / float(target)))
-			row.add_child(prog_lbl)
+		var prog_text: String
+		var prog_color: Color
+		if completed:
+			prog_text = "DONE"
+			prog_color = TEXT_GREEN
+		else:
+			prog_text = "%d/%d" % [mini(progress, target), target]
+			prog_color = TEXT_DIM.lerp(TEXT_GREEN, float(progress) / float(target))
+		var prog_lbl = _styled_label(prog_text, font_bold, 13, prog_color)
+		prog_lbl.custom_minimum_size = Vector2(56, 0)
+		prog_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(prog_lbl)
 
 func update_hud():
 	if lbl_day:
@@ -471,7 +479,6 @@ func _stop_time_flash():
 		time_flash_tween = null
 		lbl_time.modulate.a = 1.0
 
-# ─── CUSTOMERS ────────────────────────────────────────────────
 
 func start_spawning():
 	while shift_active:
@@ -592,7 +599,6 @@ func show_contract_notification(customer):
 	t.tween_property(toast, "modulate:a", 0.0, 0.6)
 	t.tween_callback(toast.queue_free)
 
-# ─── ZONES ────────────────────────────────────────────────────
 
 func interact_with_zone(zone_name):
 	if _is_any_panel_open():
@@ -647,7 +653,6 @@ func _reset_panel(panel: Control):
 	panel.modulate.a = 1.0
 	panel.scale = Vector2.ONE
 
-# ─── WEAPON SHOP ──────────────────────────────────────────────
 
 func show_upgrade_panel(animate: bool = true):
 	var panel = get_node_or_null("UI_Layer/UpgradePanel")
@@ -673,7 +678,7 @@ func show_upgrade_panel(animate: bool = true):
 	outer_vbox.add_theme_constant_override("separation", 10)
 	margin.add_child(outer_vbox)
 
-	# Header
+
 	var header_row := HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 10)
 	outer_vbox.add_child(header_row)
@@ -691,7 +696,7 @@ func show_upgrade_panel(animate: bool = true):
 
 	outer_vbox.add_child(_make_divider())
 
-	# Weapon list
+
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -820,7 +825,6 @@ func _style_active_slot_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("normal", _make_panel_style(
 		Color(0.18, 0.16, 0.08, 0.95), ACCENT_GOLD, 6))
 
-# ─── MISSION PANEL ────────────────────────────────────────────
 
 func show_mission_panel():
 	var panel = get_node_or_null("UI_Layer/MissionPanel")
@@ -833,83 +837,141 @@ func show_mission_panel():
 	var margin := MarginContainer.new()
 	margin.name = "Content"
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 28)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_right", 28)
-	margin.add_theme_constant_override("margin_bottom", 24)
+	margin.add_theme_constant_override("margin_left", 22)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_right", 22)
+	margin.add_theme_constant_override("margin_bottom", 18)
 	panel.add_child(margin)
 
 	var close_btn = panel.get_node_or_null("CloseMission")
 	if close_btn: panel.move_child(close_btn, -1)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 14)
-	margin.add_child(vbox)
+	var outer_vbox := VBoxContainer.new()
+	outer_vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(outer_vbox)
 
-	var title = _styled_label("CONTRACTS", font_bold, 24, ACCENT_GOLD)
+	var title = _styled_label("CONTRACTS", font_bold, 22, ACCENT_GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
+	outer_vbox.add_child(title)
 
-	vbox.add_child(_make_divider())
+	outer_vbox.add_child(_make_divider())
+
 
 	if GameManager.target_order_received and GameManager.current_contract.size() > 0:
 		var contract_card := PanelContainer.new()
 		contract_card.add_theme_stylebox_override("panel", _make_card_style(Color(1.0, 0.3, 0.3, 0.25)))
-		vbox.add_child(contract_card)
+		outer_vbox.add_child(contract_card)
 
-		var card_vbox := VBoxContainer.new()
-		card_vbox.add_theme_constant_override("separation", 6)
-		contract_card.add_child(card_vbox)
+		var card_hbox := HBoxContainer.new()
+		card_hbox.add_theme_constant_override("separation", 8)
+		contract_card.add_child(card_hbox)
 
-		var status_lbl = _styled_label("ACTIVE CONTRACT", font_semi, 11, TEXT_RED)
-		card_vbox.add_child(status_lbl)
+		var info_col := VBoxContainer.new()
+		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_col.add_theme_constant_override("separation", 2)
+		card_hbox.add_child(info_col)
 
-		var target_lbl = _styled_label(GameManager.current_contract["target"],
-			font_bold, 18, TEXT_WHITE)
-		card_vbox.add_child(target_lbl)
+		info_col.add_child(_styled_label("ACTIVE CONTRACT", font_semi, 10, TEXT_RED))
+		info_col.add_child(_styled_label(GameManager.current_contract["target"], font_bold, 15, TEXT_WHITE))
+		info_col.add_child(_styled_label("Reward: $" + str(GameManager.current_contract["reward"]), font_medium, 11, TEXT_GREEN))
 
-		var reward_lbl = _styled_label("Reward: $" + str(GameManager.current_contract["reward"]),
-			font_semi, 14, TEXT_GREEN)
-		card_vbox.add_child(reward_lbl)
+		var go_btn := _styled_button("GO", Vector2(70, 36))
+		go_btn.add_theme_font_size_override("font_size", 13)
+		go_btn.add_theme_stylebox_override("normal", _make_panel_style(
+			Color(0.14, 0.08, 0.08, 0.95), Color(1.0, 0.35, 0.35, 0.5), 6))
+		go_btn.add_theme_stylebox_override("hover", _make_panel_style(
+			Color(0.2, 0.1, 0.1, 0.95), Color(1.0, 0.35, 0.35, 0.8), 6))
+		go_btn.add_theme_color_override("font_color", TEXT_RED)
+		go_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.5, 0.5))
+		go_btn.pressed.connect(_on_start_contract_mission)
+		card_hbox.add_child(go_btn)
 
-		vbox.add_child(_make_spacer(4))
 
-		var btn := _styled_button("START MISSION", Vector2(220, 50))
-		btn.add_theme_font_size_override("font_size", 16)
-		btn.add_theme_stylebox_override("normal", _make_panel_style(
-			Color(0.14, 0.08, 0.08, 0.95), Color(1.0, 0.35, 0.35, 0.5), 8))
-		btn.add_theme_stylebox_override("hover", _make_panel_style(
-			Color(0.2, 0.1, 0.1, 0.95), Color(1.0, 0.35, 0.35, 0.8), 8))
-		btn.add_theme_color_override("font_color", TEXT_RED)
-		btn.add_theme_color_override("font_hover_color", Color(1.0, 0.5, 0.5))
-		btn.pressed.connect(_on_start_mission)
-		vbox.add_child(btn)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer_vbox.add_child(scroll)
+
+	var mission_list := VBoxContainer.new()
+	mission_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mission_list.add_theme_constant_override("separation", 6)
+	scroll.add_child(mission_list)
+
+	var missions = GameManager.get_available_missions()
+	if missions.is_empty():
+		var empty_lbl = _styled_label("No missions available yet.\nServe customers to unlock contracts.", font_medium, 13, TEXT_DIM)
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		mission_list.add_child(empty_lbl)
 	else:
-		var desc = _styled_label("No contract yet.\nServe customers to receive one,\nor start a free play mission.", font_medium, 14, TEXT_DIM)
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(desc)
-
-		vbox.add_child(_make_spacer(8))
-
-		var free_btn := _styled_button("FREE PLAY", Vector2(200, 48))
-		free_btn.add_theme_font_size_override("font_size", 15)
-		free_btn.pressed.connect(_on_free_play_mission)
-		vbox.add_child(free_btn)
+		for m in missions:
+			_build_mission_card(mission_list, m)
 
 	_open_panel(panel)
 
-func _on_start_mission():
+func _build_mission_card(parent: VBoxContainer, m: Dictionary):
+	var tier: int = m.get("tier", 1)
+	var mtype: String = m.get("type", "extermination")
+	var label_text: String = m.get("label", mtype.capitalize())
+	var card_color: Color = m.get("color", ACCENT_GOLD_DIM)
+
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _make_card_style(card_color.lerp(Color.TRANSPARENT, 0.6)))
+	parent.add_child(card)
+
+	var card_hbox := HBoxContainer.new()
+	card_hbox.add_theme_constant_override("separation", 8)
+	card.add_child(card_hbox)
+
+	var info_col := VBoxContainer.new()
+	info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_col.add_theme_constant_override("separation", 1)
+	card_hbox.add_child(info_col)
+
+	var tier_text = "  I" if tier == 1 else ("  II" if tier == 2 else "  III")
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 6)
+	info_col.add_child(name_row)
+	name_row.add_child(_styled_label(label_text + tier_text, font_bold, 16, card_color))
+
+	var desc_text: String = m.get("desc", "")
+	if m.has("time_limit"):
+		desc_text += "  (" + str(int(m["time_limit"])) + "s)"
+	info_col.add_child(_styled_label(desc_text, font_medium, 13, TEXT_WHITE))
+
+	var reward_parts := []
+	reward_parts.append("$" + str(m.get("reward_money", 0)))
+	reward_parts.append(str(m.get("reward_xp", 0)) + " XP")
+	info_col.add_child(_styled_label("  ·  ".join(reward_parts), font_semi, 13, TEXT_GREEN))
+
+	var go_btn := _styled_button("GO", Vector2(80, 40))
+	go_btn.add_theme_font_size_override("font_size", 15)
+	var captured_m = m.duplicate()
+	go_btn.pressed.connect(func(_m = captured_m): _launch_mission(_m))
+	card_hbox.add_child(go_btn)
+
+func _launch_mission(m: Dictionary):
+	var tl = m.get("time_limit", 0.0)
+	GameManager.mission_profile = GameManager.build_mission_profile(
+		m.get("type", "extermination"),
+		m.get("tier", 1),
+		m.get("reward_money", 50),
+		m.get("reward_xp", 40),
+		tl,
+		"",
+		int(m.get("waves", 0))
+	)
 	GameManager.start_mission()
 	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
 
-func _on_free_play_mission():
-	GameManager.current_contract = {"target": "Practice Target", "reward": 50}
-	GameManager.target_order_received = true
+func _on_start_contract_mission():
+	var contract = GameManager.current_contract
+	var reward = contract.get("reward", 100)
+	GameManager.mission_profile = GameManager.build_mission_profile(
+		"assassination", 1, reward, 50, 0.0, contract.get("target", ""))
 	GameManager.start_mission()
 	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
 
-# ─── BOBA CRAFTING ────────────────────────────────────────────
 
 var lbl_mix: Label
 var lbl_order_display: Label
@@ -937,39 +999,39 @@ func setup_boba_ui():
 	vbox.add_theme_constant_override("separation", 6)
 	margin.add_child(vbox)
 
-	var header = _styled_label("BOBA STATION", font_bold, 18, ACCENT_GOLD)
+	var header = _styled_label("BOBA STATION", font_bold, 22, ACCENT_GOLD)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(header)
 
 	vbox.add_child(_make_divider())
 
-	# Customer order display
+
 	var order_card := PanelContainer.new()
 	order_card.add_theme_stylebox_override("panel", _make_panel_style(
 		Color(0.04, 0.04, 0.06, 0.9), Color(0.3, 0.3, 0.35, 0.4), 5))
 	vbox.add_child(order_card)
 
 	var order_vbox := VBoxContainer.new()
-	order_vbox.add_theme_constant_override("separation", 2)
+	order_vbox.add_theme_constant_override("separation", 4)
 	order_card.add_child(order_vbox)
 
-	var order_header = _styled_label("ORDER", font_semi, 10, TEXT_DIM)
+	var order_header = _styled_label("ORDER", font_bold, 13, ACCENT_GOLD_DIM)
 	order_vbox.add_child(order_header)
 
-	lbl_order_display = _styled_label("No customer waiting", font_semi, 13, TEXT_WHITE)
+	lbl_order_display = _styled_label("No customer waiting", font_bold, 16, TEXT_WHITE)
 	lbl_order_display.autowrap_mode = TextServer.AUTOWRAP_WORD
 	order_vbox.add_child(lbl_order_display)
 
-	vbox.add_child(_make_spacer(2))
+	vbox.add_child(_make_spacer(4))
 
-	lbl_mix = _styled_label("Mix: empty", font_semi, 12, Color(0.45, 0.78, 1.0))
+	lbl_mix = _styled_label("Mix: empty", font_semi, 15, Color(0.55, 0.85, 1.0))
 	vbox.add_child(lbl_mix)
 
-	# Ingredient grid
+
 	var grid = GridContainer.new()
 	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 5)
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 8)
 	vbox.add_child(grid)
 
 	var ing_colors = {
@@ -986,11 +1048,11 @@ func setup_boba_ui():
 		"Tapioca": TEX_TAPIOCA_ICON,
 	}
 
-	var icon_size := 32
+	var icon_size := 48
 
 	for ing in GameManager.unlocked_ingredients:
 		var cell := HBoxContainer.new()
-		cell.add_theme_constant_override("separation", 5)
+		cell.add_theme_constant_override("separation", 8)
 		cell.alignment = BoxContainer.ALIGNMENT_CENTER
 
 		var icon_tex = ing_icons.get(ing, null)
@@ -1007,13 +1069,18 @@ func setup_boba_ui():
 			spacer.custom_minimum_size = Vector2(icon_size, icon_size)
 			cell.add_child(spacer)
 
-		var btn := _styled_button("+ " + ing, Vector2(125, 34))
-		btn.add_theme_font_size_override("font_size", 12)
+		var btn := _styled_button("+ " + ing, Vector2(180, 52))
+		btn.add_theme_font_size_override("font_size", 17)
+		btn.add_theme_font_override("font", font_bold)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var col = ing_colors.get(ing, TEXT_WHITE)
-		btn.add_theme_color_override("font_color", col)
-		btn.add_theme_color_override("font_hover_color", col.lightened(0.3))
+
+		var bright_col = col.lerp(Color.WHITE, 0.25)
+		btn.add_theme_color_override("font_color", bright_col)
+		btn.add_theme_color_override("font_hover_color", Color.WHITE)
+		btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+		btn.add_theme_constant_override("outline_size", 4)
 		btn.pressed.connect(_add_to_mix.bind(ing))
 		cell.add_child(btn)
 
@@ -1021,26 +1088,42 @@ func setup_boba_ui():
 
 	vbox.add_child(_make_spacer(2))
 
-	# Action buttons
+
 	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 8)
+	actions.add_theme_constant_override("separation", 12)
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(actions)
 
-	var serve_btn := _styled_button("SERVE", Vector2(120, 40))
-	serve_btn.add_theme_font_size_override("font_size", 14)
+	var serve_btn := _styled_button("SERVE", Vector2(180, 64))
+	serve_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	serve_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	serve_btn.add_theme_font_size_override("font_size", 22)
+	serve_btn.add_theme_font_override("font", font_bold)
 	serve_btn.add_theme_stylebox_override("normal", _make_panel_style(
-		Color(0.08, 0.14, 0.08, 0.95), Color(0.4, 0.88, 0.45, 0.4), 6))
+		Color(0.08, 0.18, 0.08, 0.95), Color(0.4, 0.88, 0.45, 0.8), 8))
 	serve_btn.add_theme_stylebox_override("hover", _make_panel_style(
-		Color(0.1, 0.18, 0.1, 0.95), Color(0.4, 0.88, 0.45, 0.7), 6))
-	serve_btn.add_theme_color_override("font_color", TEXT_GREEN)
-	serve_btn.add_theme_color_override("font_hover_color", TEXT_GREEN.lightened(0.2))
+		Color(0.12, 0.24, 0.12, 0.95), Color(0.5, 1.0, 0.55, 1.0), 8))
+	serve_btn.add_theme_color_override("font_color", TEXT_GREEN.lightened(0.25))
+	serve_btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	serve_btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	serve_btn.add_theme_constant_override("outline_size", 4)
 	serve_btn.pressed.connect(_on_serve_drink)
 	actions.add_child(serve_btn)
 
-	var clear_btn := _styled_button("CLEAR", Vector2(120, 40))
-	clear_btn.add_theme_font_size_override("font_size", 14)
-	clear_btn.add_theme_color_override("font_color", TEXT_DIM)
+	var clear_btn := _styled_button("CLEAR", Vector2(180, 64))
+	clear_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	clear_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	clear_btn.add_theme_font_size_override("font_size", 18)
+	clear_btn.add_theme_font_override("font", font_bold)
+	clear_btn.add_theme_stylebox_override("normal", _make_panel_style(
+		Color(0.16, 0.08, 0.08, 0.95), Color(0.7, 0.35, 0.35, 0.6), 8))
+	clear_btn.add_theme_stylebox_override("hover", _make_panel_style(
+		Color(0.22, 0.1, 0.1, 0.95), Color(0.9, 0.45, 0.45, 0.9), 8))
+	clear_btn.add_theme_color_override("font_color", Color(0.9, 0.55, 0.55))
+	clear_btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	clear_btn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	clear_btn.add_theme_constant_override("outline_size", 4)
 	clear_btn.pressed.connect(func():
 		current_mix = []
 		update_mix_label()
@@ -1102,7 +1185,6 @@ func _on_serve_drink():
 		else:
 			_show_floating_text("Wrong order!", TEXT_RED, target_customer.global_position)
 
-# ─── DAY END ─────────────────────────────────────────────────
 
 func end_day():
 	shift_active = false
@@ -1148,7 +1230,7 @@ func show_day_summary():
 
 	center.add_child(_make_divider(ACCENT_GOLD_DIM))
 
-	# Stats in card style
+
 	var stats_card := PanelContainer.new()
 	stats_card.add_theme_stylebox_override("panel", _make_card_style())
 	center.add_child(stats_card)
@@ -1185,6 +1267,9 @@ func show_day_summary():
 			Color(0.14, 0.08, 0.08, 0.95), Color(1.0, 0.35, 0.35, 0.5), 8))
 		mission_btn.add_theme_color_override("font_color", TEXT_RED)
 		mission_btn.pressed.connect(func():
+			var c = GameManager.current_contract
+			GameManager.mission_profile = GameManager.build_mission_profile(
+				"assassination", 1, c.get("reward", 100), 50, 0.0, c.get("target", ""))
 			GameManager.start_mission()
 			get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
 		)
