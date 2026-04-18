@@ -3,6 +3,8 @@ extends CanvasLayer
 
 const MAIN_MENU_PATH: String = "res://Scenes/MainMenu.tscn"
 
+var _click_sfx: AudioStreamPlayer = null
+
 @onready var control_root: Control = $Control
 @onready var resume_button: Button = $Control/PanelContainer/MarginContainer/VBoxContainer/ResumeButton
 @onready var menu_button: Button = $Control/PanelContainer/MarginContainer/VBoxContainer/MenuButton
@@ -15,6 +17,12 @@ func _ready() -> void:
 	
 	hide_pause_menu()
 	
+	# UI click sound
+	_click_sfx = AudioStreamPlayer.new()
+	_click_sfx.stream = preload("res://Assets/Audio/sfx/sfx_UI_button_click.wav")
+	_click_sfx.volume_db = -5.0
+	_click_sfx.bus = &"SFX"
+	add_child(_click_sfx)
 	
 	resume_button.pressed.connect(_on_resume_pressed)
 	menu_button.pressed.connect(_on_menu_pressed)
@@ -47,11 +55,17 @@ func hide_pause_menu() -> void:
 	control_root.visible = false
 
 func _on_resume_pressed() -> void:
+	if _click_sfx:
+		_click_sfx.play()
 	resume_game()
 
 func _on_menu_pressed() -> void:
+	if _click_sfx:
+		_click_sfx.play()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(MAIN_MENU_PATH)
 
 func _on_quit_pressed() -> void:
+	if _click_sfx:
+		_click_sfx.play()
 	get_tree().quit()

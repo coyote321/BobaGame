@@ -21,8 +21,18 @@ var ability_cooldown = 0.0
 @export var projectile_scene: PackedScene
 
 var _damage_sfx: AudioStreamPlayer = null
+var _heartbeat_sfx: AudioStreamPlayer = null
+var _death_sfx: AudioStreamPlayer = null
 
 var _current_weapon_node: Node2D = null
+
+func _make_sfx(stream: AudioStream, volume: float = 0.0) -> AudioStreamPlayer:
+	var sfx = AudioStreamPlayer.new()
+	sfx.stream = stream
+	sfx.volume_db = volume
+	sfx.bus = &"SFX"
+	add_child(sfx)
+	return sfx
 
 func _ready():
 	health = GameManager.max_health
@@ -32,12 +42,10 @@ func _ready():
 	add_to_group("player")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	# Damage sound effect
-	_damage_sfx = AudioStreamPlayer.new()
-	_damage_sfx.stream = preload("res://Assets/Audio/sfx/sfx_playerdamage.wav")
-	_damage_sfx.volume_db = -5.0
-	_damage_sfx.bus = &"SFX"
-	add_child(_damage_sfx)
+	_damage_sfx = _make_sfx(preload("res://Assets/Audio/sfx/sfx_playerdamage.wav"), -5.0)
+	_heartbeat_sfx = _make_sfx(preload("res://Assets/Audio/sfx/sfx_heartbeat(single).wav"))
+	_heartbeat_sfx.finished.connect(_on_heartbeat_finished)
+	_death_sfx = _make_sfx(preload("res://Assets/Audio/sfx/sfx_playerdeath.wav"))
 	
 	await get_tree().process_frame
 	hud_node = get_tree().current_scene.find_child("HUD", true, false)
@@ -86,6 +94,10 @@ func _physics_process(delta):
 		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			if fire_cooldown <= 0.0:
 				attack()
+		else:
+			# Stop flamethrower sound when not holding attack
+			if _current_weapon_node and _current_weapon_node.has_method("stop_sound"):
+				_current_weapon_node.stop_sound()
 		
 		# Ability
 		if Input.is_action_just_pressed("ability"):
@@ -114,25 +126,17 @@ func handle_state_inputs():
 	is_aiming = Input.is_action_pressed("aim")
 
 	# Weapon Switching
-	if Input.is_action_just_pressed("weapon_1"):
-		switch_weapon(1)
-	elif Input.is_action_just_pressed("weapon_2"):
-		switch_weapon(2)
-	elif Input.is_action_just_pressed("weapon_3"):
-		switch_weapon(3)
+	for i in range(1, 4):
+		if Input.is_action_just_pressed("weapon_" + str(i)):
+			switch_weapon(i)
+			break
 
 func is_crouching_state() -> bool:
 	return is_crouching
 
 func switch_weapon(idx):
 	current_weapon_idx = idx
-	var weapon_name = ""
-	if idx == 1:
-		weapon_name = GameManager.equipped_main
-	elif idx == 2:
-		weapon_name = GameManager.equipped_melee
-	elif idx == 3:
-		weapon_name = GameManager.equipped_special
+	var weapon_name = _get_current_weapon_name()
 	
 	# Update HUD
 	if hud_node and hud_node.has_method("update_weapon"):
@@ -177,6 +181,22 @@ func _get_current_weapon_type() -> String:
 	if wname == "":
 		return ""
 	return GameManager.weapons.get(wname, {}).get("type", "ranged")
+
+func _on_heartbeat_finished() -> void:
+	# Double-beat pattern: 1-2 ... 1-2 ...
+	if health > 0 and health <= 15 and _heartbeat_sfx:
+		if not _heartbeat_sfx.has_meta("is_second_beat") or not _heartbeat_sfx.get_meta("is_second_beat"):
+			# Short pause then play second beat
+			_heartbeat_sfx.set_meta("is_second_beat", true)
+			await get_tree().create_timer(0.3).timeout
+			if is_instance_valid(self) and health > 0 and health <= 15:
+				_heartbeat_sfx.play()
+		else:
+			# Long pause before next double-beat
+			_heartbeat_sfx.set_meta("is_second_beat", false)
+			await get_tree().create_timer(1.5).timeout
+			if is_instance_valid(self) and health > 0 and health <= 15:
+				_heartbeat_sfx.play()
 
 func attack():
 	if _current_weapon_node and _current_weapon_node.has_method("attack"):
@@ -364,6 +384,44 @@ func _ability_poison_cloud():
 	if is_instance_valid(cloud):
 		cloud.queue_free()
 
+func _flash_and_reset(color: Color, duration: float = 0.1) -> void:
+	modulate = color
+	var t := get_tree().create_timer(duration)
+	await t.timeout
+	if is_instance_valid(self):
+		modulate = Color.WHITE
+
+func _update_hud_health() -> void:
+	if hud_node and hud_node.has_method("update_health"):
+		hud_node.update_health(health, GameManager.max_health)
+
+func _create_aoe_area(pos: Vector2, radius: float, color: Color) -> Array:
+	var area = Area2D.new()
+	area.global_position = pos
+	area.collision_layer = 0
+	area.collision_mask = 4
+	area.monitoring = true
+	area.monitorable = false
+	get_tree().current_scene.add_child(area)
+	
+	var shape = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = radius
+	shape.shape = circle
+	area.add_child(shape)
+	
+	var visual = Polygon2D.new()
+	var pts: PackedVector2Array = []
+	var segments = int(max(16, radius * 0.25))
+	for i in range(segments):
+		var angle = i * (TAU / float(segments))
+		pts.append(Vector2(cos(angle), sin(angle)) * radius)
+	visual.polygon = pts
+	visual.color = color
+	area.add_child(visual)
+	
+	return [area, visual]
+
 func take_damage(amount):
 	health -= amount
 	if health < 0:
@@ -373,16 +431,13 @@ func take_damage(amount):
 	if _damage_sfx:
 		_damage_sfx.play()
 	
-	# Flash red
-	modulate = Color(1, 0.3, 0.3)
-	var t := get_tree().create_timer(0.1)
-	await t.timeout
-	if is_instance_valid(self):
-		modulate = Color.WHITE
+	# Start heartbeat loop if health is 15 or below
+	if health > 0 and health <= 15:
+		if _heartbeat_sfx and not _heartbeat_sfx.playing:
+			_heartbeat_sfx.play()
 	
-	# Update HUD
-	if hud_node and hud_node.has_method("update_health"):
-		hud_node.update_health(health, GameManager.max_health)
+	_flash_and_reset(Color(1, 0.3, 0.3), 0.1)
+	_update_hud_health()
 	
 	# Screen shake
 	if has_node("Camera2D"):
@@ -398,16 +453,12 @@ func take_damage(amount):
 func heal(amount: int) -> void:
 	health = min(health + amount, GameManager.max_health)
 	
-	# Flash green
-	modulate = Color(0.3, 1.0, 0.5)
-	var t := get_tree().create_timer(0.15)
-	await t.timeout
-	if is_instance_valid(self):
-		modulate = Color.WHITE
+	# Stop heartbeat if healed above 15
+	if health > 15 and _heartbeat_sfx:
+		_heartbeat_sfx.stop()
 	
-	# Update HUD
-	if hud_node and hud_node.has_method("update_health"):
-		hud_node.update_health(health, GameManager.max_health)
+	_flash_and_reset(Color(0.3, 1.0, 0.5), 0.15)
+	_update_hud_health()
 
 var is_game_over: bool = false
 
@@ -416,6 +467,10 @@ func die():
 		return
 	is_game_over = true
 	set_physics_process(false)
+	
+	# Play death sound
+	if _death_sfx:
+		_death_sfx.play()
 	
 	# Hide the HUD
 	if hud_node and hud_node.has_method("hide_hud"):

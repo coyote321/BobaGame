@@ -3,13 +3,52 @@ extends "res://Scripts/WeaponBase.gd"
 
 const FLAME_PROJECTILE_SCRIPT := preload("res://Scripts/FlameProjectile.gd")
 
+var _flame_sfx: AudioStreamPlayer = null
+var fuel: float = 7.5
+const MAX_FUEL: float = 7.5
+var _out_of_fuel: bool = false
+
+func _ready() -> void:
+	_flame_sfx = AudioStreamPlayer.new()
+	_flame_sfx.stream = preload("res://Assets/Audio/sfx/sfx_flamethrower.wav")
+	_flame_sfx.volume_db = -5.0
+	_flame_sfx.bus = &"SFX"
+	add_child(_flame_sfx)
+
 func attack() -> void:
 	if weapon_name == "":
 		return
+	if _out_of_fuel:
+		stop_sound()
+		return
+
 	var tuning := _get_tuning()
+	
+	# Drain fuel based on fire rate
+	fuel -= _get_fire_rate()
+	if fuel <= 0.0:
+		fuel = 0.0
+		_out_of_fuel = true
+		stop_sound()
+		return
+
 	_shoot_flame(tuning)
 	_play_shot_animation(_get_facing_direction(), tuning)
+	
+	# Play flamethrower sound
+	if _flame_sfx and not _flame_sfx.playing:
+		_flame_sfx.play()
+	
 	player.fire_cooldown = _get_fire_rate()
+
+func stop_sound() -> void:
+	if _flame_sfx and _flame_sfx.playing:
+		var tween = create_tween()
+		tween.tween_property(_flame_sfx, "volume_db", -40.0, 0.3)
+		tween.tween_callback(func():
+			_flame_sfx.stop()
+			_flame_sfx.volume_db = -5.0
+		)
 
 func _shoot_flame(tuning: Dictionary) -> void:
 	var damage = _get_damage()

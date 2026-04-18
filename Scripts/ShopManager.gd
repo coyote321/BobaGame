@@ -57,6 +57,9 @@ var _hotbar_unselected_style: StyleBoxFlat
 var _current_hotbar_idx: int = 1
 var _panel_cooldown: float = 0.0
 
+var _cash_register_sfx: AudioStreamPlayer = null
+var _error_sfx: AudioStreamPlayer = null
+
 var customer_scene = preload("res://Scenes/Customer.tscn")
 
 func _ready():
@@ -75,6 +78,28 @@ func _ready():
 
 	_animate_scene_enter()
 	start_spawning()
+	
+	# Cash register sound for completing orders
+	_cash_register_sfx = AudioStreamPlayer.new()
+	_cash_register_sfx.stream = preload("res://Assets/Audio/sfx/sfx_cash_register.wav")
+	_cash_register_sfx.volume_db = 0.0
+	_cash_register_sfx.bus = &"SFX"
+	add_child(_cash_register_sfx)
+	
+	# Error sound for failed purchases
+	_error_sfx = AudioStreamPlayer.new()
+	_error_sfx.stream = preload("res://Assets/Audio/sfx/sfx_error_sound.wav")
+	_error_sfx.volume_db = 0.0
+	_error_sfx.bus = &"SFX"
+	add_child(_error_sfx)
+	
+	# Background music
+	var _music = AudioStreamPlayer.new()
+	_music.stream = preload("res://Assets/Audio/music/mus_day.wav")
+	_music.volume_db = -10.0
+	_music.bus = &"Music"
+	_music.autoplay = true
+	add_child(_music)
 
 func _animate_scene_enter():
 	if hud_container:
@@ -760,7 +785,12 @@ func show_upgrade_panel(animate: bool = true):
 					Color(0.12, 0.08, 0.08, 0.9), Color(1, 0.3, 0.3, 0.3), 6))
 			btn.pressed.connect(func(weapon_to_buy = wn):
 				if GameManager.buy_weapon(weapon_to_buy):
+					if _cash_register_sfx:
+						_cash_register_sfx.play()
 					show_upgrade_panel(false)
+				else:
+					if _error_sfx:
+						_error_sfx.play()
 			)
 			card_hbox.add_child(btn)
 		else:
@@ -1094,6 +1124,9 @@ func _on_serve_drink():
 		var success = target_customer.receive_item(created_drink)
 
 		if success:
+			# Play cash register sound
+			if _cash_register_sfx:
+				_cash_register_sfx.play()
 			current_mix = []
 			update_mix_label()
 			_close_panel(ui_boba_panel)
