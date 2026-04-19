@@ -18,10 +18,10 @@ func _ready() -> void:
 	body_exited.connect(_on_body_exited)
 	_base_y = position.y
 	
-	# Pickup sound effect
+	# Heal potion sound effect
 	_pickup_sfx = AudioStreamPlayer.new()
-	_pickup_sfx.stream = preload("res://Assets/Audio/sfx/sfx_item_pick_up.mp3")
-	_pickup_sfx.volume_db = 10.0
+	_pickup_sfx.stream = preload("res://Assets/Audio/sfx/sfx_healpotion.wav")
+	_pickup_sfx.volume_db = 0.0
 	_pickup_sfx.bus = &"SFX"
 	add_child(_pickup_sfx)
 
@@ -101,4 +101,11 @@ func _pick_up() -> void:
 	var tween = create_tween()
 	tween.parallel().tween_property(self, "scale", Vector2(2.0, 2.0), 0.3)
 	tween.parallel().tween_property(self, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(queue_free)
+	tween.tween_callback(func():
+		# Move SFX to scene root so it keeps playing after potion is freed
+		if _pickup_sfx and _pickup_sfx.playing:
+			remove_child(_pickup_sfx)
+			get_tree().current_scene.add_child(_pickup_sfx)
+			_pickup_sfx.finished.connect(_pickup_sfx.queue_free)
+		queue_free()
+	)

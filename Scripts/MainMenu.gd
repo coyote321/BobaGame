@@ -11,11 +11,19 @@ const BG_DARK := Color(0.1, 0.1, 0.12, 0.97)
 @onready var subtitle: Label = $CenterColumn/Subtitle
 
 var options_panel: Panel
+var _click_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
 	start_button.pressed.connect(_on_start_button_pressed)
 	options_button.pressed.connect(_on_options_button_pressed)
 	exit_button.pressed.connect(_on_exit_button_pressed)
+	
+	# UI click sound
+	_click_sfx = AudioStreamPlayer.new()
+	_click_sfx.stream = preload("res://Assets/Audio/sfx/sfx_UI_button_click.wav")
+	_click_sfx.volume_db = -5.0
+	_click_sfx.bus = &"SFX"
+	add_child(_click_sfx)
 
 	_animate_intro()
 	GameManager.reset_game()
@@ -30,15 +38,21 @@ func _animate_intro() -> void:
 	tween.parallel().tween_property(column, "position:y", column.position.y + 20.0, 0.6)
 
 func _on_start_button_pressed() -> void:
+	if _click_sfx:
+		_click_sfx.play()
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.4)
 	await tween.finished
 	get_tree().change_scene_to_file(WORLD_SCENE_PATH)
 
 func _on_options_button_pressed() -> void:
+	if _click_sfx:
+		_click_sfx.play()
 	_show_options_panel()
 
 func _on_exit_button_pressed() -> void:
+	if _click_sfx:
+		_click_sfx.play()
 	get_tree().quit()
 
 func _show_options_panel() -> void:
@@ -50,8 +64,8 @@ func _show_options_panel() -> void:
 
 	options_panel = Panel.new()
 	options_panel.set_anchors_preset(Control.PRESET_CENTER)
-	options_panel.size = Vector2(420, 340)
-	options_panel.position = Vector2(-210, -170)
+	options_panel.size = Vector2(420, 400)
+	options_panel.position = Vector2(-210, -200)
 	add_child(options_panel)
 
 	var style := StyleBoxFlat.new()
@@ -81,6 +95,7 @@ func _show_options_panel() -> void:
 
 	_add_slider(vbox, "MASTER VOLUME", "Master")
 	_add_slider(vbox, "SFX VOLUME", "SFX")
+	_add_slider(vbox, "MUSIC VOLUME", "Music")
 
 	var controls := Label.new()
 	controls.text = "WASD Move  |  Shift Sprint  |  Ctrl Crouch\nE Interact  |  1/2 Weapons  |  G Dash\nLMB Attack  |  RMB Aim"
