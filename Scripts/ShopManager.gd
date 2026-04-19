@@ -1119,16 +1119,21 @@ func setup_boba_ui():
 	vbox.add_child(_make_spacer(2))
 
 
+	const ACTION_BTN_SIZE := Vector2(200, 60)
+	const ACTION_BTN_FONT_SIZE := 20
+
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 12)
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.size_flags_vertical = Control.SIZE_SHRINK_END
 	vbox.add_child(actions)
 
-	var serve_btn := _styled_button("SERVE", Vector2(180, 64))
+	var serve_btn := _styled_button("SERVE", ACTION_BTN_SIZE)
 	serve_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	serve_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	serve_btn.add_theme_font_size_override("font_size", 22)
+	serve_btn.size_flags_vertical = Control.SIZE_FILL
+	serve_btn.size_flags_stretch_ratio = 1.0
+	serve_btn.add_theme_font_size_override("font_size", ACTION_BTN_FONT_SIZE)
 	serve_btn.add_theme_font_override("font", font_bold)
 	serve_btn.add_theme_stylebox_override("normal", _make_panel_style(
 		Color(0.08, 0.18, 0.08, 0.95), Color(0.4, 0.88, 0.45, 0.8), 8))
@@ -1141,10 +1146,11 @@ func setup_boba_ui():
 	serve_btn.pressed.connect(_on_serve_drink)
 	actions.add_child(serve_btn)
 
-	var clear_btn := _styled_button("CLEAR", Vector2(180, 64))
+	var clear_btn := _styled_button("CLEAR", ACTION_BTN_SIZE)
 	clear_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	clear_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	clear_btn.add_theme_font_size_override("font_size", 18)
+	clear_btn.size_flags_vertical = Control.SIZE_FILL
+	clear_btn.size_flags_stretch_ratio = 1.0
+	clear_btn.add_theme_font_size_override("font_size", ACTION_BTN_FONT_SIZE)
 	clear_btn.add_theme_font_override("font", font_bold)
 	clear_btn.add_theme_stylebox_override("normal", _make_panel_style(
 		Color(0.16, 0.08, 0.08, 0.95), Color(0.7, 0.35, 0.35, 0.6), 8))
