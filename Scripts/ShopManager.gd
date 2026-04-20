@@ -79,27 +79,9 @@ func _ready():
 	_animate_scene_enter()
 	start_spawning()
 	
-	# Cash register sound for completing orders
-	_cash_register_sfx = AudioStreamPlayer.new()
-	_cash_register_sfx.stream = preload("res://Assets/Audio/sfx/sfx_cash_register.wav")
-	_cash_register_sfx.volume_db = 0.0
-	_cash_register_sfx.bus = &"SFX"
-	add_child(_cash_register_sfx)
-	
-	# Error sound for failed purchases
-	_error_sfx = AudioStreamPlayer.new()
-	_error_sfx.stream = preload("res://Assets/Audio/sfx/sfx_error_sound.wav")
-	_error_sfx.volume_db = 0.0
-	_error_sfx.bus = &"SFX"
-	add_child(_error_sfx)
-	
-	# Background music
-	var _music = AudioStreamPlayer.new()
-	_music.stream = preload("res://Assets/Audio/music/mus_day.wav")
-	_music.volume_db = -10.0
-	_music.bus = &"Music"
-	_music.autoplay = true
-	add_child(_music)
+	_cash_register_sfx = _make_sfx(preload("res://Assets/Audio/sfx/sfx_cash_register.wav"))
+	_error_sfx = _make_sfx(preload("res://Assets/Audio/sfx/sfx_error_sound.wav"))
+	_make_sfx(preload("res://Assets/Audio/music/mus_day.wav"), -10.0, &"Music", true)
 
 func _animate_scene_enter():
 	if hud_container:
@@ -108,23 +90,19 @@ func _animate_scene_enter():
 		t.tween_property(hud_container, "modulate:a", 1.0, 0.4)
 
 func setup_close_buttons():
-	var close_boba = get_node_or_null("UI_Layer/BobaPanel/CloseBoba")
-	if close_boba:
-		close_boba.pressed.connect(func(): _close_panel(ui_boba_panel))
-
-	var close_upgrade = get_node_or_null("UI_Layer/UpgradePanel/CloseUpgrade")
-	if close_upgrade:
-		close_upgrade.pressed.connect(func():
-			var panel = get_node_or_null("UI_Layer/UpgradePanel")
-			if panel: _close_panel(panel)
-		)
-
-	var close_mission = get_node_or_null("UI_Layer/MissionPanel/CloseMission")
-	if close_mission:
-		close_mission.pressed.connect(func():
-			var panel = get_node_or_null("UI_Layer/MissionPanel")
-			if panel: _close_panel(panel)
-		)
+	var close_map = {
+		"UI_Layer/BobaPanel/CloseBoba": "UI_Layer/BobaPanel",
+		"UI_Layer/UpgradePanel/CloseUpgrade": "UI_Layer/UpgradePanel",
+		"UI_Layer/MissionPanel/CloseMission": "UI_Layer/MissionPanel",
+	}
+	for btn_path in close_map:
+		var btn = get_node_or_null(btn_path)
+		if btn:
+			var panel_path = close_map[btn_path]
+			btn.pressed.connect(func(p = panel_path):
+				var panel = get_node_or_null(p)
+				if panel: _close_panel(panel)
+			)
 
 func _process(delta):
 	if _panel_cooldown > 0.0:
@@ -146,13 +124,20 @@ func _process(delta):
 	if Input.is_action_just_pressed("pause"):
 		_close_all_panels()
 
-	if Input.is_action_just_pressed("weapon_1"):
-		_select_hotbar_slot(1)
-	elif Input.is_action_just_pressed("weapon_2"):
-		_select_hotbar_slot(2)
-	elif Input.is_action_just_pressed("weapon_3"):
-		_select_hotbar_slot(3)
+	for i in range(1, 4):
+		if Input.is_action_just_pressed("weapon_" + str(i)):
+			_select_hotbar_slot(i)
+			break
 
+
+func _make_sfx(stream: AudioStream, volume: float = 0.0, bus: StringName = &"SFX", autoplay: bool = false) -> AudioStreamPlayer:
+	var sfx = AudioStreamPlayer.new()
+	sfx.stream = stream
+	sfx.volume_db = volume
+	sfx.bus = bus
+	sfx.autoplay = autoplay
+	add_child(sfx)
+	return sfx
 
 func _make_panel_style(bg: Color = BG_DARK, border: Color = ACCENT_GOLD_DIM, radius: int = 8) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
@@ -218,6 +203,8 @@ func _open_panel(panel: Control):
 	panel.scale = Vector2(0.92, 0.92)
 	panel.modulate.a = 0.0
 	panel.pivot_offset = panel.size / 2.0
+	if quest_container:
+		quest_container.visible = false
 	var t = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	t.set_parallel(true)
 	t.tween_property(panel, "scale", Vector2.ONE, PANEL_ANIM_SPEED)
@@ -229,21 +216,20 @@ func _close_panel(panel: Control):
 	t.set_parallel(true)
 	t.tween_property(panel, "scale", Vector2(0.95, 0.95), PANEL_ANIM_SPEED * 0.6)
 	t.tween_property(panel, "modulate:a", 0.0, PANEL_ANIM_SPEED * 0.5)
+	var qc = quest_container
 	t.chain().tween_callback(func():
 		panel.visible = false
 		panel.modulate.a = 1.0
 		panel.scale = Vector2.ONE
+		if qc:
+			qc.visible = true
 	)
 
 func _is_any_panel_open() -> bool:
-	if ui_boba_panel.visible:
-		return true
-	var up = get_node_or_null("UI_Layer/UpgradePanel")
-	if up and up.visible:
-		return true
-	var mp = get_node_or_null("UI_Layer/MissionPanel")
-	if mp and mp.visible:
-		return true
+	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel"]:
+		var p = get_node_or_null(path)
+		if p and p.visible:
+			return true
 	return false
 
 
@@ -266,9 +252,7 @@ func setup_hotbar() -> void:
 	_hotbar_unselected_style.bg_color = Color(0.1, 0.1, 0.12, 0.5)
 	_hotbar_unselected_style.set_corner_radius_all(5)
 
-	_set_hotbar_label(_hotbar_slot1, "1: " + GameManager.equipped_main)
-	_set_hotbar_label(_hotbar_slot2, "2: " + GameManager.equipped_melee)
-	_set_hotbar_label(_hotbar_slot3, "3: " + GameManager.equipped_special)
+	_refresh_all_hotbar_labels()
 	_select_hotbar_slot(1)
 
 func _select_hotbar_slot(idx: int) -> void:
@@ -284,10 +268,14 @@ func _set_hotbar_label(slot: Panel, text: String) -> void:
 	var label = slot.get_node_or_null("Label")
 	if label: label.text = text
 
+func _refresh_all_hotbar_labels() -> void:
+	var equipped = [GameManager.equipped_main, GameManager.equipped_melee, GameManager.equipped_special]
+	var slots = [_hotbar_slot1, _hotbar_slot2, _hotbar_slot3]
+	for i in range(slots.size()):
+		_set_hotbar_label(slots[i], str(i + 1) + ": " + equipped[i])
+
 func refresh_hotbar_labels() -> void:
-	_set_hotbar_label(_hotbar_slot1, "1: " + GameManager.equipped_main)
-	_set_hotbar_label(_hotbar_slot2, "2: " + GameManager.equipped_melee)
-	_set_hotbar_label(_hotbar_slot3, "3: " + GameManager.equipped_special)
+	_refresh_all_hotbar_labels()
 
 
 func setup_hud():
@@ -640,15 +628,12 @@ func interact_with_zone(zone_name):
 		show_mission_panel()
 
 func setup_zones():
-	if has_node("CounterZone"):
-		$CounterZone.area_entered.connect(func(area): _set_zone("counter"))
-		$CounterZone.area_exited.connect(func(area): _clear_zone())
-	if has_node("UpgradeZone"):
-		$UpgradeZone.area_entered.connect(func(area): _set_zone("upgrade"))
-		$UpgradeZone.area_exited.connect(func(area): _clear_zone())
-	if has_node("MissionZone"):
-		$MissionZone.area_entered.connect(func(area): _set_zone("mission"))
-		$MissionZone.area_exited.connect(func(area): _clear_zone())
+	var zone_map = {"CounterZone": "counter", "UpgradeZone": "upgrade", "MissionZone": "mission"}
+	for node_name in zone_map:
+		if has_node(node_name):
+			var zone_name = zone_map[node_name]
+			get_node(node_name).area_entered.connect(func(area, z = zone_name): _set_zone(z))
+			get_node(node_name).area_exited.connect(func(area): _clear_zone())
 
 func _set_zone(zone_name: String):
 	active_zone = zone_name
@@ -668,9 +653,10 @@ func _clear_zone():
 	_close_all_panels()
 
 func _close_all_panels():
-	_reset_panel(ui_boba_panel)
-	_reset_panel(get_node_or_null("UI_Layer/UpgradePanel"))
-	_reset_panel(get_node_or_null("UI_Layer/MissionPanel"))
+	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel"]:
+		_reset_panel(get_node_or_null(path))
+	if quest_container:
+		quest_container.visible = true
 
 func _reset_panel(panel: Control):
 	if not panel: return
@@ -691,9 +677,10 @@ func show_upgrade_panel(animate: bool = true):
 	margin.name = "Content"
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 22)
-	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_top", 40)
 	margin.add_theme_constant_override("margin_right", 22)
 	margin.add_theme_constant_override("margin_bottom", 18)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(margin)
 
 	var close_btn = panel.get_node_or_null("CloseUpgrade")
@@ -868,9 +855,10 @@ func show_mission_panel():
 	margin.name = "Content"
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 22)
-	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_top", 40)
 	margin.add_theme_constant_override("margin_right", 22)
 	margin.add_theme_constant_override("margin_bottom", 18)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(margin)
 
 	var close_btn = panel.get_node_or_null("CloseMission")
@@ -1016,10 +1004,11 @@ func setup_boba_ui():
 	var margin := MarginContainer.new()
 	margin.name = "Content"
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_top", 14)
-	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 40)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 14)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_child(margin)
 
 	var close_btn = p.get_node_or_null("CloseBoba")
@@ -1029,7 +1018,7 @@ func setup_boba_ui():
 	vbox.add_theme_constant_override("separation", 6)
 	margin.add_child(vbox)
 
-	var header = _styled_label("BOBA STATION", font_bold, 22, ACCENT_GOLD)
+	var header = _styled_label("BOBA STATION", font_bold, 18, ACCENT_GOLD)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(header)
 
@@ -1048,13 +1037,13 @@ func setup_boba_ui():
 	var order_header = _styled_label("ORDER", font_bold, 13, ACCENT_GOLD_DIM)
 	order_vbox.add_child(order_header)
 
-	lbl_order_display = _styled_label("No customer waiting", font_bold, 16, TEXT_WHITE)
+	lbl_order_display = _styled_label("No customer waiting", font_bold, 14, TEXT_WHITE)
 	lbl_order_display.autowrap_mode = TextServer.AUTOWRAP_WORD
 	order_vbox.add_child(lbl_order_display)
 
 	vbox.add_child(_make_spacer(4))
 
-	lbl_mix = _styled_label("Mix: empty", font_semi, 15, Color(0.55, 0.85, 1.0))
+	lbl_mix = _styled_label("Mix: empty", font_semi, 13, Color(0.55, 0.85, 1.0))
 	vbox.add_child(lbl_mix)
 
 
@@ -1078,7 +1067,7 @@ func setup_boba_ui():
 		"Tapioca": TEX_TAPIOCA_ICON,
 	}
 
-	var icon_size := 48
+	var icon_size := 32
 
 	for ing in GameManager.unlocked_ingredients:
 		var cell := HBoxContainer.new()
@@ -1099,9 +1088,9 @@ func setup_boba_ui():
 			spacer.custom_minimum_size = Vector2(icon_size, icon_size)
 			cell.add_child(spacer)
 
-		var btn := _styled_button("+ " + ing, Vector2(180, 52))
-		btn.add_theme_font_size_override("font_size", 17)
-		btn.add_theme_font_override("font", font_bold)
+		var btn := _styled_button("+ " + ing, Vector2(140, 40))
+		btn.add_theme_font_size_override("font_size", 14)
+		btn.add_theme_font_override("font", font_semi)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var col = ing_colors.get(ing, TEXT_WHITE)
@@ -1119,8 +1108,8 @@ func setup_boba_ui():
 	vbox.add_child(_make_spacer(2))
 
 
-	const ACTION_BTN_SIZE := Vector2(200, 60)
-	const ACTION_BTN_FONT_SIZE := 20
+	const ACTION_BTN_SIZE := Vector2(160, 46)
+	const ACTION_BTN_FONT_SIZE := 16
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 12)
@@ -1222,6 +1211,8 @@ func _on_serve_drink():
 			GameManager.add_money(10)
 			GameManager.add_xp(10)
 		else:
+			if _error_sfx:
+				_error_sfx.play()
 			_show_floating_text("Wrong order!", TEXT_RED, target_customer.global_position)
 
 

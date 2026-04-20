@@ -233,28 +233,9 @@ func _ability_shadow_dash():
 		modulate = Color.WHITE
 
 func _ability_smoke_bomb():
-	var smoke = Area2D.new()
-	smoke.global_position = global_position
-	smoke.collision_layer = 0
-	smoke.collision_mask = 4
-	smoke.monitoring = true
-	smoke.monitorable = false
-	get_tree().current_scene.add_child(smoke)
-	
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 100.0
-	shape.shape = circle
-	smoke.add_child(shape)
-	
-	var visual = Polygon2D.new()
-	var pts: PackedVector2Array = []
-	for i in range(24):
-		var angle = i * (TAU / 24.0)
-		pts.append(Vector2(cos(angle), sin(angle)) * 100.0)
-	visual.polygon = pts
-	visual.color = Color(0.5, 0.5, 0.6, 0.35)
-	smoke.add_child(visual)
+	var result = _create_aoe_area(global_position, 100.0, Color(0.5, 0.5, 0.6, 0.35))
+	var smoke: Area2D = result[0]
+	var visual: Polygon2D = result[1]
 	
 	await get_tree().physics_frame
 	
@@ -339,28 +320,9 @@ func _on_shuriken_hit(body: Node, proj: Area2D):
 		proj.queue_free()
 
 func _ability_poison_cloud():
-	var cloud = Area2D.new()
-	cloud.global_position = global_position
-	cloud.collision_layer = 0
-	cloud.collision_mask = 4
-	cloud.monitoring = true
-	cloud.monitorable = false
-	get_tree().current_scene.add_child(cloud)
-	
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 80.0
-	shape.shape = circle
-	cloud.add_child(shape)
-	
-	var visual = Polygon2D.new()
-	var pts: PackedVector2Array = []
-	for i in range(20):
-		var angle = i * (TAU / 20.0)
-		pts.append(Vector2(cos(angle), sin(angle)) * 80.0)
-	visual.polygon = pts
-	visual.color = Color(0.3, 0.9, 0.35, 0.3)
-	cloud.add_child(visual)
+	var result = _create_aoe_area(global_position, 80.0, Color(0.3, 0.9, 0.35, 0.3))
+	var cloud: Area2D = result[0]
+	var visual: Polygon2D = result[1]
 	
 	await get_tree().physics_frame
 	

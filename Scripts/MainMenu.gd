@@ -14,16 +14,24 @@ var options_panel: Panel
 var _click_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
-	start_button.pressed.connect(_on_start_button_pressed)
-	options_button.pressed.connect(_on_options_button_pressed)
-	exit_button.pressed.connect(_on_exit_button_pressed)
-	
 	# UI click sound
 	_click_sfx = AudioStreamPlayer.new()
 	_click_sfx.stream = preload("res://Assets/Audio/sfx/sfx_UI_button_click.wav")
 	_click_sfx.volume_db = -5.0
 	_click_sfx.bus = &"SFX"
 	add_child(_click_sfx)
+
+	# Connect all buttons with click sound
+	var button_map = {
+		start_button: _on_start_button_pressed,
+		options_button: _on_options_button_pressed,
+		exit_button: _on_exit_button_pressed,
+	}
+	for btn in button_map:
+		btn.pressed.connect(func(cb = button_map[btn]):
+			if _click_sfx: _click_sfx.play()
+			cb.call()
+		)
 
 	_animate_intro()
 	GameManager.reset_game()
@@ -38,21 +46,15 @@ func _animate_intro() -> void:
 	tween.parallel().tween_property(column, "position:y", column.position.y + 20.0, 0.6)
 
 func _on_start_button_pressed() -> void:
-	if _click_sfx:
-		_click_sfx.play()
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.4)
 	await tween.finished
 	get_tree().change_scene_to_file(WORLD_SCENE_PATH)
 
 func _on_options_button_pressed() -> void:
-	if _click_sfx:
-		_click_sfx.play()
 	_show_options_panel()
 
 func _on_exit_button_pressed() -> void:
-	if _click_sfx:
-		_click_sfx.play()
 	get_tree().quit()
 
 func _show_options_panel() -> void:

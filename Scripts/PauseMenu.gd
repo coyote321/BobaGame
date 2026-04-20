@@ -24,18 +24,31 @@ func _ready() -> void:
 	_click_sfx.bus = &"SFX"
 	add_child(_click_sfx)
 
-	if resume_button:
-		resume_button.pressed.connect(_on_resume_pressed)
-	if options_button:
-		options_button.pressed.connect(_on_options_pressed)
-	if quit_button:
-		quit_button.pressed.connect(_on_quit_pressed)
+	# Connect all menu buttons with click sound
+	var button_map = {
+		resume_button: _on_resume_pressed,
+		options_button: _on_options_pressed,
+		quit_button: _on_quit_pressed,
+	}
+	for btn in button_map:
+		if btn:
+			btn.pressed.connect(func(cb = button_map[btn]):
+				if _click_sfx: _click_sfx.play()
+				cb.call()
+			)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
 		# If options panel is open, close it instead of toggling pause
 		if _options_panel and is_instance_valid(_options_panel):
 			_close_options_panel()
+			get_viewport().set_input_as_handled()
+			return
+		# If a shop panel is open, close it instead of pausing
+		var shop = get_tree().current_scene
+		if shop and shop.has_method("_is_any_panel_open") and shop._is_any_panel_open():
+			if shop.has_method("_close_all_panels"):
+				shop._close_all_panels()
 			get_viewport().set_input_as_handled()
 			return
 		if get_tree().paused:
@@ -62,18 +75,12 @@ func hide_pause_menu() -> void:
 	control_root.visible = false
 
 func _on_resume_pressed() -> void:
-	if _click_sfx:
-		_click_sfx.play()
 	resume_game()
 
 func _on_options_pressed() -> void:
-	if _click_sfx:
-		_click_sfx.play()
 	_toggle_options_panel()
 
 func _on_quit_pressed() -> void:
-	if _click_sfx:
-		_click_sfx.play()
 	get_tree().quit()
 
 

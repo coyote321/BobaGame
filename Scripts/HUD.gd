@@ -84,15 +84,12 @@ func update_health(current_hp: int, max_hp: int):
 	health_bar.add_theme_stylebox_override("fill", fill)
 
 func _refresh_hotbar():
-	_set_slot_label(hotbar_slot1, "1  " + GameManager.equipped_main)
-	_set_slot_label(hotbar_slot2, "2  " + GameManager.equipped_melee)
-	_set_slot_label(hotbar_slot3, "3  " + GameManager.equipped_special)
-	if hotbar_slot1:
-		hotbar_slot1.add_theme_stylebox_override("panel", _unselected_style)
-	if hotbar_slot2:
-		hotbar_slot2.add_theme_stylebox_override("panel", _unselected_style)
-	if hotbar_slot3:
-		hotbar_slot3.add_theme_stylebox_override("panel", _unselected_style)
+	var equipped = [GameManager.equipped_main, GameManager.equipped_melee, GameManager.equipped_special]
+	var slots = [hotbar_slot1, hotbar_slot2, hotbar_slot3]
+	for i in range(slots.size()):
+		_set_slot_label(slots[i], str(i + 1) + "  " + equipped[i])
+		if slots[i]:
+			slots[i].add_theme_stylebox_override("panel", _unselected_style)
 
 func _set_slot_label(slot: Panel, text: String):
 	if not slot:
@@ -102,20 +99,14 @@ func _set_slot_label(slot: Panel, text: String):
 		label.text = text
 
 func update_weapon(weapon_idx: int, _weapon_name: String):
-
-
-	_set_slot_label(hotbar_slot1, "1  " + GameManager.equipped_main)
-	_set_slot_label(hotbar_slot2, "2  " + GameManager.equipped_melee)
-	_set_slot_label(hotbar_slot3, "3  " + GameManager.equipped_special)
-
+	var equipped = [GameManager.equipped_main, GameManager.equipped_melee, GameManager.equipped_special]
 	var slots = [hotbar_slot1, hotbar_slot2, hotbar_slot3]
 	for i in range(slots.size()):
+		_set_slot_label(slots[i], str(i + 1) + "  " + equipped[i])
 		if slots[i] == null:
 			continue
-		if i + 1 == weapon_idx:
-			slots[i].add_theme_stylebox_override("panel", _selected_style)
-		else:
-			slots[i].add_theme_stylebox_override("panel", _unselected_style)
+		slots[i].add_theme_stylebox_override("panel",
+			_selected_style if i + 1 == weapon_idx else _unselected_style)
 
 func update_objective(text: String):
 	if objective_label:
@@ -145,20 +136,15 @@ func update_stealth(_stealth_rating: float):
 	pass
 
 func show_mission_complete(_stealth_bonus: int):
-	if objective_label:
-		objective_label.text = "MISSION COMPLETE"
-		objective_label.add_theme_color_override("font_color", ACCENT_GREEN)
-	if timer_label:
-		timer_label.visible = false
-	if abort_button:
-		abort_button.visible = false
-	if return_button:
-		return_button.visible = true
+	_show_mission_end_state("MISSION COMPLETE", ACCENT_GREEN)
 
 func show_mission_failed(reason: String):
+	_show_mission_end_state("MISSION FAILED — " + reason, ACCENT_RED)
+
+func _show_mission_end_state(text: String, color: Color):
 	if objective_label:
-		objective_label.text = "MISSION FAILED — " + reason
-		objective_label.add_theme_color_override("font_color", ACCENT_RED)
+		objective_label.text = text
+		objective_label.add_theme_color_override("font_color", color)
 	if timer_label:
 		timer_label.visible = false
 	if abort_button:

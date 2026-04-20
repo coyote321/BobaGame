@@ -207,12 +207,7 @@ func _setup_audio_buses():
 
 func set_master_volume(value: float):
 	master_volume = value
-	var bus_idx = AudioServer.get_bus_index("Master")
-	if value <= 0.0:
-		AudioServer.set_bus_mute(bus_idx, true)
-	else:
-		AudioServer.set_bus_mute(bus_idx, false)
-		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value / 100.0))
+	_set_bus_volume("Master", value)
 
 func set_sfx_volume(value: float):
 	sfx_volume = value
@@ -220,11 +215,17 @@ func set_sfx_volume(value: float):
 		_sfx_bus_idx = AudioServer.get_bus_index("SFX")
 	if _sfx_bus_idx == -1:
 		return
+	_set_bus_volume("SFX", value)
+
+func _set_bus_volume(bus_name: String, value: float) -> void:
+	var bus_idx = AudioServer.get_bus_index(bus_name)
+	if bus_idx < 0:
+		return
 	if value <= 0.0:
-		AudioServer.set_bus_mute(_sfx_bus_idx, true)
+		AudioServer.set_bus_mute(bus_idx, true)
 	else:
-		AudioServer.set_bus_mute(_sfx_bus_idx, false)
-		AudioServer.set_bus_volume_db(_sfx_bus_idx, linear_to_db(value / 100.0))
+		AudioServer.set_bus_mute(bus_idx, false)
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value / 100.0))
 
 func setup_inputs():
 	var actions = {
