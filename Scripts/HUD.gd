@@ -164,7 +164,7 @@ func _process(_delta):
 	if level_label:
 		level_label.text = "LVL  " + str(GameManager.level)
 	if xp_label and xp_bar:
-		var need = GameManager.level * GameManager.XP_PER_LEVEL
+		var need = GameManager.get_xp_for_next_level()
 		xp_bar.max_value = need
 		xp_bar.value = GameManager.xp
 		xp_label.text = "XP  %d / %d" % [GameManager.xp, need]

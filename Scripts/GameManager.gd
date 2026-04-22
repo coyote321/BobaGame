@@ -8,7 +8,11 @@ var current_phase: String = "SHOP"
 
 var xp: int = 0
 var level: int = 1
-const XP_PER_LEVEL: int = 50
+const XP_BASE: int = 100
+const XP_GROWTH: int = 50
+
+func get_xp_for_next_level(lvl: int = level) -> int:
+	return XP_BASE + XP_GROWTH * (lvl - 1) * lvl
 
 
 var reputation: int = 0
@@ -107,22 +111,22 @@ var player_damage_multiplier: float = 1.0
 var active_abilities: Dictionary = {
 	"Shadow Dash": {
 		"desc": "Dash forward at lightning speed",
-		"cost": 0, "cooldown": 2.0,
+		"cost": 0, "cooldown": 2.0, "unlock_level": 1,
 		"color": Color(0.5, 0.8, 1.0)
 	},
 	"Smoke Bomb": {
 		"desc": "Drop a smoke cloud that slows nearby enemies for 3s",
-		"cost": 150, "cooldown": 5.0,
+		"cost": 150, "cooldown": 5.0, "unlock_level": 2,
 		"color": Color(0.6, 0.6, 0.7)
 	},
 	"Shuriken Burst": {
 		"desc": "Fire 8 projectiles in a ring around you",
-		"cost": 250, "cooldown": 4.0,
+		"cost": 250, "cooldown": 4.0, "unlock_level": 3,
 		"color": Color(0.9, 0.4, 0.4)
 	},
 	"Poison Cloud": {
 		"desc": "Leave a poison zone that damages enemies over time",
-		"cost": 400, "cooldown": 6.0,
+		"cost": 400, "cooldown": 6.0, "unlock_level": 5,
 		"color": Color(0.35, 0.95, 0.45)
 	}
 }
@@ -133,6 +137,7 @@ var passive_upgrades: Dictionary = {
 		"per_tier": "+25 HP",
 		"costs": [75, 150, 300],
 		"max_tier": 3,
+		"unlock_level": 1,
 		"color": Color(1.0, 0.7, 0.3)
 	},
 	"Speed Upgrade": {
@@ -140,6 +145,7 @@ var passive_upgrades: Dictionary = {
 		"per_tier": "+30 speed",
 		"costs": [75, 150, 300],
 		"max_tier": 3,
+		"unlock_level": 2,
 		"color": Color(0.45, 0.72, 1.0)
 	},
 	"Damage Upgrade": {
@@ -147,6 +153,7 @@ var passive_upgrades: Dictionary = {
 		"per_tier": "+0.25x damage",
 		"costs": [100, 200, 400],
 		"max_tier": 3,
+		"unlock_level": 3,
 		"color": Color(1.0, 0.35, 0.35)
 	},
 	"Cooldown Upgrade": {
@@ -154,6 +161,7 @@ var passive_upgrades: Dictionary = {
 		"per_tier": "-0.3s cooldown",
 		"costs": [100, 200, 400],
 		"max_tier": 3,
+		"unlock_level": 4,
 		"color": Color(0.8, 0.5, 1.0)
 	}
 }
@@ -189,11 +197,23 @@ var master_volume: float = 80.0
 var sfx_volume: float = 80.0
 var _sfx_bus_idx: int = -1
 
+
+const ADMIN_TARGET_LEVEL: int = 99
+const ADMIN_MONEY_GRANT: int = 999999
+var admin_mode: bool = false
+var _admin_snapshot: Dictionary = {}
+
 func _ready():
 	print("GameManager initialized")
 	_setup_audio_buses()
 	setup_inputs()
 	generate_daily_quests()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.ctrl_pressed and event.shift_pressed and event.keycode == KEY_A:
+			toggle_admin()
+			get_viewport().set_input_as_handled()
 
 func _setup_audio_buses():
 	_sfx_bus_idx = AudioServer.get_bus_index("SFX")
@@ -264,13 +284,13 @@ func add_xp(amount: int):
 	check_level_up()
 
 func check_level_up():
-	var xp_needed = level * XP_PER_LEVEL
+	var xp_needed = get_xp_for_next_level()
 	while xp >= xp_needed:
 		xp -= xp_needed
 		level += 1
 		print("LEVEL UP! Now level ", level)
 		on_level_up()
-		xp_needed = level * XP_PER_LEVEL
+		xp_needed = get_xp_for_next_level()
 
 func on_level_up():
 
@@ -286,7 +306,7 @@ func on_level_up():
 		print("Unlocked ingredient: ", level_unlocks[level])
 
 func get_xp_progress() -> float:
-	var xp_needed = level * XP_PER_LEVEL
+	var xp_needed = get_xp_for_next_level()
 	return float(xp) / float(xp_needed)
 
 
@@ -491,8 +511,23 @@ func get_weapon_damage(weapon_name: String) -> float:
 	return 10.0
 
 
+func get_available_abilities() -> Array:
+	var available := []
+	for ability_name in active_abilities:
+		if int(active_abilities[ability_name].get("unlock_level", 1)) <= level:
+			available.append(ability_name)
+	return available
+
+func is_ability_unlocked(ability_name: String) -> bool:
+	if ability_name not in active_abilities:
+		return false
+	return int(active_abilities[ability_name].get("unlock_level", 1)) <= level
+
 func buy_ability(ability_name: String) -> bool:
 	if ability_name in active_abilities and ability_name not in owned_active_abilities:
+		if not is_ability_unlocked(ability_name):
+			print("Ability locked: ", ability_name)
+			return false
 		var cost = active_abilities[ability_name]["cost"]
 		if spend_money(cost):
 			owned_active_abilities.append(ability_name)
@@ -505,8 +540,23 @@ func equip_ability(ability_name: String):
 		active_ability = ability_name
 		print("Equipped ability: ", ability_name)
 
+func get_available_passives() -> Array:
+	var available := []
+	for passive_name in passive_upgrades:
+		if int(passive_upgrades[passive_name].get("unlock_level", 1)) <= level:
+			available.append(passive_name)
+	return available
+
+func is_passive_unlocked(passive_name: String) -> bool:
+	if passive_name not in passive_upgrades:
+		return false
+	return int(passive_upgrades[passive_name].get("unlock_level", 1)) <= level
+
 func upgrade_passive(passive_name: String) -> bool:
 	if passive_name not in passive_upgrades:
+		return false
+	if not is_passive_unlocked(passive_name):
+		print("Passive locked: ", passive_name)
 		return false
 	var current_tier = passive_tiers.get(passive_name, 0)
 	var data = passive_upgrades[passive_name]
@@ -576,3 +626,100 @@ func reset_game():
 	max_health = 100
 	generate_daily_quests()
 	print("Game state fully reset")
+
+
+func toggle_admin() -> void:
+	if admin_mode:
+		revoke_admin()
+	else:
+		grant_admin()
+
+func grant_admin() -> void:
+	if admin_mode:
+		print("[ADMIN] Already active")
+		return
+
+	_admin_snapshot = {
+		"level": level,
+		"xp": xp,
+		"money": money,
+		"reputation": reputation,
+		"shop_level": shop_level,
+		"unlocked_ingredients": unlocked_ingredients.duplicate(true),
+		"inventory": inventory.duplicate(true),
+		"owned_weapons": owned_weapons.duplicate(true),
+		"equipped_main": equipped_main,
+		"equipped_melee": equipped_melee,
+		"equipped_special": equipped_special,
+		"owned_active_abilities": owned_active_abilities.duplicate(true),
+		"active_ability": active_ability,
+		"passive_tiers": passive_tiers.duplicate(true),
+		"health": health,
+		"max_health": max_health,
+		"player_damage_multiplier": player_damage_multiplier,
+		"speed_bonus": speed_bonus,
+		"max_health_bonus": max_health_bonus,
+		"cooldown_reduction": cooldown_reduction,
+	}
+
+	level = ADMIN_TARGET_LEVEL
+	xp = 0
+	money = ADMIN_MONEY_GRANT
+
+	var every_ingredient := ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar",
+		"Honey", "Matcha", "Taro", "Brown Sugar"]
+	for ing in every_ingredient:
+		if ing not in unlocked_ingredients:
+			unlocked_ingredients.append(ing)
+		inventory[ing] = 999
+
+	for weapon_name in weapons.keys():
+		if weapon_name not in owned_weapons:
+			owned_weapons.append(weapon_name)
+
+	for ability_name in active_abilities.keys():
+		if ability_name not in owned_active_abilities:
+			owned_active_abilities.append(ability_name)
+
+	for passive_name in passive_upgrades.keys():
+		passive_tiers[passive_name] = passive_upgrades[passive_name]["max_tier"]
+	_recalculate_passive_bonuses()
+	health = max_health
+
+	admin_mode = true
+	print("[ADMIN] Enabled — level ", level, ", $", money, ", all weapons/abilities/ingredients unlocked, passives maxed. Press Ctrl+Shift+A again to revoke.")
+
+func revoke_admin() -> void:
+	if not admin_mode:
+		print("[ADMIN] Not active")
+		return
+	if _admin_snapshot.is_empty():
+		admin_mode = false
+		print("[ADMIN] No snapshot to restore; flag cleared")
+		return
+
+	level = _admin_snapshot["level"]
+	xp = _admin_snapshot["xp"]
+	money = _admin_snapshot["money"]
+	reputation = _admin_snapshot["reputation"]
+	shop_level = _admin_snapshot["shop_level"]
+	unlocked_ingredients = _admin_snapshot["unlocked_ingredients"].duplicate(true)
+	inventory = _admin_snapshot["inventory"].duplicate(true)
+	owned_weapons = _admin_snapshot["owned_weapons"].duplicate(true)
+	equipped_main = _admin_snapshot["equipped_main"]
+	equipped_melee = _admin_snapshot["equipped_melee"]
+	equipped_special = _admin_snapshot["equipped_special"]
+	owned_active_abilities = _admin_snapshot["owned_active_abilities"].duplicate(true)
+	active_ability = _admin_snapshot["active_ability"]
+	passive_tiers = _admin_snapshot["passive_tiers"].duplicate(true)
+	_recalculate_passive_bonuses()
+	max_health = _admin_snapshot["max_health"]
+	health = mini(_admin_snapshot["health"], max_health)
+	player_damage_multiplier = _admin_snapshot["player_damage_multiplier"]
+	speed_bonus = _admin_snapshot["speed_bonus"]
+	max_health_bonus = _admin_snapshot["max_health_bonus"]
+	cooldown_reduction = _admin_snapshot["cooldown_reduction"]
+
+	_admin_snapshot.clear()
+	admin_mode = false
+	print("[ADMIN] Revoked — previous progress restored")

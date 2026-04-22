@@ -1,13 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://be10wuej7jx71"]
+[gd_scene load_steps=3 format=3 uid="uid://be10wuej7jx71"]
 
 [ext_resource type="Script" uid="uid://dbjasiq01y8sg" path="res://Scripts/FlamethrowerWeapon.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c8ix2ha8itbm2" path="res://Assets/Sprites/Flamethrower.png" id="2_flamethrower"]
 
 [node name="Flamethrower" type="Node2D"]
 script = ExtResource("1_script")
 
-[node name="Sprite" type="Polygon2D" parent="."]
-color = Color(0.85, 0.4, 0.15, 1)
-polygon = PackedVector2Array(-10, -6, 11, -2, 32, 0, 13, 2, -10, 6)
+[node name="Sprite" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_flamethrower")
+texture_filter = 0
 
 [node name="Muzzle" type="Marker2D" parent="."]
-position = Vector2(34, 0)
+position = Vector2(42, -4)

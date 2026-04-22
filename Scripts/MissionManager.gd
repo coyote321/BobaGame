@@ -84,6 +84,9 @@ func _apply_mission_setup() -> void:
 
 	initial_enemy_count = enemies_container.get_child_count()
 
+	for enemy in enemies_container.get_children():
+		_connect_enemy(enemy)
+
 func _apply_difficulty_scale(enemy: Node, scale: float) -> void:
 	if not enemy:
 		return
@@ -104,6 +107,21 @@ func _spawn_extra_enemy(is_tank: bool) -> void:
 	enemies_container.add_child(e)
 
 	_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
+	_connect_enemy(e)
+
+func _connect_enemy(enemy: Node) -> void:
+	if not is_instance_valid(enemy):
+		return
+	if enemy.has_signal("died") and not enemy.died.is_connected(_on_enemy_died):
+		enemy.died.connect(_on_enemy_died)
+	if not enemy.tree_exited.is_connected(_on_enemy_tree_exited):
+		enemy.tree_exited.connect(_on_enemy_tree_exited)
+
+func _on_enemy_died(_enemy) -> void:
+	call_deferred("check_mission_status")
+
+func _on_enemy_tree_exited() -> void:
+	call_deferred("check_mission_status")
 
 func _setup_boss() -> void:
 	var children := enemies_container.get_children()
@@ -183,12 +201,13 @@ func _tick_survival(delta: float) -> void:
 	if mission_type != "survival":
 		return
 	wave_spawn_timer -= delta
-	if enemies_container and enemies_container.get_child_count() == 0 and waves_spawned < waves_total:
+	var living := _living_enemy_count()
+	if living == 0 and waves_spawned < waves_total:
 		wave_spawn_timer = 2.0
 		_spawn_wave()
 	elif waves_spawned < waves_total and wave_spawn_timer <= 0.0:
 
-		if enemies_container and enemies_container.get_child_count() < 3:
+		if living < 3:
 			wave_spawn_timer = 30.0
 			_spawn_wave()
 
@@ -196,7 +215,7 @@ func _update_hud_counters() -> void:
 	if not hud or not hud.has_method("update_enemy_count"):
 		return
 	if enemies_container:
-		var remaining := enemies_container.get_child_count()
+		var remaining := _living_enemy_count()
 		var total := initial_enemy_count
 		if mission_type == "survival":
 			total = max(total, remaining + (waves_total - waves_spawned) * 4)
@@ -225,24 +244,60 @@ func update_stealth(delta: float):
 		hud.update_stealth(stealth_rating)
 
 func check_mission_status():
-	if not enemies_container:
+	if mission_complete or mission_failed:
 		return
+
+	var living := _living_enemy_count()
 
 	match mission_type:
 		"boss_hunt":
-			if target_enemy and not is_instance_valid(target_enemy):
+			if _is_target_defeated():
 				on_mission_complete()
 				return
+			if living == 0:
+				on_mission_complete()
 		"extermination", "timed_hunt":
-			if target_enemy and not is_instance_valid(target_enemy):
+			if _is_target_defeated():
 				on_mission_complete()
 				return
-			if enemies_container.get_child_count() == 0:
+			if living == 0:
 				on_mission_complete()
 		"survival":
-
-			if waves_spawned >= waves_total and enemies_container.get_child_count() == 0:
+			if waves_spawned >= waves_total and living == 0:
 				on_mission_complete()
+
+func _is_target_defeated() -> bool:
+	if target_enemy == null:
+		return false
+	if not is_instance_valid(target_enemy):
+		return true
+	if "is_dead" in target_enemy and target_enemy.is_dead:
+		return true
+	return false
+
+func _living_enemy_count() -> int:
+	var seen := {}
+	var count := 0
+	if enemies_container:
+		for enemy in enemies_container.get_children():
+			if _is_living_enemy(enemy):
+				seen[enemy.get_instance_id()] = true
+				count += 1
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if seen.has(enemy.get_instance_id()):
+			continue
+		if _is_living_enemy(enemy):
+			count += 1
+	return count
+
+func _is_living_enemy(enemy) -> bool:
+	if not is_instance_valid(enemy):
+		return false
+	if enemy.is_queued_for_deletion():
+		return false
+	if "is_dead" in enemy and enemy.is_dead:
+		return false
+	return true
 
 func on_mission_complete():
 	if mission_complete or mission_failed:

@@ -9,6 +9,7 @@ const SLOT_START_X: float = 400.0
 const TEX_MILK_ICON := preload("res://Assets/Sprites/MilkIngredientIconDesign.png")
 const TEX_SUGAR_ICON := preload("res://Assets/Sprites/SugarIconPicture.png")
 const TEX_TAPIOCA_ICON := preload("res://Assets/Sprites/BobaIconpicture.png")
+const TEX_BLACK_TEA_ICON := preload("res://Assets/Sprites/BlackTeaIconIngredientDesign.png")
 
 const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const ACCENT_GOLD_DIM := Color(0.91, 0.76, 0.29, 0.4)
@@ -94,6 +95,7 @@ func setup_close_buttons():
 		"UI_Layer/BobaPanel/CloseBoba": "UI_Layer/BobaPanel",
 		"UI_Layer/UpgradePanel/CloseUpgrade": "UI_Layer/UpgradePanel",
 		"UI_Layer/MissionPanel/CloseMission": "UI_Layer/MissionPanel",
+		"UI_Layer/AbilityPanel/CloseAbility": "UI_Layer/AbilityPanel",
 	}
 	for btn_path in close_map:
 		var btn = get_node_or_null(btn_path)
@@ -226,7 +228,7 @@ func _close_panel(panel: Control):
 	)
 
 func _is_any_panel_open() -> bool:
-	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel"]:
+	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel", "UI_Layer/AbilityPanel"]:
 		var p = get_node_or_null(path)
 		if p and p.visible:
 			return true
@@ -626,9 +628,11 @@ func interact_with_zone(zone_name):
 		show_upgrade_panel()
 	elif zone_name == "mission":
 		show_mission_panel()
+	elif zone_name == "ability":
+		show_ability_panel()
 
 func setup_zones():
-	var zone_map = {"CounterZone": "counter", "UpgradeZone": "upgrade", "MissionZone": "mission"}
+	var zone_map = {"CounterZone": "counter", "UpgradeZone": "upgrade", "MissionZone": "mission", "AbilityZone": "ability"}
 	for node_name in zone_map:
 		if has_node(node_name):
 			var zone_name = zone_map[node_name]
@@ -637,7 +641,7 @@ func setup_zones():
 
 func _set_zone(zone_name: String):
 	active_zone = zone_name
-	var zone_labels = {"counter": "BOBA COUNTER", "upgrade": "WEAPON SHOP", "mission": "CONTRACTS"}
+	var zone_labels = {"counter": "BOBA COUNTER", "upgrade": "WEAPON SHOP", "mission": "CONTRACTS", "ability": "ABILITY SHOP"}
 	ui_interaction.text = "[E]  " + zone_labels.get(zone_name, zone_name.to_upper())
 	ui_interaction.visible = true
 
@@ -653,7 +657,7 @@ func _clear_zone():
 	_close_all_panels()
 
 func _close_all_panels():
-	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel"]:
+	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel", "UI_Layer/AbilityPanel"]:
 		_reset_panel(get_node_or_null(path))
 	if quest_container:
 		quest_container.visible = true
@@ -668,6 +672,12 @@ func _reset_panel(panel: Control):
 func show_upgrade_panel(animate: bool = true):
 	var panel = get_node_or_null("UI_Layer/UpgradePanel")
 	if not panel: return
+
+	var prev_scroll: int = 0
+	if not animate:
+		var old_scroll := panel.find_child("WeaponScroll", true, false) as ScrollContainer
+		if old_scroll:
+			prev_scroll = old_scroll.scroll_vertical
 
 	for child in panel.get_children():
 		if child.name != "CloseUpgrade":
@@ -710,6 +720,7 @@ func show_upgrade_panel(animate: bool = true):
 
 
 	var scroll := ScrollContainer.new()
+	scroll.name = "WeaponScroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	outer_vbox.add_child(scroll)
@@ -822,6 +833,9 @@ func show_upgrade_panel(animate: bool = true):
 		panel.modulate.a = 1.0
 		panel.scale = Vector2.ONE
 
+	if prev_scroll > 0:
+		scroll.set_deferred("scroll_vertical", prev_scroll)
+
 func _equip_to_slot(weapon_name: String, slot: String) -> void:
 	if weapon_name not in GameManager.owned_weapons: return
 	match slot:
@@ -841,6 +855,278 @@ func _style_active_slot_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_color", ACCENT_GOLD)
 	btn.add_theme_stylebox_override("normal", _make_panel_style(
 		Color(0.18, 0.16, 0.08, 0.95), ACCENT_GOLD, 6))
+
+
+func _ability_color(data: Dictionary) -> Color:
+	var raw = data.get("color", ACCENT_GOLD_DIM)
+	if raw is Color:
+		return raw
+	return ACCENT_GOLD_DIM
+
+func show_ability_panel(animate: bool = true):
+	var panel = get_node_or_null("UI_Layer/AbilityPanel")
+	if not panel:
+		push_warning("AbilityPanel not found in scene tree")
+		return
+
+	var prev_scroll: int = 0
+	if not animate:
+		var old_scroll := panel.find_child("AbilityScroll", true, false) as ScrollContainer
+		if old_scroll:
+			prev_scroll = old_scroll.scroll_vertical
+
+	for child in panel.get_children():
+		if child.name != "CloseAbility":
+			child.queue_free()
+
+	var margin := MarginContainer.new()
+	margin.name = "Content"
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 22)
+	margin.add_theme_constant_override("margin_top", 40)
+	margin.add_theme_constant_override("margin_right", 22)
+	margin.add_theme_constant_override("margin_bottom", 18)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(margin)
+
+	var close_btn = panel.get_node_or_null("CloseAbility")
+	if close_btn: panel.move_child(close_btn, -1)
+
+	var outer_vbox := VBoxContainer.new()
+	outer_vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(outer_vbox)
+
+	var header_row := HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 10)
+	outer_vbox.add_child(header_row)
+
+	var title_col := VBoxContainer.new()
+	title_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_col.add_theme_constant_override("separation", 2)
+	header_row.add_child(title_col)
+
+	var title = _styled_label("ABILITY SHOP", font_bold, 22, Color(0.85, 0.6, 1.0))
+	title_col.add_child(title)
+
+	var level_lbl = _styled_label("Level " + str(GameManager.level) + "  ·  $" + str(GameManager.money) + " available", font_medium, 12, TEXT_DIM)
+	title_col.add_child(level_lbl)
+
+	outer_vbox.add_child(_make_divider())
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "AbilityScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer_vbox.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 8)
+	scroll.add_child(list)
+
+	list.add_child(_styled_label("ACTIVE ABILITIES", font_semi, 11, ACCENT_GOLD_DIM))
+
+	var ability_names: Array = GameManager.active_abilities.keys()
+	ability_names.sort_custom(func(a, b):
+		return int(GameManager.active_abilities[a].get("unlock_level", 1)) < int(GameManager.active_abilities[b].get("unlock_level", 1)))
+	for ability_name in ability_names:
+		list.add_child(_build_ability_card(ability_name))
+
+	list.add_child(_make_spacer(6))
+	list.add_child(_make_divider())
+	list.add_child(_styled_label("PASSIVE UPGRADES", font_semi, 11, ACCENT_GOLD_DIM))
+
+	var passive_names: Array = GameManager.passive_upgrades.keys()
+	passive_names.sort_custom(func(a, b):
+		return int(GameManager.passive_upgrades[a].get("unlock_level", 1)) < int(GameManager.passive_upgrades[b].get("unlock_level", 1)))
+	for passive_name in passive_names:
+		list.add_child(_build_passive_card(passive_name))
+
+	if animate:
+		_open_panel(panel)
+	else:
+		panel.visible = true
+		panel.modulate.a = 1.0
+		panel.scale = Vector2.ONE
+
+	if prev_scroll > 0:
+		scroll.set_deferred("scroll_vertical", prev_scroll)
+
+func _build_ability_card(ability_name: String) -> PanelContainer:
+	var data: Dictionary = GameManager.active_abilities.get(ability_name, {})
+	var owned: bool = ability_name in GameManager.owned_active_abilities
+	var equipped: bool = GameManager.active_ability == ability_name
+	var unlock_level: int = int(data.get("unlock_level", 1))
+	var unlocked: bool = GameManager.level >= unlock_level
+	var col: Color = _ability_color(data)
+
+	var border_col: Color = ACCENT_GOLD_DIM
+	if owned:
+		border_col = Color(col.r, col.g, col.b, 0.35)
+	elif not unlocked:
+		border_col = Color(0.35, 0.35, 0.38, 0.35)
+
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _make_card_style(border_col))
+	if not unlocked:
+		card.modulate = Color(1, 1, 1, 0.55)
+
+	var card_hbox := HBoxContainer.new()
+	card_hbox.add_theme_constant_override("separation", 10)
+	card.add_child(card_hbox)
+
+	var info_col := VBoxContainer.new()
+	info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_col.add_theme_constant_override("separation", 2)
+	card_hbox.add_child(info_col)
+
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 8)
+	info_col.add_child(name_row)
+
+	var name_color: Color = TEXT_DIM if not unlocked else TEXT_WHITE
+	name_row.add_child(_styled_label(ability_name, font_semi, 15, name_color))
+
+	if not unlocked:
+		name_row.add_child(_styled_label("LOCKED", font_medium, 9, TEXT_DIM))
+	elif equipped:
+		name_row.add_child(_styled_label("EQUIPPED", font_medium, 9, ACCENT_GOLD))
+	elif owned:
+		name_row.add_child(_styled_label("OWNED", font_medium, 9, TEXT_GREEN))
+
+	var desc_color: Color = TEXT_DIM if not unlocked else col
+	var desc_lbl = _styled_label(str(data.get("desc", "")), font_medium, 11, desc_color)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	desc_lbl.custom_minimum_size = Vector2(340, 0)
+	info_col.add_child(desc_lbl)
+
+	var cooldown_val: float = float(data.get("cooldown", 0.0))
+	info_col.add_child(_styled_label("Cooldown " + str(cooldown_val) + "s", font_medium, 10, TEXT_DIM))
+
+	var an = ability_name
+	if not unlocked:
+		var lock_lbl := _styled_label("Lv " + str(unlock_level), font_semi, 12, TEXT_DIM)
+		lock_lbl.custom_minimum_size = Vector2(90, 38)
+		lock_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lock_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		card_hbox.add_child(lock_lbl)
+	elif not owned:
+		var cost_val := int(data.get("cost", 0))
+		var can_afford: bool = GameManager.money >= cost_val
+		var label_text: String = "FREE" if cost_val == 0 else "$" + str(cost_val)
+		var btn := _styled_button(label_text, Vector2(90, 38))
+		if cost_val > 0 and not can_afford:
+			btn.add_theme_color_override("font_color", TEXT_RED)
+			btn.add_theme_stylebox_override("normal", _make_panel_style(
+				Color(0.12, 0.08, 0.08, 0.9), Color(1, 0.3, 0.3, 0.3), 6))
+		btn.pressed.connect(func(a = an):
+			if GameManager.buy_ability(a):
+				if _cash_register_sfx:
+					_cash_register_sfx.play()
+				show_ability_panel(false)
+			else:
+				if _error_sfx:
+					_error_sfx.play()
+		)
+		card_hbox.add_child(btn)
+	elif not equipped:
+		var btn := _styled_button("EQUIP", Vector2(90, 38))
+		btn.pressed.connect(func(a = an):
+			GameManager.equip_ability(a)
+			show_ability_panel(false)
+		)
+		card_hbox.add_child(btn)
+	else:
+		var active_lbl := _styled_label("ACTIVE", font_semi, 11, ACCENT_GOLD)
+		active_lbl.custom_minimum_size = Vector2(90, 38)
+		active_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		active_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		card_hbox.add_child(active_lbl)
+
+	return card
+
+func _build_passive_card(passive_name: String) -> PanelContainer:
+	var data: Dictionary = GameManager.passive_upgrades.get(passive_name, {})
+	var tier: int = int(GameManager.passive_tiers.get(passive_name, 0))
+	var max_tier: int = int(data.get("max_tier", 3))
+	var unlock_level: int = int(data.get("unlock_level", 1))
+	var unlocked: bool = GameManager.level >= unlock_level
+	var col: Color = _ability_color(data)
+	var maxed: bool = tier >= max_tier
+
+	var border_col: Color = ACCENT_GOLD_DIM
+	if tier > 0:
+		border_col = Color(col.r, col.g, col.b, 0.35)
+	elif not unlocked:
+		border_col = Color(0.35, 0.35, 0.38, 0.35)
+
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _make_card_style(border_col))
+	if not unlocked:
+		card.modulate = Color(1, 1, 1, 0.55)
+
+	var card_hbox := HBoxContainer.new()
+	card_hbox.add_theme_constant_override("separation", 10)
+	card.add_child(card_hbox)
+
+	var info_col := VBoxContainer.new()
+	info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_col.add_theme_constant_override("separation", 2)
+	card_hbox.add_child(info_col)
+
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 8)
+	info_col.add_child(name_row)
+
+	var name_color: Color = TEXT_DIM if not unlocked else TEXT_WHITE
+	name_row.add_child(_styled_label(passive_name, font_semi, 15, name_color))
+
+	if not unlocked:
+		name_row.add_child(_styled_label("LOCKED", font_medium, 9, TEXT_DIM))
+	else:
+		name_row.add_child(_styled_label("TIER %d/%d" % [tier, max_tier], font_medium, 9,
+			ACCENT_GOLD if tier > 0 else TEXT_DIM))
+
+	var desc_color: Color = TEXT_DIM if not unlocked else col
+	var desc_text: String = str(data.get("desc", "")) + " (" + str(data.get("per_tier", "")) + ")"
+	var desc_lbl = _styled_label(desc_text, font_medium, 11, desc_color)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	desc_lbl.custom_minimum_size = Vector2(340, 0)
+	info_col.add_child(desc_lbl)
+
+	var pn = passive_name
+	if not unlocked:
+		var lock_lbl := _styled_label("Lv " + str(unlock_level), font_semi, 12, TEXT_DIM)
+		lock_lbl.custom_minimum_size = Vector2(90, 38)
+		lock_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lock_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		card_hbox.add_child(lock_lbl)
+	elif maxed:
+		var maxed_lbl := _styled_label("MAXED", font_semi, 11, TEXT_GREEN)
+		maxed_lbl.custom_minimum_size = Vector2(90, 38)
+		maxed_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		maxed_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		card_hbox.add_child(maxed_lbl)
+	else:
+		var cost_val: int = GameManager.get_passive_next_cost(passive_name)
+		var can_afford: bool = GameManager.money >= cost_val
+		var btn := _styled_button("$" + str(cost_val), Vector2(90, 38))
+		if not can_afford:
+			btn.add_theme_color_override("font_color", TEXT_RED)
+			btn.add_theme_stylebox_override("normal", _make_panel_style(
+				Color(0.12, 0.08, 0.08, 0.9), Color(1, 0.3, 0.3, 0.3), 6))
+		btn.pressed.connect(func(p = pn):
+			if GameManager.upgrade_passive(p):
+				if _cash_register_sfx:
+					_cash_register_sfx.play()
+				show_ability_panel(false)
+			else:
+				if _error_sfx:
+					_error_sfx.play()
+		)
+		card_hbox.add_child(btn)
+
+	return card
 
 
 func show_mission_panel():
@@ -1065,6 +1351,7 @@ func setup_boba_ui():
 		"Milk": TEX_MILK_ICON,
 		"Sugar": TEX_SUGAR_ICON,
 		"Tapioca": TEX_TAPIOCA_ICON,
+		"Black Tea": TEX_BLACK_TEA_ICON,
 	}
 
 	var icon_size := 32
@@ -1281,7 +1568,7 @@ func show_day_summary():
 	_add_stat_row.call("Earnings", "$" + str(GameManager.daily_earnings), TEXT_GREEN)
 	_add_stat_row.call("Customers", str(GameManager.customers_served_today), TEXT_WHITE)
 	_add_stat_row.call("Level", str(GameManager.level), ACCENT_GOLD)
-	_add_stat_row.call("XP", str(GameManager.xp) + "/" + str(GameManager.level * GameManager.XP_PER_LEVEL), TEXT_DIM)
+	_add_stat_row.call("XP", str(GameManager.xp) + "/" + str(GameManager.get_xp_for_next_level()), TEXT_DIM)
 
 	center.add_child(_make_spacer(8))
 

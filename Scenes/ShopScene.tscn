@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://shopscene123"]
+[gd_scene load_steps=17 format=3 uid="uid://shopscene123"]
 
 [ext_resource type="Script" uid="uid://ct3ygntqv3fsk" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes copy/Player.tscn" id="2_player"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://bwmbxl04uktew" path="res://Assets copy/Sprites/bookshelf.svg" id="7_bookshelf"]
 [ext_resource type="Texture2D" uid="uid://do80ekbih5ms6" path="res://Assets copy/Sprites/table.svg" id="8_table"]
 [ext_resource type="Texture2D" uid="uid://dga70jbpe0se8" path="res://Assets copy/Sprites/logo_mission.svg" id="9_logo_mission"]
+[ext_resource type="Texture2D" uid="uid://d3bh8i2xurto5" path="res://Assets copy/Sprites/light_cookie.svg" id="15_logo_ability"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="10_hotbar"]
 [ext_resource type="PackedScene" path="res://Scenes/MoneyDisplay.tscn" id="11_money"]
 [ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets copy/Fonts/Montserrat-SemiBold.ttf" id="13_font_semi"]
@@ -212,6 +213,33 @@ text = "CONTRACTS"
 horizontal_alignment = 1
 uppercase = true
 
+[node name="AbilityZone" type="Area2D" parent="."]
+position = Vector2(640, 1050)
+collision_layer = 8
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AbilityZone"]
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="Sprite2D" type="Sprite2D" parent="AbilityZone"]
+modulate = Color(0.85, 0.85, 0.85, 1)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("15_logo_ability")
+
+[node name="ZoneLabel" type="Label" parent="AbilityZone"]
+offset_left = -60.0
+offset_top = 60.0
+offset_right = 60.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.8, 0.55, 1, 0.7)
+theme_override_colors/font_outline_color = Color(0.03, 0.03, 0.05, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("13_font_semi")
+theme_override_font_sizes/font_size = 11
+text = "ABILITIES"
+horizontal_alignment = 1
+uppercase = true
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(640, 600)
 
@@ -317,6 +345,37 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
 
 [node name="CloseMission" type="Button" parent="UI_Layer/MissionPanel"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -44.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_fonts/font = ExtResource("13_font_semi")
+theme_override_font_sizes/font_size = 20
+text = "✕"
+flat = true
+
+[node name="AbilityPanel" type="Panel" parent="UI_Layer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -240.0
+offset_right = 280.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
+
+[node name="CloseAbility" type="Button" parent="UI_Layer/AbilityPanel"]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0

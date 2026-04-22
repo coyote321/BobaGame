@@ -2,6 +2,8 @@ extends CharacterBody2D
 ## Base class for all enemy types. Holds shared state‑machine, visuals,
 ## detection, damage, death, and damage‑number logic.
 
+signal died(enemy)
+
 # ─── Health ─────────────────────────────────────────────────────────────
 @export var max_health: float = 60.0
 var health: float = 60.0
@@ -316,6 +318,8 @@ func show_damage_number(amount: float):
 # ─── Death ──────────────────────────────────────────────────────────────
 
 func die():
+	if is_dead:
+		return
 	is_dead = true
 	state = State.DEAD
 
@@ -328,7 +332,13 @@ func die():
 	GameManager.add_money(_money_reward)
 	GameManager.update_quest_progress("kill_enemies", 1)
 
-	var tween = create_tween()
-	tween.tween_property(body_rect, "modulate:a", 0.0, 0.5)
-	tween.parallel().tween_property(self, "scale", Vector2(1.2, 0.3), 0.5)
-	tween.tween_callback(queue_free)
+	died.emit(self)
+	remove_from_group("enemy")
+
+	if body_rect:
+		var tween = create_tween()
+		tween.tween_property(body_rect, "modulate:a", 0.0, 0.5)
+		tween.parallel().tween_property(self, "scale", Vector2(1.2, 0.3), 0.5)
+		tween.tween_callback(queue_free)
+	else:
+		queue_free()
