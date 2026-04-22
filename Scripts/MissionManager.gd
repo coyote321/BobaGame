@@ -23,6 +23,7 @@ var hud = null
 
 var _enemy_scene: PackedScene = preload("res://Scenes/Enemy.tscn")
 var _tank_scene: PackedScene = preload("res://Scenes/Enemy2.tscn")
+var _elite_scene: PackedScene = preload("res://Scenes/EnemyElite.tscn")
 
 func _ready():
 	if GameManager.current_phase != "MISSION":
@@ -97,7 +98,13 @@ func _apply_difficulty_scale(enemy: Node, scale: float) -> void:
 		enemy.setup_visuals()
 
 func _spawn_extra_enemy(is_tank: bool) -> void:
-	var scene = _tank_scene if is_tank else _enemy_scene
+	var scene: PackedScene
+	if is_tank:
+		scene = _tank_scene
+	elif mission_tier >= 2 and randf() < 0.5:
+		scene = _elite_scene
+	else:
+		scene = _enemy_scene
 	var e = scene.instantiate()
 	var pos = Vector2(randf_range(150, 1100), randf_range(120, 600))
 	e.position = pos
@@ -128,8 +135,17 @@ func _spawn_wave() -> void:
 	waves_spawned += 1
 	var tanks: int = 0 if waves_spawned == 1 else mini(2, waves_spawned - 1)
 	var grunts: int = 3 + waves_spawned
+	var elites: int = 0
+	if mission_tier >= 2:
+		elites = mini(waves_spawned, 3)
+		grunts = maxi(grunts - elites, 2)
 	for i in range(grunts):
 		_spawn_extra_enemy(false)
+	for i in range(elites):
+		var e = _elite_scene.instantiate()
+		e.position = Vector2(randf_range(150, 1100), randf_range(120, 600))
+		enemies_container.add_child(e)
+		_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
 	for i in range(tanks):
 		_spawn_extra_enemy(true)
 
@@ -253,6 +269,7 @@ func on_mission_complete():
 
 	GameManager.add_xp(reward_xp)
 	GameManager.add_money(reward_money)
+	GameManager.missions_completed += 1
 	GameManager.update_quest_progress("complete_mission", 1)
 	if mission_type == "boss_hunt":
 		GameManager.update_quest_progress("boss_hunt", 1)

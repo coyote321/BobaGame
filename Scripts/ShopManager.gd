@@ -129,6 +129,15 @@ func _process(delta):
 			_select_hotbar_slot(i)
 			break
 
+	# DEBUG: Press F9 to max out stats (remove before release)
+	if Input.is_key_pressed(KEY_F9):
+		GameManager.money = 99999
+		GameManager.xp = 0
+		GameManager.level = 10
+		GameManager.missions_completed = 10
+		GameManager.contracts_completed = 10
+		print("DEBUG: Admin mode activated — max stats granted")
+
 
 func _make_sfx(stream: AudioStream, volume: float = 0.0, bus: StringName = &"SFX", autoplay: bool = false) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
@@ -980,7 +989,7 @@ func _launch_mission(m: Dictionary):
 		int(m.get("waves", 0))
 	)
 	GameManager.start_mission()
-	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+	get_tree().change_scene_to_file(GameManager.get_mission_scene())
 
 func _on_start_contract_mission():
 	var contract = GameManager.current_contract
@@ -988,7 +997,7 @@ func _on_start_contract_mission():
 	GameManager.mission_profile = GameManager.build_mission_profile(
 		"assassination", 1, reward, 50, 0.0, contract.get("target", ""))
 	GameManager.start_mission()
-	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+	get_tree().change_scene_to_file(GameManager.get_mission_scene())
 
 
 var lbl_mix: Label
@@ -1301,7 +1310,7 @@ func show_day_summary():
 			GameManager.mission_profile = GameManager.build_mission_profile(
 				"assassination", 1, c.get("reward", 100), 50, 0.0, c.get("target", ""))
 			GameManager.start_mission()
-			get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+			get_tree().change_scene_to_file(GameManager.get_mission_scene())
 		)
 		btn_row.add_child(mission_btn)
 

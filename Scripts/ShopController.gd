@@ -307,4 +307,4 @@ func _on_upgrade_pressed():
 
 func _on_start_mission_pressed():
 	GameManager.start_mission()
-	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+	get_tree().change_scene_to_file(GameManager.get_mission_scene())
