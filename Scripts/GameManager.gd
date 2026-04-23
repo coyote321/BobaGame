@@ -311,19 +311,84 @@ func add_reputation(amount: int):
 		print("SHOP LEVEL UP! Level: ", shop_level)
 
 
-func receive_contract(target_name: String, reward: int):
-	current_contract = {
-		"target": target_name,
+const CONTRACT_POOL := [
+	{
+		"target": "The Businessman",
+		"desc": "Back-alley hit on a corrupt exec.",
+		"scene": "res://Scenes/MissionScene.tscn",
+		"mission_type": "extermination",
+		"reward_min": 120, "reward_max": 180,
+		"time_limit": 0.0, "waves": 0,
+	},
+	{
+		"target": "The Senator",
+		"desc": "Storm the warehouse before his detail arrives.",
+		"scene": "res://Scenes/MissionScene2.tscn",
+		"mission_type": "timed_hunt",
+		"reward_min": 160, "reward_max": 240,
+		"time_limit": 90.0, "waves": 0,
+	},
+	{
+		"target": "The Kingpin",
+		"desc": "Crime lord holed up in his blood arena.",
+		"scene": "res://Scenes/MissionScene3.tscn",
+		"mission_type": "boss_hunt",
+		"reward_min": 220, "reward_max": 320,
+		"time_limit": 0.0, "waves": 0,
+	},
+	{
+		"target": "The Traitor",
+		"desc": "Hold the compound until the defector is caught.",
+		"scene": "res://Scenes/MissionScene4.tscn",
+		"mission_type": "survival",
+		"reward_min": 200, "reward_max": 280,
+		"time_limit": 120.0, "waves": 3,
+	},
+]
+
+func generate_random_contract() -> Dictionary:
+	var template: Dictionary = CONTRACT_POOL.pick_random()
+	var reward: int = randi_range(
+		int(template.get("reward_min", 100)),
+		int(template.get("reward_max", 200))
+	)
+	return {
+		"target": template["target"],
+		"desc": template.get("desc", ""),
+		"scene": template["scene"],
+		"mission_type": template["mission_type"],
+		"time_limit": float(template.get("time_limit", 0.0)),
+		"waves": int(template.get("waves", 0)),
 		"reward": reward,
-		"completed": false
+		"completed": false,
 	}
+
+func receive_contract(data) -> void:
+	# Accept either a full contract dictionary (new flow) or a
+	# target_name/reward pair (legacy). When called with a String,
+	# build a minimal contract that falls back to the first mission.
+	if data is Dictionary:
+		current_contract = (data as Dictionary).duplicate()
+	else:
+		var target_name: String = str(data)
+		current_contract = {
+			"target": target_name,
+			"desc": "Eliminate the target.",
+			"scene": "res://Scenes/MissionScene.tscn",
+			"mission_type": "extermination",
+			"time_limit": 0.0,
+			"waves": 0,
+			"reward": 100,
+			"completed": false,
+		}
+	current_contract["completed"] = false
 	target_order_received = true
-	print("Contract received: Eliminate ", target_name, " for $", reward)
+	print("Contract received: Eliminate ",
+		current_contract.get("target", "?"),
+		" for $", current_contract.get("reward", 0))
 
 func complete_contract():
 	if current_contract.size() > 0:
-		add_money(current_contract.get("reward", 100))
-		add_xp(50)
 		contracts_completed += 1
 		current_contract = {}
 		target_order_received = false
@@ -398,7 +463,7 @@ func get_mission_scene() -> String:
 	# Fallback for contract missions — use the first available scene
 	return "res://Scenes/MissionScene.tscn"
 
-func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp: int, time_limit: float = 0.0, contract_target: String = "", waves: int = 0) -> Dictionary:
+func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp: int, time_limit: float = 0.0, contract_target: String = "", waves: int = 0, scene: String = "") -> Dictionary:
 	return {
 		"type": type,
 		"tier": tier,
@@ -407,6 +472,7 @@ func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp
 		"reward_xp": reward_xp,
 		"contract_target_name": contract_target,
 		"waves": waves,
+		"scene": scene,
 	}
 
 

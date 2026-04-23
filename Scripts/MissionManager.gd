@@ -307,6 +307,9 @@ func on_mission_complete():
 	if stealth_bonus > 0:
 		GameManager.add_money(stealth_bonus)
 
+	if GameManager.current_contract.size() > 0:
+		GameManager.complete_contract()
+
 	if hud and hud.has_method("show_mission_complete"):
 		hud.show_mission_complete(stealth_bonus)
 
