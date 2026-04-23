@@ -11,103 +11,153 @@
 [node name="MissionScene3" type="Node2D"]
 script = ExtResource("1_manager")
 
-[node name="Background" type="CanvasLayer" parent="."]
-layer = -1
+[node name="Background" type="Polygon2D" parent="."]
+color = Color(0.1, 0.05, 0.07, 1)
+polygon = PackedVector2Array(-200, -200, 2400, -200, 2400, 1600, -200, 1600)
 
-[node name="ColorRect" type="ColorRect" parent="Background"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.14, 0.06, 0.08, 1)
+[node name="ArenaFloor" type="Polygon2D" parent="."]
+color = Color(0.17, 0.07, 0.09, 1)
+polygon = PackedVector2Array(200, 180, 2000, 180, 2000, 1220, 200, 1220)
 
-[node name="Dais" type="ColorRect" parent="Background"]
-offset_left = 440.0
-offset_top = 240.0
-offset_right = 840.0
-offset_bottom = 560.0
-color = Color(0.23, 0.08, 0.1, 1)
+[node name="ArenaInner" type="Polygon2D" parent="."]
+color = Color(0.22, 0.08, 0.1, 1)
+polygon = PackedVector2Array(440, 360, 1760, 360, 1760, 1040, 440, 1040)
 
-[node name="DaisInner" type="ColorRect" parent="Background"]
-offset_left = 500.0
-offset_top = 290.0
-offset_right = 780.0
-offset_bottom = 510.0
+[node name="Dais" type="Polygon2D" parent="."]
 color = Color(0.32, 0.1, 0.12, 1)
+polygon = PackedVector2Array(920, 580, 1280, 580, 1280, 820, 920, 820)
 
-[node name="RuneStripe" type="ColorRect" parent="Background"]
-offset_left = 0.0
-offset_top = 399.0
-offset_right = 1280.0
-offset_bottom = 401.0
-color = Color(0.5, 0.12, 0.14, 0.55)
+[node name="DaisCore" type="Polygon2D" parent="."]
+color = Color(0.45, 0.13, 0.15, 1)
+polygon = PackedVector2Array(980, 640, 1220, 640, 1220, 760, 980, 760)
+
+[node name="RuneStripeH" type="Polygon2D" parent="."]
+color = Color(0.55, 0.15, 0.18, 0.45)
+polygon = PackedVector2Array(200, 698, 2000, 698, 2000, 702, 200, 702)
+
+[node name="RuneStripeV" type="Polygon2D" parent="."]
+color = Color(0.55, 0.15, 0.18, 0.45)
+polygon = PackedVector2Array(1098, 180, 1102, 180, 1102, 1220, 1098, 1220)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
-position = Vector2(120, 400)
+position = Vector2(300, 700)
 
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="Boss" parent="Enemies" instance=ExtResource("4_tank")]
-position = Vector2(640, 400)
+position = Vector2(1100, 700)
 scale = Vector2(1.3, 1.3)
 
-[node name="Minion1" parent="Enemies" instance=ExtResource("3_enemy")]
-position = Vector2(380, 180)
+[node name="MinionNW" parent="Enemies" instance=ExtResource("3_enemy")]
+position = Vector2(620, 440)
 
-[node name="Minion2" parent="Enemies" instance=ExtResource("3_enemy")]
-position = Vector2(900, 180)
+[node name="MinionNE" parent="Enemies" instance=ExtResource("3_enemy")]
+position = Vector2(1580, 440)
 
-[node name="Minion3" parent="Enemies" instance=ExtResource("3_enemy")]
-position = Vector2(380, 620)
+[node name="MinionSW" parent="Enemies" instance=ExtResource("3_enemy")]
+position = Vector2(620, 960)
 
-[node name="Minion4" parent="Enemies" instance=ExtResource("3_enemy")]
-position = Vector2(900, 620)
+[node name="MinionSE" parent="Enemies" instance=ExtResource("3_enemy")]
+position = Vector2(1580, 960)
+
+[node name="MinionN" parent="Enemies" instance=ExtResource("3_enemy")]
+position = Vector2(1100, 300)
+
+[node name="MinionS" parent="Enemies" instance=ExtResource("3_enemy")]
+position = Vector2(1100, 1100)
 
 [node name="Walls" type="Node2D" parent="."]
 
-[node name="WallTop" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(640, 40)
-scale = Vector2(22, 1)
+[node name="BoundaryTop" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1100, 40)
+scale = Vector2(40, 1)
 
-[node name="WallBottom" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(640, 760)
-scale = Vector2(22, 1)
+[node name="BoundaryBottom" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1100, 1360)
+scale = Vector2(40, 1)
 
-[node name="WallLeft" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(40, 400)
-scale = Vector2(1, 13)
+[node name="BoundaryLeft" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(40, 700)
+scale = Vector2(1, 24)
 
-[node name="WallRight" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(1240, 400)
-scale = Vector2(1, 13)
+[node name="BoundaryRight" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(2160, 700)
+scale = Vector2(1, 24)
+
+[node name="OuterRingTop_L" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(500, 200)
+scale = Vector2(10, 1)
+
+[node name="OuterRingTop_R" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1700, 200)
+scale = Vector2(10, 1)
+
+[node name="OuterRingBot_L" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(500, 1200)
+scale = Vector2(10, 1)
+
+[node name="OuterRingBot_R" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1700, 1200)
+scale = Vector2(10, 1)
+
+[node name="OuterRingLeft_T" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(200, 400)
+scale = Vector2(1, 6)
+
+[node name="OuterRingLeft_B" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(200, 1000)
+scale = Vector2(1, 6)
+
+[node name="OuterRingRight_T" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(2000, 400)
+scale = Vector2(1, 6)
+
+[node name="OuterRingRight_B" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(2000, 1000)
+scale = Vector2(1, 6)
 
 [node name="PillarNW" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(260, 180)
-scale = Vector2(1.6, 1.6)
+position = Vector2(540, 460)
+scale = Vector2(2, 2)
 
 [node name="PillarNE" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(1020, 180)
-scale = Vector2(1.6, 1.6)
+position = Vector2(1660, 460)
+scale = Vector2(2, 2)
 
 [node name="PillarSW" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(260, 620)
-scale = Vector2(1.6, 1.6)
+position = Vector2(540, 940)
+scale = Vector2(2, 2)
 
 [node name="PillarSE" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(1020, 620)
-scale = Vector2(1.6, 1.6)
+position = Vector2(1660, 940)
+scale = Vector2(2, 2)
 
-[node name="GateColumnN" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(640, 120)
-scale = Vector2(1.2, 1.2)
+[node name="PillarN" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1100, 420)
+scale = Vector2(1.5, 1.5)
 
-[node name="GateColumnS" parent="Walls" instance=ExtResource("5_wall")]
-position = Vector2(640, 680)
-scale = Vector2(1.2, 1.2)
+[node name="PillarS" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1100, 980)
+scale = Vector2(1.5, 1.5)
+
+[node name="PillarW" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(720, 700)
+scale = Vector2(1.5, 1.5)
+
+[node name="PillarE" parent="Walls" instance=ExtResource("5_wall")]
+position = Vector2(1480, 700)
+scale = Vector2(1.5, 1.5)
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]
 
-[node name="BobaHealLeft" parent="." instance=ExtResource("7_boba_heal")]
-position = Vector2(160, 400)
+[node name="BobaHealW" parent="." instance=ExtResource("7_boba_heal")]
+position = Vector2(340, 700)
 
-[node name="BobaHealRight" parent="." instance=ExtResource("7_boba_heal")]
-position = Vector2(1120, 400)
+[node name="BobaHealE" parent="." instance=ExtResource("7_boba_heal")]
+position = Vector2(1860, 700)
+
+[node name="BobaHealN" parent="." instance=ExtResource("7_boba_heal")]
+position = Vector2(1100, 260)
+
+[node name="BobaHealS" parent="." instance=ExtResource("7_boba_heal")]
+position = Vector2(1100, 1140)
