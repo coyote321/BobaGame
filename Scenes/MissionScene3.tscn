@@ -12,32 +12,8 @@
 script = ExtResource("1_manager")
 
 [node name="Background" type="Polygon2D" parent="."]
-color = Color(0.1, 0.05, 0.07, 1)
+color = Color(0.2, 0.08, 0.1, 1)
 polygon = PackedVector2Array(-200, -200, 2400, -200, 2400, 1600, -200, 1600)
-
-[node name="ArenaFloor" type="Polygon2D" parent="."]
-color = Color(0.17, 0.07, 0.09, 1)
-polygon = PackedVector2Array(200, 180, 2000, 180, 2000, 1220, 200, 1220)
-
-[node name="ArenaInner" type="Polygon2D" parent="."]
-color = Color(0.22, 0.08, 0.1, 1)
-polygon = PackedVector2Array(440, 360, 1760, 360, 1760, 1040, 440, 1040)
-
-[node name="Dais" type="Polygon2D" parent="."]
-color = Color(0.32, 0.1, 0.12, 1)
-polygon = PackedVector2Array(920, 580, 1280, 580, 1280, 820, 920, 820)
-
-[node name="DaisCore" type="Polygon2D" parent="."]
-color = Color(0.45, 0.13, 0.15, 1)
-polygon = PackedVector2Array(980, 640, 1220, 640, 1220, 760, 980, 760)
-
-[node name="RuneStripeH" type="Polygon2D" parent="."]
-color = Color(0.55, 0.15, 0.18, 0.45)
-polygon = PackedVector2Array(200, 698, 2000, 698, 2000, 702, 200, 702)
-
-[node name="RuneStripeV" type="Polygon2D" parent="."]
-color = Color(0.55, 0.15, 0.18, 0.45)
-polygon = PackedVector2Array(1098, 180, 1102, 180, 1102, 1220, 1098, 1220)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(300, 700)

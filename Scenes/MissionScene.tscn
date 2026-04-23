@@ -13,28 +13,8 @@
 script = ExtResource("1_manager")
 
 [node name="Background" type="Polygon2D" parent="."]
-color = Color(0.14, 0.14, 0.17, 1)
+color = Color(0.2, 0.2, 0.24, 1)
 polygon = PackedVector2Array(-200, -200, 2600, -200, 2600, 1700, -200, 1700)
-
-[node name="RoadHorizontal" type="Polygon2D" parent="."]
-color = Color(0.2, 0.2, 0.24, 1)
-polygon = PackedVector2Array(60, 640, 2340, 640, 2340, 860, 60, 860)
-
-[node name="RoadVertical" type="Polygon2D" parent="."]
-color = Color(0.2, 0.2, 0.24, 1)
-polygon = PackedVector2Array(1100, 60, 1340, 60, 1340, 1440, 1100, 1440)
-
-[node name="Plaza" type="Polygon2D" parent="."]
-color = Color(0.25, 0.23, 0.27, 1)
-polygon = PackedVector2Array(1040, 600, 1400, 600, 1400, 900, 1040, 900)
-
-[node name="RoadLineA" type="Polygon2D" parent="."]
-color = Color(0.45, 0.42, 0.28, 0.55)
-polygon = PackedVector2Array(60, 748, 1080, 748, 1080, 752, 60, 752)
-
-[node name="RoadLineB" type="Polygon2D" parent="."]
-color = Color(0.45, 0.42, 0.28, 0.55)
-polygon = PackedVector2Array(1360, 748, 2340, 748, 2340, 752, 1360, 752)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(200, 750)

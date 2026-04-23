@@ -14,32 +14,8 @@
 script = ExtResource("1_manager")
 
 [node name="Background" type="Polygon2D" parent="."]
-color = Color(0.21, 0.17, 0.14, 1)
+color = Color(0.26, 0.21, 0.17, 1)
 polygon = PackedVector2Array(-200, -200, 2600, -200, 2600, 1800, -200, 1800)
-
-[node name="OfficeFloor" type="Polygon2D" parent="."]
-color = Color(0.27, 0.22, 0.18, 1)
-polygon = PackedVector2Array(60, 60, 820, 60, 820, 720, 60, 720)
-
-[node name="MainFloor" type="Polygon2D" parent="."]
-color = Color(0.24, 0.2, 0.17, 1)
-polygon = PackedVector2Array(820, 60, 2340, 60, 2340, 1100, 820, 1100)
-
-[node name="LoadingBay" type="Polygon2D" parent="."]
-color = Color(0.18, 0.15, 0.13, 1)
-polygon = PackedVector2Array(60, 720, 820, 720, 820, 1540, 60, 1540)
-
-[node name="Storage" type="Polygon2D" parent="."]
-color = Color(0.27, 0.22, 0.18, 1)
-polygon = PackedVector2Array(820, 1100, 2340, 1100, 2340, 1540, 820, 1540)
-
-[node name="FloorStripe1" type="Polygon2D" parent="."]
-color = Color(0.35, 0.29, 0.22, 0.55)
-polygon = PackedVector2Array(860, 380, 2300, 380, 2300, 384, 860, 384)
-
-[node name="FloorStripe2" type="Polygon2D" parent="."]
-color = Color(0.35, 0.29, 0.22, 0.55)
-polygon = PackedVector2Array(860, 780, 2300, 780, 2300, 784, 860, 784)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(240, 1380)

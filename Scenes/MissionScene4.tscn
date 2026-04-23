@@ -13,28 +13,8 @@
 script = ExtResource("1_manager")
 
 [node name="Background" type="Polygon2D" parent="."]
-color = Color(0.1, 0.13, 0.11, 1)
+color = Color(0.16, 0.2, 0.16, 1)
 polygon = PackedVector2Array(-200, -200, 2600, -200, 2600, 1800, -200, 1800)
-
-[node name="OuterField" type="Polygon2D" parent="."]
-color = Color(0.13, 0.16, 0.13, 1)
-polygon = PackedVector2Array(100, 100, 2300, 100, 2300, 1500, 100, 1500)
-
-[node name="InnerCompound" type="Polygon2D" parent="."]
-color = Color(0.18, 0.22, 0.18, 1)
-polygon = PackedVector2Array(500, 420, 1900, 420, 1900, 1180, 500, 1180)
-
-[node name="CoreYard" type="Polygon2D" parent="."]
-color = Color(0.24, 0.3, 0.24, 1)
-polygon = PackedVector2Array(980, 700, 1420, 700, 1420, 900, 980, 900)
-
-[node name="PathNS" type="Polygon2D" parent="."]
-color = Color(0.2, 0.24, 0.2, 0.5)
-polygon = PackedVector2Array(1180, 100, 1220, 100, 1220, 1500, 1180, 1500)
-
-[node name="PathEW" type="Polygon2D" parent="."]
-color = Color(0.2, 0.24, 0.2, 0.5)
-polygon = PackedVector2Array(100, 780, 2300, 780, 2300, 820, 100, 820)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(1200, 800)
