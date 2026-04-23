@@ -6,6 +6,7 @@ var mission_failed: bool = false
 var target_enemy: Node = null
 var stealth_rating: float = 100.0
 var initial_enemy_count: int = 0
+var spawn_bounds: Rect2 = Rect2(150, 120, 950, 480)
 
 
 var mission_type: String = "extermination"
@@ -57,6 +58,7 @@ func _apply_mission_setup() -> void:
 	if not enemies_container:
 		return
 
+	_compute_spawn_bounds()
 
 	var extras := GameManager.tier_enemy_bonus_count(mission_tier)
 	for i in range(extras):
@@ -106,11 +108,38 @@ func _spawn_extra_enemy(is_tank: bool) -> void:
 	else:
 		scene = _enemy_scene
 	var e = scene.instantiate()
-	var pos = Vector2(randf_range(150, 1100), randf_range(120, 600))
-	e.position = pos
+	e.position = _random_spawn_point()
 	enemies_container.add_child(e)
 
 	_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
+
+func _compute_spawn_bounds() -> void:
+	# Auto-fit spawn bounds to the scene's starting enemies so larger maps
+	# populate waves across the whole playable area instead of a fixed box.
+	if not enemies_container or enemies_container.get_child_count() == 0:
+		return
+	var bb := Rect2()
+	var first := true
+	for child in enemies_container.get_children():
+		if not child is Node2D:
+			continue
+		var p: Vector2 = child.position
+		if first:
+			bb = Rect2(p, Vector2.ZERO)
+			first = false
+		else:
+			bb = bb.expand(p)
+	if first:
+		return
+	bb = bb.grow(180.0)
+	spawn_bounds = bb
+
+func _random_spawn_point() -> Vector2:
+	var r := spawn_bounds
+	return Vector2(
+		randf_range(r.position.x, r.position.x + r.size.x),
+		randf_range(r.position.y, r.position.y + r.size.y)
+	)
 
 func _setup_boss() -> void:
 	var children := enemies_container.get_children()
@@ -143,7 +172,7 @@ func _spawn_wave() -> void:
 		_spawn_extra_enemy(false)
 	for i in range(elites):
 		var e = _elite_scene.instantiate()
-		e.position = Vector2(randf_range(150, 1100), randf_range(120, 600))
+		e.position = _random_spawn_point()
 		enemies_container.add_child(e)
 		_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
 	for i in range(tanks):
