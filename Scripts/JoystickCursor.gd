@@ -12,7 +12,7 @@ extends Node
 
 @export var cursor_speed: float = 900.0
 @export var sensitivity_curve: float = 1.5
-@export var hide_cursor_during_mission: bool = true
+@export var hide_cursor_during_gameplay: bool = true
 
 func _ready() -> void:
 	# Keep moving the cursor while the game is paused (pause menu).
@@ -46,7 +46,7 @@ func _get_active_stick() -> Vector2:
 	return Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
 
 func _update_mouse_visibility() -> void:
-	if hide_cursor_during_mission and _should_hide_cursor():
+	if hide_cursor_during_gameplay and _should_hide_cursor():
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	else:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -55,7 +55,10 @@ func _should_hide_cursor() -> bool:
 	var tree := get_tree()
 	if tree == null or tree.paused:
 		return false
-	return GameManager.current_phase == "MISSION" and tree.get_first_node_in_group("player") != null
+	if _is_any_panel_open():
+		return false
+	# Hide while actively controlling the player, including mission and day/shop scenes.
+	return tree.get_first_node_in_group("player") != null
 
 func is_menu_active() -> bool:
 	var tree := get_tree()
@@ -64,12 +67,15 @@ func is_menu_active() -> bool:
 	if tree.paused:
 		return true
 	
-	var scene := tree.current_scene
-	if scene and scene.has_method("_is_any_panel_open") and scene._is_any_panel_open():
+	if _is_any_panel_open():
 		return true
 	
 	# No player in the scene means we're on a menu / end screen.
 	return tree.get_first_node_in_group("player") == null
+
+func _is_any_panel_open() -> bool:
+	var scene := get_tree().current_scene
+	return scene and scene.has_method("_is_any_panel_open") and scene._is_any_panel_open()
 
 func _left_click_at_cursor() -> void:
 	var viewport := get_viewport()
