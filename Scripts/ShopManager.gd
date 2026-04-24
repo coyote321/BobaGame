@@ -131,6 +131,15 @@ func _process(delta):
 			_select_hotbar_slot(i)
 			break
 
+	# DEBUG: Press F9 to max out stats (remove before release)
+	if Input.is_key_pressed(KEY_F9):
+		GameManager.money = 99999
+		GameManager.xp = 0
+		GameManager.level = 10
+		GameManager.missions_completed = 10
+		GameManager.contracts_completed = 10
+		print("DEBUG: Admin mode activated — max stats granted")
+
 
 func _make_sfx(stream: AudioStream, volume: float = 0.0, bus: StringName = &"SFX", autoplay: bool = false) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
@@ -574,10 +583,10 @@ func _show_floating_text(text: String, color: Color, pos: Vector2):
 	t.chain().tween_callback(lbl.queue_free)
 
 func show_contract_notification(customer):
-	var target_names = ["The Businessman", "The Senator", "The Dealer", "The Kingpin", "The Traitor"]
-	var target = target_names.pick_random()
-	var reward = randi_range(100, 250)
-	GameManager.receive_contract(target, reward)
+	var contract := GameManager.generate_random_contract()
+	GameManager.receive_contract(contract)
+	var target: String = contract.get("target", "?")
+	var reward: int = int(contract.get("reward", 0))
 
 	var toast := PanelContainer.new()
 	toast.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -1175,9 +1184,24 @@ func show_mission_panel():
 		info_col.add_theme_constant_override("separation", 2)
 		card_hbox.add_child(info_col)
 
+		var ct: Dictionary = GameManager.current_contract
 		info_col.add_child(_styled_label("ACTIVE CONTRACT", font_semi, 10, TEXT_RED))
-		info_col.add_child(_styled_label(GameManager.current_contract["target"], font_bold, 15, TEXT_WHITE))
-		info_col.add_child(_styled_label("Reward: $" + str(GameManager.current_contract["reward"]), font_medium, 11, TEXT_GREEN))
+		info_col.add_child(_styled_label(ct.get("target", "?"), font_bold, 15, TEXT_WHITE))
+		var desc: String = ct.get("desc", "")
+		if desc != "":
+			var desc_lbl = _styled_label(desc, font_medium, 11, TEXT_DIM)
+			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+			info_col.add_child(desc_lbl)
+		var meta_parts: Array = []
+		var mtype_s: String = ct.get("mission_type", "")
+		if mtype_s != "":
+			meta_parts.append(mtype_s.to_upper().replace("_", " "))
+		if float(ct.get("time_limit", 0.0)) > 0.0:
+			meta_parts.append(str(int(ct["time_limit"])) + "s LIMIT")
+		if int(ct.get("waves", 0)) > 0:
+			meta_parts.append(str(int(ct["waves"])) + " WAVES")
+		meta_parts.append("$" + str(int(ct.get("reward", 0))))
+		info_col.add_child(_styled_label("  ·  ".join(meta_parts), font_medium, 11, TEXT_GREEN))
 
 		var go_btn := _styled_button("GO", Vector2(70, 36))
 		go_btn.add_theme_font_size_override("font_size", 13)
@@ -1266,15 +1290,19 @@ func _launch_mission(m: Dictionary):
 		int(m.get("waves", 0))
 	)
 	GameManager.start_mission()
-	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+	get_tree().change_scene_to_file(GameManager.get_mission_scene())
 
 func _on_start_contract_mission():
-	var contract = GameManager.current_contract
-	var reward = contract.get("reward", 100)
+	var contract: Dictionary = GameManager.current_contract
+	var reward: int = int(contract.get("reward", 100))
+	var mtype: String = contract.get("mission_type", "extermination")
+	var scene: String = contract.get("scene", "res://Scenes/MissionScene.tscn")
+	var time_limit: float = float(contract.get("time_limit", 0.0))
+	var waves: int = int(contract.get("waves", 0))
 	GameManager.mission_profile = GameManager.build_mission_profile(
-		"assassination", 1, reward, 50, 0.0, contract.get("target", ""))
+		mtype, 1, reward, 50, time_limit, contract.get("target", ""), waves, scene)
 	GameManager.start_mission()
-	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+	get_tree().change_scene_to_file(scene)
 
 
 var lbl_mix: Label
@@ -1584,11 +1612,20 @@ func show_day_summary():
 			Color(0.14, 0.08, 0.08, 0.95), Color(1.0, 0.35, 0.35, 0.5), 8))
 		mission_btn.add_theme_color_override("font_color", TEXT_RED)
 		mission_btn.pressed.connect(func():
-			var c = GameManager.current_contract
+			var c: Dictionary = GameManager.current_contract
+			var c_scene: String = c.get("scene", "res://Scenes/MissionScene.tscn")
 			GameManager.mission_profile = GameManager.build_mission_profile(
-				"assassination", 1, c.get("reward", 100), 50, 0.0, c.get("target", ""))
+				c.get("mission_type", "extermination"),
+				1,
+				int(c.get("reward", 100)),
+				50,
+				float(c.get("time_limit", 0.0)),
+				c.get("target", ""),
+				int(c.get("waves", 0)),
+				c_scene
+			)
 			GameManager.start_mission()
-			get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+			get_tree().change_scene_to_file(c_scene)
 		)
 		btn_row.add_child(mission_btn)
 

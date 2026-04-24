@@ -18,7 +18,21 @@ var is_secret_agent: bool = false
 
 func _ready():
 	if is_secret_agent:
-		body_sprite.color = Color(0.2, 0.2, 0.3)
+		body_sprite.color = Color(0.15, 0.12, 0.2)
+		# Add a pulsing gold outline effect
+		var glow_tween = create_tween().set_loops()
+		glow_tween.tween_property(body_sprite, "modulate", Color(1.2, 1.0, 0.6), 0.8)
+		glow_tween.tween_property(body_sprite, "modulate", Color(0.8, 0.7, 0.5), 0.8)
+		# Add a visible label above the customer
+		var agent_label = Label.new()
+		agent_label.text = "⚑ SECRET"
+		agent_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		agent_label.position = Vector2(-40, -50)
+		agent_label.add_theme_font_size_override("font_size", 11)
+		agent_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		agent_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		agent_label.add_theme_constant_override("outline_size", 3)
+		add_child(agent_label)
 	else:
 		body_sprite.color = Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0))
 	

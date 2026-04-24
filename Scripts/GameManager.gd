@@ -183,6 +183,7 @@ var cooldown_reduction: float = 0.0
 var target_order_received: bool = false
 var current_contract: Dictionary = {}
 var contracts_completed: int = 0
+var missions_completed: int = 0
 var daily_earnings: int = 0
 var customers_served_today: int = 0
 
@@ -330,19 +331,84 @@ func add_reputation(amount: int):
 		print("SHOP LEVEL UP! Level: ", shop_level)
 
 
-func receive_contract(target_name: String, reward: int):
-	current_contract = {
-		"target": target_name,
+const CONTRACT_POOL := [
+	{
+		"target": "The Businessman",
+		"desc": "Back-alley hit on a corrupt exec.",
+		"scene": "res://Scenes/MissionScene.tscn",
+		"mission_type": "extermination",
+		"reward_min": 120, "reward_max": 180,
+		"time_limit": 0.0, "waves": 0,
+	},
+	{
+		"target": "The Senator",
+		"desc": "Storm the warehouse before his detail arrives.",
+		"scene": "res://Scenes/MissionScene2.tscn",
+		"mission_type": "timed_hunt",
+		"reward_min": 160, "reward_max": 240,
+		"time_limit": 90.0, "waves": 0,
+	},
+	{
+		"target": "The Kingpin",
+		"desc": "Crime lord holed up in his blood arena.",
+		"scene": "res://Scenes/MissionScene3.tscn",
+		"mission_type": "boss_hunt",
+		"reward_min": 220, "reward_max": 320,
+		"time_limit": 0.0, "waves": 0,
+	},
+	{
+		"target": "The Traitor",
+		"desc": "Hold the compound until the defector is caught.",
+		"scene": "res://Scenes/MissionScene4.tscn",
+		"mission_type": "survival",
+		"reward_min": 200, "reward_max": 280,
+		"time_limit": 120.0, "waves": 3,
+	},
+]
+
+func generate_random_contract() -> Dictionary:
+	var template: Dictionary = CONTRACT_POOL.pick_random()
+	var reward: int = randi_range(
+		int(template.get("reward_min", 100)),
+		int(template.get("reward_max", 200))
+	)
+	return {
+		"target": template["target"],
+		"desc": template.get("desc", ""),
+		"scene": template["scene"],
+		"mission_type": template["mission_type"],
+		"time_limit": float(template.get("time_limit", 0.0)),
+		"waves": int(template.get("waves", 0)),
 		"reward": reward,
-		"completed": false
+		"completed": false,
 	}
+
+func receive_contract(data) -> void:
+	# Accept either a full contract dictionary (new flow) or a
+	# target_name/reward pair (legacy). When called with a String,
+	# build a minimal contract that falls back to the first mission.
+	if data is Dictionary:
+		current_contract = (data as Dictionary).duplicate()
+	else:
+		var target_name: String = str(data)
+		current_contract = {
+			"target": target_name,
+			"desc": "Eliminate the target.",
+			"scene": "res://Scenes/MissionScene.tscn",
+			"mission_type": "extermination",
+			"time_limit": 0.0,
+			"waves": 0,
+			"reward": 100,
+			"completed": false,
+		}
+	current_contract["completed"] = false
 	target_order_received = true
-	print("Contract received: Eliminate ", target_name, " for $", reward)
+	print("Contract received: Eliminate ",
+		current_contract.get("target", "?"),
+		" for $", current_contract.get("reward", 0))
 
 func complete_contract():
 	if current_contract.size() > 0:
-		add_money(current_contract.get("reward", 100))
-		add_xp(50)
 		contracts_completed += 1
 		current_contract = {}
 		target_order_received = false
@@ -380,55 +446,44 @@ func check_quest_completion(quest_id: String):
 
 
 const MISSION_CATALOG := [
-	{"type": "extermination", "label": "Extermination", "desc": "Eliminate every enemy in the zone.",
-	 "base_reward": 60, "base_xp": 40, "unlock_level": 1, "unlock_contracts": 0,
+	{"type": "extermination", "label": "Street Sweep", "desc": "Clear out a back-alley hideout.",
+	 "scene": "res://Scenes/MissionScene.tscn",
+	 "reward_money": 60, "reward_xp": 40, "unlock_missions": 0,
 	 "color": Color(0.45, 0.72, 1.0)},
-	{"type": "timed_hunt", "label": "Timed Hunt", "desc": "Clear all enemies before the timer hits zero.",
-	 "base_reward": 95, "base_xp": 65, "time_limit": 60.0, "unlock_level": 1, "unlock_contracts": 1,
+	{"type": "timed_hunt", "label": "Warehouse Raid", "desc": "Storm the warehouse before reinforcements arrive.",
+	 "scene": "res://Scenes/MissionScene2.tscn",
+	 "reward_money": 100, "reward_xp": 70, "time_limit": 60.0, "unlock_missions": 1,
 	 "color": Color(1.0, 0.7, 0.3)},
-	{"type": "boss_hunt", "label": "Boss Hunt", "desc": "Take down a fortified mini-boss and its guards.",
-	 "base_reward": 140, "base_xp": 100, "unlock_level": 2, "unlock_contracts": 2,
+	{"type": "boss_hunt", "label": "Boss Takedown", "desc": "Infiltrate the arena and eliminate the boss.",
+	 "scene": "res://Scenes/MissionScene3.tscn",
+	 "reward_money": 160, "reward_xp": 110, "unlock_missions": 2,
 	 "color": Color(1.0, 0.3, 0.4)},
-	{"type": "survival", "label": "Survival", "desc": "Outlast 3 waves of spawning enemies.",
-	 "base_reward": 180, "base_xp": 120, "unlock_level": 2, "unlock_contracts": 3,
-	 "waves": 3, "time_limit": 120.0,
+	{"type": "survival", "label": "Last Stand", "desc": "Hold out against 3 waves in the compound.",
+	 "scene": "res://Scenes/MissionScene4.tscn",
+	 "reward_money": 200, "reward_xp": 140, "waves": 3, "time_limit": 120.0, "unlock_missions": 3,
 	 "color": Color(0.7, 0.45, 1.0)},
 ]
 
 func get_available_missions() -> Array:
 	var result := []
+	var total_done := contracts_completed + missions_completed
 	for entry in MISSION_CATALOG:
-		var max_tier := _max_unlocked_tier(entry)
-		if max_tier < 1:
+		if total_done < entry.get("unlock_missions", 0):
 			continue
-		for tier in range(1, max_tier + 1):
-			var card = entry.duplicate()
-			card["tier"] = tier
-			card["reward_money"] = int(entry["base_reward"] * _tier_reward_mult(tier))
-			card["reward_xp"] = int(entry["base_xp"] * _tier_reward_mult(tier))
-			if entry.has("time_limit"):
-				card["time_limit"] = entry["time_limit"] - (tier - 1) * 10.0
-				if card["time_limit"] < 30.0:
-					card["time_limit"] = 30.0
-			result.append(card)
+		var card = entry.duplicate()
+		card["tier"] = 1
+		result.append(card)
 	return result
 
-func _max_unlocked_tier(entry: Dictionary) -> int:
-	if level < entry.get("unlock_level", 1):
-		return 0
-	if contracts_completed < entry.get("unlock_contracts", 0):
-		return 0
-	var base_tier := 1
-	if contracts_completed >= 5:
-		base_tier = 3
-	elif contracts_completed >= 2:
-		base_tier = 2
-	return base_tier
+## Returns the scene path for the current mission profile.
+func get_mission_scene() -> String:
+	var scene = mission_profile.get("scene", "")
+	if scene != "":
+		return scene
+	# Fallback for contract missions — use the first available scene
+	return "res://Scenes/MissionScene.tscn"
 
-func _tier_reward_mult(tier: int) -> float:
-	return 1.0 + (tier - 1) * 0.5
-
-func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp: int, time_limit: float = 0.0, contract_target: String = "", waves: int = 0) -> Dictionary:
+func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp: int, time_limit: float = 0.0, contract_target: String = "", waves: int = 0, scene: String = "") -> Dictionary:
 	return {
 		"type": type,
 		"tier": tier,
@@ -437,7 +492,10 @@ func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp
 		"reward_xp": reward_xp,
 		"contract_target_name": contract_target,
 		"waves": waves,
+		"scene": scene,
 	}
+
+
 
 func tier_difficulty_scale(tier: int) -> float:
 
@@ -602,6 +660,7 @@ func reset_game():
 	target_order_received = false
 	current_contract = {}
 	contracts_completed = 0
+	missions_completed = 0
 	daily_earnings = 0
 	customers_served_today = 0
 	mission_profile = {}

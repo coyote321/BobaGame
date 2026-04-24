@@ -57,8 +57,6 @@ func _physics_process(delta):
 	if ability_cooldown > 0:
 		ability_cooldown -= delta
 	
-	update_trail()
-	
 	if has_node("Visuals"):
 		$Visuals.look_at(get_global_mouse_position())
 	
@@ -103,13 +101,6 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("ability"):
 			if ability_cooldown <= 0.0:
 				use_ability()
-
-func update_trail():
-	if has_node("Trail"):
-		var trail = $Trail
-		trail.add_point(global_position)
-		if trail.points.size() > 15:
-			trail.remove_point(0)
 
 func handle_state_inputs():
 	# Crouch

@@ -28,7 +28,7 @@ func _on_retry_pressed():
 	var fade = create_tween()
 	fade.tween_property(self, "modulate:a", 0.0, 0.3)
 	await fade.finished
-	get_tree().change_scene_to_file("res://Scenes/MissionScene.tscn")
+	get_tree().change_scene_to_file(GameManager.get_mission_scene())
 
 func _on_main_menu_pressed():
 	var fade = create_tween()

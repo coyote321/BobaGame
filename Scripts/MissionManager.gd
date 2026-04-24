@@ -6,6 +6,7 @@ var mission_failed: bool = false
 var target_enemy: Node = null
 var stealth_rating: float = 100.0
 var initial_enemy_count: int = 0
+var spawn_bounds: Rect2 = Rect2(150, 120, 950, 480)
 
 
 var mission_type: String = "extermination"
@@ -23,6 +24,7 @@ var hud = null
 
 var _enemy_scene: PackedScene = preload("res://Scenes/Enemy.tscn")
 var _tank_scene: PackedScene = preload("res://Scenes/Enemy2.tscn")
+var _elite_scene: PackedScene = preload("res://Scenes/EnemyElite.tscn")
 
 func _ready():
 	if GameManager.current_phase != "MISSION":
@@ -56,6 +58,7 @@ func _apply_mission_setup() -> void:
 	if not enemies_container:
 		return
 
+	_compute_spawn_bounds()
 
 	var extras := GameManager.tier_enemy_bonus_count(mission_tier)
 	for i in range(extras):
@@ -100,10 +103,15 @@ func _apply_difficulty_scale(enemy: Node, scale: float) -> void:
 		enemy.setup_visuals()
 
 func _spawn_extra_enemy(is_tank: bool) -> void:
-	var scene = _tank_scene if is_tank else _enemy_scene
+	var scene: PackedScene
+	if is_tank:
+		scene = _tank_scene
+	elif mission_tier >= 2 and randf() < 0.5:
+		scene = _elite_scene
+	else:
+		scene = _enemy_scene
 	var e = scene.instantiate()
-	var pos = Vector2(randf_range(150, 1100), randf_range(120, 600))
-	e.position = pos
+	e.position = _random_spawn_point()
 	enemies_container.add_child(e)
 
 	_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
@@ -122,6 +130,34 @@ func _on_enemy_died(_enemy) -> void:
 
 func _on_enemy_tree_exited() -> void:
 	call_deferred("check_mission_status")
+
+func _compute_spawn_bounds() -> void:
+	# Auto-fit spawn bounds to the scene's starting enemies so larger maps
+	# populate waves across the whole playable area instead of a fixed box.
+	if not enemies_container or enemies_container.get_child_count() == 0:
+		return
+	var bb := Rect2()
+	var first := true
+	for child in enemies_container.get_children():
+		if not child is Node2D:
+			continue
+		var p: Vector2 = child.position
+		if first:
+			bb = Rect2(p, Vector2.ZERO)
+			first = false
+		else:
+			bb = bb.expand(p)
+	if first:
+		return
+	bb = bb.grow(180.0)
+	spawn_bounds = bb
+
+func _random_spawn_point() -> Vector2:
+	var r := spawn_bounds
+	return Vector2(
+		randf_range(r.position.x, r.position.x + r.size.x),
+		randf_range(r.position.y, r.position.y + r.size.y)
+	)
 
 func _setup_boss() -> void:
 	var children := enemies_container.get_children()
@@ -146,8 +182,17 @@ func _spawn_wave() -> void:
 	waves_spawned += 1
 	var tanks: int = 0 if waves_spawned == 1 else mini(2, waves_spawned - 1)
 	var grunts: int = 3 + waves_spawned
+	var elites: int = 0
+	if mission_tier >= 2:
+		elites = mini(waves_spawned, 3)
+		grunts = maxi(grunts - elites, 2)
 	for i in range(grunts):
 		_spawn_extra_enemy(false)
+	for i in range(elites):
+		var e = _elite_scene.instantiate()
+		e.position = _random_spawn_point()
+		enemies_container.add_child(e)
+		_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
 	for i in range(tanks):
 		_spawn_extra_enemy(true)
 
@@ -308,6 +353,7 @@ func on_mission_complete():
 
 	GameManager.add_xp(reward_xp)
 	GameManager.add_money(reward_money)
+	GameManager.missions_completed += 1
 	GameManager.update_quest_progress("complete_mission", 1)
 	if mission_type == "boss_hunt":
 		GameManager.update_quest_progress("boss_hunt", 1)
@@ -315,6 +361,9 @@ func on_mission_complete():
 	var stealth_bonus = int(stealth_rating / 10) * 10
 	if stealth_bonus > 0:
 		GameManager.add_money(stealth_bonus)
+
+	if GameManager.current_contract.size() > 0:
+		GameManager.complete_contract()
 
 	if hud and hud.has_method("show_mission_complete"):
 		hud.show_mission_complete(stealth_bonus)
