@@ -3,6 +3,14 @@ extends CharacterBody2D
 signal customer_left(customer)
 signal order_ready(customer)
 
+const CUSTOMER_FRAME_COUNT: int = 4
+const CUSTOMER_ANIM_FPS: float = 6.0
+const CUSTOMER_SHEETS := [
+	preload("res://Assets/Sprites/customer 1.png"),
+	preload("res://Assets/Sprites/customer 2 (1).png"),
+	preload("res://Assets/Sprites/customer 3.png"),
+]
+
 var patience: float = 100.0
 var max_patience: float = 100.0
 var decay_rate: float = 5.0
@@ -17,8 +25,10 @@ var is_secret_agent: bool = false
 @onready var body_sprite = $Body
 
 func _ready():
+	_setup_customer_animation()
+
 	if is_secret_agent:
-		body_sprite.color = Color(0.15, 0.12, 0.2)
+		body_sprite.modulate = Color(0.55, 0.5, 0.85)
 		# Add a pulsing gold outline effect
 		var glow_tween = create_tween().set_loops()
 		glow_tween.tween_property(body_sprite, "modulate", Color(1.2, 1.0, 0.6), 0.8)
@@ -34,7 +44,7 @@ func _ready():
 		agent_label.add_theme_constant_override("outline_size", 3)
 		add_child(agent_label)
 	else:
-		body_sprite.color = Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0))
+		body_sprite.modulate = Color.WHITE
 	
 	max_patience = 60.0 - (GameManager.day * 2) 
 	if max_patience < 20: max_patience = 20
@@ -47,6 +57,28 @@ func _ready():
 	
 	generate_order()
 	update_ui()
+
+func _setup_customer_animation() -> void:
+	if not body_sprite is AnimatedSprite2D:
+		return
+
+	var sheet_index: int = randi() % CUSTOMER_SHEETS.size()
+	var sheet: Texture2D = CUSTOMER_SHEETS[sheet_index]
+	var frame_width: int = int(sheet.get_width() / CUSTOMER_FRAME_COUNT)
+	var frame_height: int = sheet.get_height()
+	var frames := SpriteFrames.new()
+	frames.add_animation("idle")
+	frames.set_animation_speed("idle", CUSTOMER_ANIM_FPS)
+	frames.set_animation_loop("idle", true)
+
+	for frame_idx in range(CUSTOMER_FRAME_COUNT):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame_idx * frame_width, 0, frame_width, frame_height)
+		frames.add_frame("idle", atlas)
+
+	body_sprite.sprite_frames = frames
+	body_sprite.play("idle")
 
 func _process(delta):
 	if is_waiting:
@@ -66,24 +98,25 @@ func _process(delta):
 func generate_order():
 
 
+	var orderable_ingredients := GameManager.get_orderable_ingredients()
 	var available_bases = []
-	if "Black Tea" in GameManager.unlocked_ingredients:
+	if "Black Tea" in orderable_ingredients:
 		available_bases.append("Black Tea")
-	if "Green Tea" in GameManager.unlocked_ingredients:
+	if "Green Tea" in orderable_ingredients:
 		available_bases.append("Green Tea")
 	if available_bases.is_empty():
 		available_bases = ["Black Tea"]
 	
 
-	var use_milk = "Milk" in GameManager.unlocked_ingredients and randf() > 0.5
+	var use_milk = "Milk" in orderable_ingredients and randf() > 0.5
 	
 
 	var available_toppings = []
-	if "Tapioca" in GameManager.unlocked_ingredients:
+	if "Tapioca" in orderable_ingredients:
 		available_toppings.append("Tapioca")
-	if "Sugar" in GameManager.unlocked_ingredients:
+	if "Sugar" in orderable_ingredients:
 		available_toppings.append("Sugar")
-	if "Honey" in GameManager.unlocked_ingredients:
+	if "Honey" in orderable_ingredients:
 		available_toppings.append("Honey")
 	
 

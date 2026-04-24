@@ -29,11 +29,11 @@ func _try_damage(body: Node2D) -> void:
 	if body.name == "Player" or body.is_in_group("player"):
 		return
 
-
 	if not body.has_method("take_damage"):
+		queue_free()
 		return
 
-	var id = body.get_instance_id()
+	var id: int = body.get_instance_id()
 	if id in _hit_cooldowns:
 		return
 
