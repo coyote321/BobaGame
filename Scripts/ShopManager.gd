@@ -10,6 +10,7 @@ const TEX_MILK_ICON := preload("res://Assets/Sprites/MilkIngredientIconDesign.pn
 const TEX_SUGAR_ICON := preload("res://Assets/Sprites/SugarIconPicture.png")
 const TEX_TAPIOCA_ICON := preload("res://Assets/Sprites/BobaIconpicture.png")
 const TEX_BLACK_TEA_ICON := preload("res://Assets/Sprites/BlackTeaIconIngredientDesign.png")
+const TEX_GREEN_TEA_ICON := preload("res://Assets/Sprites/GreenTeaIconIngredientDesign.png")
 
 const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const ACCENT_GOLD_DIM := Color(0.91, 0.76, 0.29, 0.4)
@@ -60,6 +61,18 @@ var _panel_cooldown: float = 0.0
 
 var _cash_register_sfx: AudioStreamPlayer = null
 var _error_sfx: AudioStreamPlayer = null
+var _debug_f9_was_pressed: bool = false
+var _last_hud_second: int = -1
+var _last_day_text: String = ""
+var _last_money_text: String = ""
+var _last_customers_text: String = ""
+var _last_level_text: String = ""
+var _last_xp_value: float = -1.0
+var _last_contract_ready: bool = false
+var _last_time_color_key: String = ""
+var _last_quest_signature: String = ""
+var _last_order_text: String = ""
+var _last_order_color: Color = Color.TRANSPARENT
 
 var customer_scene = preload("res://Scenes/Customer.tscn")
 
@@ -116,9 +129,6 @@ func _process(delta):
 		if time_remaining <= 0:
 			end_day()
 
-	if ui_boba_panel.visible:
-		_update_order_display()
-
 	if active_zone and Input.is_action_just_pressed("interact"):
 		if _panel_cooldown <= 0.0:
 			interact_with_zone(active_zone)
@@ -131,15 +141,20 @@ func _process(delta):
 			_select_hotbar_slot(i)
 			break
 
-	# DEBUG: Press F9 to max out stats (remove before release)
-	if Input.is_key_pressed(KEY_F9):
-		GameManager.money = 99999
-		GameManager.xp = 0
-		GameManager.level = 10
-		GameManager.missions_completed = 10
-		GameManager.contracts_completed = 10
-		print("DEBUG: Admin mode activated — max stats granted")
+	var debug_f9_pressed: bool = Input.is_key_pressed(KEY_F9)
+	if debug_f9_pressed and not _debug_f9_was_pressed:
+		_activate_f9_debug_unlock()
+	_debug_f9_was_pressed = debug_f9_pressed
 
+func _activate_f9_debug_unlock() -> void:
+	GameManager.money = 99999
+	GameManager.xp = 0
+	GameManager.level = 10
+	GameManager.unlock_all_ingredients()
+	GameManager.missions_completed = 10
+	GameManager.contracts_completed = 10
+	setup_boba_ui()
+	print("DEBUG: Admin mode activated - max stats granted")
 
 func _make_sfx(stream: AudioStream, volume: float = 0.0, bus: StringName = &"SFX", autoplay: bool = false) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
@@ -295,6 +310,10 @@ func setup_hud():
 	hud_container.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	hud_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$UI_Layer.add_child(hud_container)
+	var legacy_money_display := get_node_or_null("UI_Layer/MoneyDisplay")
+	if legacy_money_display:
+		legacy_money_display.visible = false
+		legacy_money_display.set_process(false)
 
 	var bg = Panel.new()
 	bg.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -407,9 +426,17 @@ func setup_hud():
 	$UI_Layer.add_child(quest_container)
 	_build_quest_tracker()
 
+func _get_quest_signature() -> String:
+	var parts := []
+	for quest in GameManager.daily_quests:
+		var id = quest["id"]
+		parts.append(str(id) + ":" + str(GameManager.quest_progress.get(id, 0)) + ":" + str(quest.get("completed", false)))
+	return "|".join(parts)
+
 func _build_quest_tracker():
 	for c in quest_container.get_children():
 		c.queue_free()
+	_last_quest_signature = _get_quest_signature()
 
 	var header = _styled_label("DAILY QUESTS", font_bold, 15, ACCENT_GOLD)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -455,46 +482,73 @@ func _build_quest_tracker():
 
 func update_hud():
 	if lbl_day:
-		lbl_day.text = "DAY " + str(GameManager.day)
+		var day_text := "DAY " + str(GameManager.day)
+		if day_text != _last_day_text:
+			lbl_day.text = day_text
+			_last_day_text = day_text
 
 	if lbl_time:
 		var mins = int(time_remaining / 60)
 		var secs = int(time_remaining) % 60
-		lbl_time.text = "%02d:%02d" % [mins, secs]
+		var display_second: int = maxi(0, int(time_remaining))
+		if display_second != _last_hud_second:
+			lbl_time.text = "%02d:%02d" % [mins, secs]
+			_last_hud_second = display_second
+
+		var time_color_key := "normal"
+		var time_color := TEXT_DIM
 		if time_remaining < 30:
-			lbl_time.add_theme_color_override("font_color", TEXT_RED)
+			time_color_key = "danger"
+			time_color = TEXT_RED
 			if time_flash_tween == null or not time_flash_tween.is_running():
 				time_flash_tween = create_tween().set_loops()
 				time_flash_tween.tween_property(lbl_time, "modulate:a", 0.4, 0.5)
 				time_flash_tween.tween_property(lbl_time, "modulate:a", 1.0, 0.5)
 		elif time_remaining < 60:
-			lbl_time.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
+			time_color_key = "warning"
+			time_color = Color(1, 0.8, 0.3)
 			_stop_time_flash()
 		else:
-			lbl_time.add_theme_color_override("font_color", TEXT_DIM)
 			_stop_time_flash()
+		if time_color_key != _last_time_color_key:
+			lbl_time.add_theme_color_override("font_color", time_color)
+			_last_time_color_key = time_color_key
 
 	if lbl_money:
-		lbl_money.text = "$" + str(GameManager.money)
+		var money_text := "$" + str(GameManager.money)
+		if money_text != _last_money_text:
+			lbl_money.text = money_text
+			_last_money_text = money_text
 
 	if lbl_customers:
 		var served = GameManager.customers_served_today
-		lbl_customers.text = str(served) + " served" + ("  (+$" + str(GameManager.daily_earnings) + ")" if GameManager.daily_earnings > 0 else "")
+		var customers_text := str(served) + " served" + ("  (+$" + str(GameManager.daily_earnings) + ")" if GameManager.daily_earnings > 0 else "")
+		if customers_text != _last_customers_text:
+			lbl_customers.text = customers_text
+			_last_customers_text = customers_text
 
 	if lbl_level:
-		lbl_level.text = "LVL " + str(GameManager.level)
+		var level_text := "LVL " + str(GameManager.level)
+		if level_text != _last_level_text:
+			lbl_level.text = level_text
+			_last_level_text = level_text
 
 	if lbl_xp:
-		lbl_xp.value = GameManager.get_xp_progress() * 100
+		var xp_value := GameManager.get_xp_progress() * 100
+		if not is_equal_approx(xp_value, _last_xp_value):
+			lbl_xp.value = xp_value
+			_last_xp_value = xp_value
 
 	if lbl_contract:
-		if GameManager.target_order_received:
+		if GameManager.target_order_received != _last_contract_ready:
+			_last_contract_ready = GameManager.target_order_received
+			lbl_contract.visible = _last_contract_ready
+		if _last_contract_ready and lbl_contract.text != "CONTRACT READY":
 			lbl_contract.visible = true
 			lbl_contract.text = "CONTRACT READY"
-		else:
-			lbl_contract.visible = false
 
-	if quest_container and Engine.get_frames_drawn() % 60 == 0:
+	var quest_signature := _get_quest_signature()
+	if quest_container and quest_signature != _last_quest_signature:
 		_build_quest_tracker()
 
 func _stop_time_flash():
@@ -544,6 +598,7 @@ func spawn_customer():
 func _on_customer_left(customer):
 	if customer in active_customers:
 		active_customers.erase(customer)
+		_update_order_display()
 
 		if customer.has_meta("slot_index"):
 			var idx = customer.get_meta("slot_index")
@@ -567,6 +622,7 @@ func _on_customer_left(customer):
 func _on_customer_order(customer):
 	if customer.has_meta("is_contract") and customer.get_meta("is_contract"):
 		show_contract_notification(customer)
+	_update_order_display()
 
 func _show_floating_text(text: String, color: Color, pos: Vector2):
 	var lbl = _styled_label(text, font_bold, 18, color)
@@ -633,6 +689,7 @@ func interact_with_zone(zone_name):
 	if zone_name == "counter":
 		_open_panel(ui_boba_panel)
 		update_mix_label()
+		_update_order_display()
 	elif zone_name == "upgrade":
 		show_upgrade_panel()
 	elif zone_name == "mission":
@@ -1354,6 +1411,8 @@ func setup_boba_ui():
 	lbl_order_display = _styled_label("No customer waiting", font_bold, 14, TEXT_WHITE)
 	lbl_order_display.autowrap_mode = TextServer.AUTOWRAP_WORD
 	order_vbox.add_child(lbl_order_display)
+	_last_order_text = ""
+	_last_order_color = Color.TRANSPARENT
 
 	vbox.add_child(_make_spacer(4))
 
@@ -1363,7 +1422,8 @@ func setup_boba_ui():
 
 	var grid = GridContainer.new()
 	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	vbox.add_child(grid)
 
@@ -1380,14 +1440,29 @@ func setup_boba_ui():
 		"Sugar": TEX_SUGAR_ICON,
 		"Tapioca": TEX_TAPIOCA_ICON,
 		"Black Tea": TEX_BLACK_TEA_ICON,
+		"Green Tea": TEX_GREEN_TEA_ICON,
 	}
 
-	var icon_size := 32
+	var icon_size := 34
 
 	for ing in GameManager.unlocked_ingredients:
+		var card := PanelContainer.new()
+		card.custom_minimum_size = Vector2(208, 52)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_theme_stylebox_override("panel", _make_panel_style(
+			Color(0.075, 0.075, 0.095, 0.92), Color(0.3, 0.3, 0.35, 0.42), 7))
+
+		var card_margin := MarginContainer.new()
+		card_margin.add_theme_constant_override("margin_left", 7)
+		card_margin.add_theme_constant_override("margin_top", 6)
+		card_margin.add_theme_constant_override("margin_right", 7)
+		card_margin.add_theme_constant_override("margin_bottom", 6)
+		card.add_child(card_margin)
+
 		var cell := HBoxContainer.new()
-		cell.add_theme_constant_override("separation", 8)
+		cell.add_theme_constant_override("separation", 7)
 		cell.alignment = BoxContainer.ALIGNMENT_CENTER
+		card_margin.add_child(cell)
 
 		var icon_tex = ing_icons.get(ing, null)
 		if icon_tex:
@@ -1403,8 +1478,8 @@ func setup_boba_ui():
 			spacer.custom_minimum_size = Vector2(icon_size, icon_size)
 			cell.add_child(spacer)
 
-		var btn := _styled_button("+ " + ing, Vector2(140, 40))
-		btn.add_theme_font_size_override("font_size", 14)
+		var btn := _styled_button("+ " + ing, Vector2(142, 40))
+		btn.add_theme_font_size_override("font_size", 13)
 		btn.add_theme_font_override("font", font_semi)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -1418,7 +1493,7 @@ func setup_boba_ui():
 		btn.pressed.connect(_add_to_mix.bind(ing))
 		cell.add_child(btn)
 
-		grid.add_child(cell)
+		grid.add_child(card)
 
 	vbox.add_child(_make_spacer(2))
 
@@ -1483,6 +1558,8 @@ func update_mix_label():
 func _update_order_display():
 	if not lbl_order_display: return
 	var target_customer = _get_waiting_customer()
+	var display_text := "No customer waiting"
+	var display_color := TEXT_DIM
 	if target_customer:
 		var o = target_customer.order
 		var parts := []
@@ -1492,12 +1569,14 @@ func _update_order_display():
 		if o.get("topping", "None") != "None":
 			parts.append(o["topping"])
 		var prefix = "⚑ " if target_customer.is_secret_agent else ""
-		lbl_order_display.text = prefix + " + ".join(parts)
-		lbl_order_display.add_theme_color_override("font_color",
-			Color(1.0, 0.75, 0.55) if target_customer.is_secret_agent else TEXT_WHITE)
-	else:
-		lbl_order_display.text = "No customer waiting"
-		lbl_order_display.add_theme_color_override("font_color", TEXT_DIM)
+		display_text = prefix + " + ".join(parts)
+		display_color = Color(1.0, 0.75, 0.55) if target_customer.is_secret_agent else TEXT_WHITE
+	if display_text != _last_order_text:
+		lbl_order_display.text = display_text
+		_last_order_text = display_text
+	if display_color != _last_order_color:
+		lbl_order_display.add_theme_color_override("font_color", display_color)
+		_last_order_color = display_color
 
 func _get_waiting_customer():
 	for c in active_customers:

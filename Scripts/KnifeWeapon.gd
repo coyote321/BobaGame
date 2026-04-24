@@ -16,6 +16,7 @@ func attack() -> void:
 	player.global_position += facing_dir * float(tuning.get("lunge_distance", 8.0))
 
 	var melee_range = float(tuning.get("melee_range", 80.0))
+	var melee_range_sq = melee_range * melee_range
 	var burst_color: Color = tuning.get("burst_color", Color(1.0, 0.85, 0.96))
 	_spawn_slash_arc(facing_dir, melee_range, burst_color, tuning)
 
@@ -23,8 +24,8 @@ func attack() -> void:
 	if enemies_node:
 		for enemy in enemies_node.get_children():
 			if enemy.has_method("take_damage"):
-				var dist = player.global_position.distance_to(enemy.global_position)
-				if dist < melee_range:
+				var dist_sq = player.global_position.distance_squared_to(enemy.global_position)
+				if dist_sq < melee_range_sq:
 					var dir_to_enemy = player.global_position.direction_to(enemy.global_position)
 					if facing_dir.dot(dir_to_enemy) > float(tuning.get("melee_arc_dot", 0.5)):
 						enemy.take_damage(damage)
@@ -37,12 +38,7 @@ func attack() -> void:
 # ---------------------------------------------------------------------------
 
 func _play_knife_sound() -> void:
-	var sfx = AudioStreamPlayer.new()
-	sfx.volume_db = 0.0
-	sfx.bus = &"SFX"
-	player.get_parent().add_child(sfx)
-	sfx.play()
-	sfx.finished.connect(sfx.queue_free)
+	pass
 
 # ---------------------------------------------------------------------------
 #  Melee swing animation

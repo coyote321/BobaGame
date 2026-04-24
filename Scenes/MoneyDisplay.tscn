@@ -5,8 +5,18 @@
 [sub_resource type="GDScript" id="GDScript_money"]
 script/source = "extends Label
 
+var _last_money: int = -1
+
+func _ready():
+	_refresh()
+
 func _process(_delta):
-	text = \"$ \" + str(GameManager.money)"
+	if GameManager.money != _last_money:
+		_refresh()
+
+func _refresh():
+	_last_money = GameManager.money
+	text = \"$ \" + str(_last_money)"
 
 [node name="MoneyDisplay" type="Label"]
 offset_left = 20.0

@@ -23,6 +23,13 @@ const ACCENT_RED := Color(1.0, 0.45, 0.45, 1.0)
 
 var _selected_style: StyleBoxFlat
 var _unselected_style: StyleBoxFlat
+var _health_fill_style: StyleBoxFlat
+var _last_health_color_key: String = ""
+var _last_money_text: String = ""
+var _last_level_text: String = ""
+var _last_xp_text: String = ""
+var _last_xp_value: int = -1
+var _last_xp_need: int = -1
 
 func _ready():
 	if health_bar:
@@ -49,6 +56,11 @@ func _ready():
 	_unselected_style.set_border_width_all(2)
 	_unselected_style.set_corner_radius_all(6)
 
+	_health_fill_style = StyleBoxFlat.new()
+	_health_fill_style.set_corner_radius_all(3)
+	if health_bar:
+		health_bar.add_theme_stylebox_override("fill", _health_fill_style)
+
 	_refresh_hotbar()
 	update_weapon(1, GameManager.equipped_main)
 
@@ -72,16 +84,18 @@ func update_health(current_hp: int, max_hp: int):
 	health_bar.value = current_hp
 	health_text.text = str(current_hp) + " / " + str(max_hp)
 
-	var fill = StyleBoxFlat.new()
-	fill.set_corner_radius_all(3)
 	var hp_ratio = float(current_hp) / float(max_hp)
+	var color_key := "danger"
+	var fill_color := Color(0.9, 0.25, 0.25)
 	if hp_ratio > 0.6:
-		fill.bg_color = Color(0.35, 0.85, 0.35)
+		color_key = "healthy"
+		fill_color = Color(0.35, 0.85, 0.35)
 	elif hp_ratio > 0.3:
-		fill.bg_color = Color(1.0, 0.75, 0.25)
-	else:
-		fill.bg_color = Color(0.9, 0.25, 0.25)
-	health_bar.add_theme_stylebox_override("fill", fill)
+		color_key = "warning"
+		fill_color = Color(1.0, 0.75, 0.25)
+	if color_key != _last_health_color_key:
+		_health_fill_style.bg_color = fill_color
+		_last_health_color_key = color_key
 
 func _refresh_hotbar():
 	var equipped = [GameManager.equipped_main, GameManager.equipped_melee, GameManager.equipped_special]
@@ -160,14 +174,27 @@ func connect_buttons(abort_callback: Callable, return_callback: Callable):
 
 func _process(_delta):
 	if money_label:
-		money_label.text = "$ " + str(GameManager.money)
+		var money_text := "$ " + str(GameManager.money)
+		if money_text != _last_money_text:
+			money_label.text = money_text
+			_last_money_text = money_text
 	if level_label:
-		level_label.text = "LVL  " + str(GameManager.level)
+		var level_text := "LVL  " + str(GameManager.level)
+		if level_text != _last_level_text:
+			level_label.text = level_text
+			_last_level_text = level_text
 	if xp_label and xp_bar:
 		var need = GameManager.get_xp_for_next_level()
-		xp_bar.max_value = need
-		xp_bar.value = GameManager.xp
-		xp_label.text = "XP  %d / %d" % [GameManager.xp, need]
+		if need != _last_xp_need:
+			xp_bar.max_value = need
+			_last_xp_need = need
+		if GameManager.xp != _last_xp_value:
+			xp_bar.value = GameManager.xp
+			_last_xp_value = GameManager.xp
+		var xp_text := "XP  %d / %d" % [GameManager.xp, need]
+		if xp_text != _last_xp_text:
+			xp_label.text = xp_text
+			_last_xp_text = xp_text
 
 func hide_hud():
 	visible = false

@@ -8,7 +8,70 @@ var fuel: float = 7.5
 const MAX_FUEL: float = 7.5
 var _out_of_fuel: bool = false
 
+static var _fire_grad_tex: GradientTexture1D
+static var _ember_grad_tex: GradientTexture1D
+static var _smoke_grad_tex: GradientTexture1D
+static var _fire_scale_curve_tex: CurveTexture
+static var _light_tex: GradientTexture2D
+static var _shared_flame_fx_built: bool = false
+
+static func _ensure_shared_flame_fx() -> void:
+	if _shared_flame_fx_built:
+		return
+	_shared_flame_fx_built = true
+
+	var fire_grad = Gradient.new()
+	fire_grad.set_offset(0, 0.0)
+	fire_grad.set_color(0, Color(1.0, 1.0, 0.92, 1.0))
+	fire_grad.add_point(0.1, Color(1.0, 0.98, 0.5, 1.0))
+	fire_grad.add_point(0.3, Color(1.0, 0.7, 0.1, 0.95))
+	fire_grad.add_point(0.55, Color(1.0, 0.4, 0.02, 0.85))
+	fire_grad.add_point(0.75, Color(0.8, 0.12, 0.01, 0.6))
+	fire_grad.set_offset(1, 1.0)
+	fire_grad.set_color(1, Color(0.15, 0.02, 0.0, 0.0))
+	_fire_grad_tex = GradientTexture1D.new()
+	_fire_grad_tex.gradient = fire_grad
+
+	var ember_grad = Gradient.new()
+	ember_grad.set_offset(0, 0.0)
+	ember_grad.set_color(0, Color(1.0, 0.95, 0.4, 1.0))
+	ember_grad.add_point(0.3, Color(1.0, 0.6, 0.1, 0.9))
+	ember_grad.add_point(0.6, Color(1.0, 0.3, 0.05, 0.7))
+	ember_grad.set_offset(1, 1.0)
+	ember_grad.set_color(1, Color(0.5, 0.1, 0.0, 0.0))
+	_ember_grad_tex = GradientTexture1D.new()
+	_ember_grad_tex.gradient = ember_grad
+
+	var smoke_grad = Gradient.new()
+	smoke_grad.set_offset(0, 0.0)
+	smoke_grad.set_color(0, Color(0.35, 0.28, 0.22, 0.35))
+	smoke_grad.add_point(0.4, Color(0.25, 0.2, 0.16, 0.2))
+	smoke_grad.set_offset(1, 1.0)
+	smoke_grad.set_color(1, Color(0.12, 0.1, 0.08, 0.0))
+	_smoke_grad_tex = GradientTexture1D.new()
+	_smoke_grad_tex.gradient = smoke_grad
+
+	var scale_curve = Curve.new()
+	scale_curve.add_point(Vector2(0.0, 0.2))
+	scale_curve.add_point(Vector2(0.15, 1.0))
+	scale_curve.add_point(Vector2(0.5, 0.85))
+	scale_curve.add_point(Vector2(0.8, 0.4))
+	scale_curve.add_point(Vector2(1.0, 0.05))
+	_fire_scale_curve_tex = CurveTexture.new()
+	_fire_scale_curve_tex.curve = scale_curve
+
+	_light_tex = GradientTexture2D.new()
+	_light_tex.gradient = Gradient.new()
+	_light_tex.gradient.set_color(0, Color.WHITE)
+	_light_tex.gradient.set_color(1, Color.TRANSPARENT)
+	_light_tex.fill = GradientTexture2D.FILL_RADIAL
+	_light_tex.fill_from = Vector2(0.5, 0.5)
+	_light_tex.fill_to = Vector2(0.5, 0.0)
+	_light_tex.width = 128
+	_light_tex.height = 128
+
 func _ready() -> void:
+	_ensure_shared_flame_fx()
 	_flame_sfx = AudioStreamPlayer.new()
 	_flame_sfx.stream = preload("res://Assets/Audio/sfx/sfx_flamethrower.wav")
 	_flame_sfx.volume_db = -5.0
@@ -73,7 +136,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	var fire = GPUParticles2D.new()
 	fire.emitting = true
 	fire.one_shot = false
-	fire.amount = 60
+	fire.amount = 30
 	fire.lifetime = 0.5
 	fire.speed_scale = 2.2
 	fire.explosiveness = 0.1
@@ -92,28 +155,8 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	fire_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 	fire_mat.emission_sphere_radius = 8.0
 
-	var fire_grad = Gradient.new()
-	fire_grad.set_offset(0, 0.0)
-	fire_grad.set_color(0, Color(1.0, 1.0, 0.92, 1.0))
-	fire_grad.add_point(0.1, Color(1.0, 0.98, 0.5, 1.0))
-	fire_grad.add_point(0.3, Color(1.0, 0.7, 0.1, 0.95))
-	fire_grad.add_point(0.55, Color(1.0, 0.4, 0.02, 0.85))
-	fire_grad.add_point(0.75, Color(0.8, 0.12, 0.01, 0.6))
-	fire_grad.set_offset(1, 1.0)
-	fire_grad.set_color(1, Color(0.15, 0.02, 0.0, 0.0))
-	var fire_grad_tex = GradientTexture1D.new()
-	fire_grad_tex.gradient = fire_grad
-	fire_mat.color_ramp = fire_grad_tex
-
-	var scale_curve = Curve.new()
-	scale_curve.add_point(Vector2(0.0, 0.2))
-	scale_curve.add_point(Vector2(0.15, 1.0))
-	scale_curve.add_point(Vector2(0.5, 0.85))
-	scale_curve.add_point(Vector2(0.8, 0.4))
-	scale_curve.add_point(Vector2(1.0, 0.05))
-	var scale_curve_tex = CurveTexture.new()
-	scale_curve_tex.curve = scale_curve
-	fire_mat.scale_curve = scale_curve_tex
+	fire_mat.color_ramp = _fire_grad_tex
+	fire_mat.scale_curve = _fire_scale_curve_tex
 
 	fire.process_material = fire_mat
 	flame.add_child(fire)
@@ -122,7 +165,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	var embers = GPUParticles2D.new()
 	embers.emitting = true
 	embers.one_shot = false
-	embers.amount = 12
+	embers.amount = 6
 	embers.lifetime = 0.6
 	embers.speed_scale = 1.5
 	embers.explosiveness = 0.3
@@ -139,16 +182,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	ember_mat.scale_min = 1.5
 	ember_mat.scale_max = 3.0
 
-	var ember_grad = Gradient.new()
-	ember_grad.set_offset(0, 0.0)
-	ember_grad.set_color(0, Color(1.0, 0.95, 0.4, 1.0))
-	ember_grad.add_point(0.3, Color(1.0, 0.6, 0.1, 0.9))
-	ember_grad.add_point(0.6, Color(1.0, 0.3, 0.05, 0.7))
-	ember_grad.set_offset(1, 1.0)
-	ember_grad.set_color(1, Color(0.5, 0.1, 0.0, 0.0))
-	var ember_grad_tex = GradientTexture1D.new()
-	ember_grad_tex.gradient = ember_grad
-	ember_mat.color_ramp = ember_grad_tex
+	ember_mat.color_ramp = _ember_grad_tex
 
 	embers.process_material = ember_mat
 	flame.add_child(embers)
@@ -157,7 +191,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	var smoke = GPUParticles2D.new()
 	smoke.emitting = true
 	smoke.one_shot = false
-	smoke.amount = 14
+	smoke.amount = 6
 	smoke.lifetime = 0.7
 	smoke.speed_scale = 0.8
 	smoke.explosiveness = 0.05
@@ -174,15 +208,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	smoke_mat.damping_min = 5.0
 	smoke_mat.damping_max = 15.0
 
-	var smoke_grad = Gradient.new()
-	smoke_grad.set_offset(0, 0.0)
-	smoke_grad.set_color(0, Color(0.35, 0.28, 0.22, 0.35))
-	smoke_grad.add_point(0.4, Color(0.25, 0.2, 0.16, 0.2))
-	smoke_grad.set_offset(1, 1.0)
-	smoke_grad.set_color(1, Color(0.12, 0.1, 0.08, 0.0))
-	var smoke_grad_tex = GradientTexture1D.new()
-	smoke_grad_tex.gradient = smoke_grad
-	smoke_mat.color_ramp = smoke_grad_tex
+	smoke_mat.color_ramp = _smoke_grad_tex
 
 	smoke.process_material = smoke_mat
 	flame.add_child(smoke)
@@ -192,16 +218,7 @@ func _shoot_flame(tuning: Dictionary) -> void:
 	glow.color = Color(1.0, 0.5, 0.1, 1.0)
 	glow.energy = 1.8 + randf_range(-0.3, 0.3)
 	glow.texture_scale = 0.5
-	var light_tex = GradientTexture2D.new()
-	light_tex.gradient = Gradient.new()
-	light_tex.gradient.set_color(0, Color.WHITE)
-	light_tex.gradient.set_color(1, Color.TRANSPARENT)
-	light_tex.fill = GradientTexture2D.FILL_RADIAL
-	light_tex.fill_from = Vector2(0.5, 0.5)
-	light_tex.fill_to = Vector2(0.5, 0.0)
-	light_tex.width = 128
-	light_tex.height = 128
-	glow.texture = light_tex
+	glow.texture = _light_tex
 	flame.add_child(glow)
 
 	# ---- Collision ----

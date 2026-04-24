@@ -189,7 +189,7 @@ func _play_shot_animation(direction: Vector2, tuning: Dictionary) -> void:
 
 func _spawn_muzzle_burst_particles(direction: Vector2, tuning: Dictionary) -> void:
 	var burst_color: Color = tuning.get("burst_color", tuning.get("flash_color", Color(1.0, 0.9, 0.7)))
-	var amount: int = int(tuning.get("sparkle_amount", 18))
+	var amount: int = mini(int(tuning.get("sparkle_amount", 18)), 12)
 
 	var particles = CPUParticles2D.new()
 	particles.emitting = true
@@ -272,7 +272,7 @@ func _create_projectile_trail(color: Color, size: float) -> GPUParticles2D:
 	var trail = GPUParticles2D.new()
 	trail.name = "Trail"
 	trail.emitting = true
-	trail.amount = 16
+	trail.amount = 8
 	trail.lifetime = 0.2
 	trail.speed_scale = 1.0
 	trail.explosiveness = 0.0

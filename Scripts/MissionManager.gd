@@ -7,6 +7,8 @@ var target_enemy: Node = null
 var stealth_rating: float = 100.0
 var initial_enemy_count: int = 0
 var spawn_bounds: Rect2 = Rect2(150, 120, 950, 480)
+var live_enemy_count: int = 0
+var _tracked_enemies: Dictionary = {}
 
 
 var mission_type: String = "extermination"
@@ -83,12 +85,12 @@ func _apply_mission_setup() -> void:
 			for enemy in enemies_container.get_children():
 				enemy.queue_free()
 			await get_tree().process_frame
+			_reset_enemy_tracking()
 			_spawn_wave()
-
-	initial_enemy_count = enemies_container.get_child_count()
 
 	for enemy in enemies_container.get_children():
 		_connect_enemy(enemy)
+	initial_enemy_count = live_enemy_count
 
 func _apply_difficulty_scale(enemy: Node, scale: float) -> void:
 	if not enemy:
@@ -120,16 +122,36 @@ func _spawn_extra_enemy(is_tank: bool) -> void:
 func _connect_enemy(enemy: Node) -> void:
 	if not is_instance_valid(enemy):
 		return
-	if enemy.has_signal("died") and not enemy.died.is_connected(_on_enemy_died):
+	if enemy.has_meta("mission_tracked"):
+		return
+	enemy.set_meta("mission_tracked", true)
+	if _is_living_enemy(enemy):
+		live_enemy_count += 1
+		_tracked_enemies[enemy.get_instance_id()] = true
+	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_died)
-	if not enemy.tree_exited.is_connected(_on_enemy_tree_exited):
-		enemy.tree_exited.connect(_on_enemy_tree_exited)
+	enemy.tree_exited.connect(_on_enemy_tree_exited.bind(enemy))
 
-func _on_enemy_died(_enemy) -> void:
+func _on_enemy_died(enemy) -> void:
+	_untrack_enemy(enemy)
 	call_deferred("check_mission_status")
 
-func _on_enemy_tree_exited() -> void:
+func _on_enemy_tree_exited(enemy) -> void:
+	_untrack_enemy(enemy)
 	call_deferred("check_mission_status")
+
+func _untrack_enemy(enemy) -> void:
+	if not enemy:
+		return
+	var id: int = enemy.get_instance_id()
+	if not _tracked_enemies.has(id):
+		return
+	_tracked_enemies.erase(id)
+	live_enemy_count = maxi(live_enemy_count - 1, 0)
+
+func _reset_enemy_tracking() -> void:
+	live_enemy_count = 0
+	_tracked_enemies.clear()
 
 func _compute_spawn_bounds() -> void:
 	# Auto-fit spawn bounds to the scene's starting enemies so larger maps
@@ -193,6 +215,7 @@ func _spawn_wave() -> void:
 		e.position = _random_spawn_point()
 		enemies_container.add_child(e)
 		_apply_difficulty_scale(e, GameManager.tier_difficulty_scale(mission_tier))
+		_connect_enemy(e)
 	for i in range(tanks):
 		_spawn_extra_enemy(true)
 
@@ -321,19 +344,7 @@ func _is_target_defeated() -> bool:
 	return false
 
 func _living_enemy_count() -> int:
-	var seen := {}
-	var count := 0
-	if enemies_container:
-		for enemy in enemies_container.get_children():
-			if _is_living_enemy(enemy):
-				seen[enemy.get_instance_id()] = true
-				count += 1
-	for enemy in get_tree().get_nodes_in_group("enemy"):
-		if seen.has(enemy.get_instance_id()):
-			continue
-		if _is_living_enemy(enemy):
-			count += 1
-	return count
+	return live_enemy_count
 
 func _is_living_enemy(enemy) -> bool:
 	if not is_instance_valid(enemy):

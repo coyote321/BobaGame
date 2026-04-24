@@ -42,6 +42,8 @@ var is_target: bool = false
 var body_rect: ColorRect
 var health_bar: ProgressBar
 var alert_indicator: Label
+var _health_fill_style: StyleBoxFlat
+var _health_color_key: String = ""
 
 # ─── Configurable overrides for subclasses ──────────────────────────────
 var _body_size: Vector2 = Vector2(50, 50)
@@ -101,13 +103,14 @@ func setup_visuals():
 		var style = StyleBoxFlat.new()
 		style.bg_color = Color(0.2, 0.2, 0.2)
 		health_bar.add_theme_stylebox_override("background", style)
-		var fill = StyleBoxFlat.new()
-		fill.bg_color = Color(0.8, 0.2, 0.2)
-		health_bar.add_theme_stylebox_override("fill", fill)
 		add_child(health_bar)
+	_health_fill_style = StyleBoxFlat.new()
+	_health_fill_style.bg_color = Color(0.2, 0.8, 0.2)
+	health_bar.add_theme_stylebox_override("fill", _health_fill_style)
 
 	health_bar.max_value = max_health
 	health_bar.value = health
+	_update_health_bar_color()
 
 	# Alert indicator
 	alert_indicator = Label.new()
@@ -276,16 +279,7 @@ func take_damage(amount: float):
 
 	health -= amount
 	health_bar.value = health
-
-	# Update health bar colour
-	var fill = StyleBoxFlat.new()
-	if health > max_health * 0.5:
-		fill.bg_color = Color(0.2, 0.8, 0.2)
-	elif health > max_health * 0.25:
-		fill.bg_color = Color(0.8, 0.8, 0.2)
-	else:
-		fill.bg_color = Color(0.8, 0.2, 0.2)
-	health_bar.add_theme_stylebox_override("fill", fill)
+	_update_health_bar_color()
 
 	# Flash body white
 	if body_rect:
@@ -301,6 +295,21 @@ func take_damage(amount: float):
 	else:
 		hurt_timer = 0.2
 		state = State.HURT
+
+func _update_health_bar_color() -> void:
+	if not _health_fill_style:
+		return
+	var color_key := "danger"
+	var fill_color := Color(0.8, 0.2, 0.2)
+	if health > max_health * 0.5:
+		color_key = "healthy"
+		fill_color = Color(0.2, 0.8, 0.2)
+	elif health > max_health * 0.25:
+		color_key = "warning"
+		fill_color = Color(0.8, 0.8, 0.2)
+	if color_key != _health_color_key:
+		_health_fill_style.bg_color = fill_color
+		_health_color_key = color_key
 
 func show_damage_number(amount: float):
 	var dmg_label = Label.new()

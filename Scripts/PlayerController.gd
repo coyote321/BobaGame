@@ -25,6 +25,7 @@ var _heartbeat_sfx: AudioStreamPlayer = null
 var _death_sfx: AudioStreamPlayer = null
 
 var _current_weapon_node: Node2D = null
+var _weapon_scene_cache: Dictionary = {}
 
 func _make_sfx(stream: AudioStream, volume: float = 0.0) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
@@ -150,7 +151,7 @@ func _update_weapon_scene() -> void:
 	var scene_path = weapon_data.get("weapon_scene", "")
 	if scene_path == "":
 		return
-	var scene = load(scene_path)
+	var scene: PackedScene = _get_weapon_scene(scene_path)
 	if scene:
 		_current_weapon_node = scene.instantiate()
 		var offset = weapon_data.get("hold_offset", Vector2(32, 8))
@@ -159,6 +160,14 @@ func _update_weapon_scene() -> void:
 		# Initialize the weapon script
 		if _current_weapon_node.has_method("init_weapon"):
 			_current_weapon_node.init_weapon(self, weapon_name)
+
+func _get_weapon_scene(scene_path: String) -> PackedScene:
+	if _weapon_scene_cache.has(scene_path):
+		return _weapon_scene_cache[scene_path]
+	var scene := load(scene_path) as PackedScene
+	if scene:
+		_weapon_scene_cache[scene_path] = scene
+	return scene
 
 func _get_current_weapon_name() -> String:
 	match current_weapon_idx:

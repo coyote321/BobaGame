@@ -142,12 +142,17 @@ func _reset_order_label_after_delay() -> void:
 
 func calculate_accuracy(item: Dictionary) -> int:
 	var matches = 0
-	if item.get("base") == order["base"]: matches += 1
-	if item.get("milk") == order["milk"]: matches += 1
-	if item.get("topping") == order["topping"]: matches += 1
+	if item.get("base") == order["base"]:
+		matches += 1
+	if item.get("milk") == order["milk"]:
+		matches += 1
+	if item.get("topping") == order["topping"]:
+		matches += 1
 	
-	if matches == 3: return 3
-	if matches == 2: return 2
+	if matches == 3:
+		return 3
+	if matches == 2:
+		return 2
 	return 1
 
 func serve_complete():

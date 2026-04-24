@@ -17,7 +17,16 @@ func get_xp_for_next_level(lvl: int = level) -> int:
 
 var reputation: int = 0
 var shop_level: int = 1
-var unlocked_ingredients: Array = ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar"]
+const STARTING_INGREDIENTS := ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar"]
+const LEVEL_INGREDIENT_UNLOCKS := {
+	2: "Honey",
+	3: "Taro",
+	4: "Brown Sugar"
+}
+const ALL_INGREDIENTS := ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar", "Honey", "Taro", "Brown Sugar"]
+const REMOVED_INGREDIENTS := ["Matcha"]
+
+var unlocked_ingredients: Array = STARTING_INGREDIENTS.duplicate()
 var inventory: Dictionary = {
 	"Black Tea": 999,
 	"Green Tea": 999,
@@ -206,6 +215,7 @@ var _admin_snapshot: Dictionary = {}
 
 func _ready():
 	print("GameManager initialized")
+	remove_retired_ingredients()
 	_setup_audio_buses()
 	setup_inputs()
 	generate_daily_quests()
@@ -294,17 +304,23 @@ func check_level_up():
 		xp_needed = get_xp_for_next_level()
 
 func on_level_up():
+	if level in LEVEL_INGREDIENT_UNLOCKS and LEVEL_INGREDIENT_UNLOCKS[level] not in unlocked_ingredients:
+		var ingredient = LEVEL_INGREDIENT_UNLOCKS[level]
+		unlocked_ingredients.append(ingredient)
+		inventory[ingredient] = 50
+		print("Unlocked ingredient: ", ingredient)
 
-	var level_unlocks = {
-		2: "Honey",
-		3: "Matcha",
-		4: "Taro",
-		5: "Brown Sugar"
-	}
-	if level in level_unlocks and level_unlocks[level] not in unlocked_ingredients:
-		unlocked_ingredients.append(level_unlocks[level])
-		inventory[level_unlocks[level]] = 50
-		print("Unlocked ingredient: ", level_unlocks[level])
+func remove_retired_ingredients() -> void:
+	for ing in REMOVED_INGREDIENTS:
+		unlocked_ingredients.erase(ing)
+		inventory.erase(ing)
+
+func unlock_all_ingredients(amount: int = 999) -> void:
+	remove_retired_ingredients()
+	for ing in ALL_INGREDIENTS:
+		if ing not in unlocked_ingredients:
+			unlocked_ingredients.append(ing)
+		inventory[ing] = amount
 
 func get_xp_progress() -> float:
 	var xp_needed = get_xp_for_next_level()
@@ -725,12 +741,7 @@ func grant_admin() -> void:
 	xp = 0
 	money = ADMIN_MONEY_GRANT
 
-	var every_ingredient := ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar",
-		"Honey", "Matcha", "Taro", "Brown Sugar"]
-	for ing in every_ingredient:
-		if ing not in unlocked_ingredients:
-			unlocked_ingredients.append(ing)
-		inventory[ing] = 999
+	unlock_all_ingredients()
 
 	for weapon_name in weapons.keys():
 		if weapon_name not in owned_weapons:
@@ -764,6 +775,7 @@ func revoke_admin() -> void:
 	shop_level = _admin_snapshot["shop_level"]
 	unlocked_ingredients = _admin_snapshot["unlocked_ingredients"].duplicate(true)
 	inventory = _admin_snapshot["inventory"].duplicate(true)
+	remove_retired_ingredients()
 	owned_weapons = _admin_snapshot["owned_weapons"].duplicate(true)
 	equipped_main = _admin_snapshot["equipped_main"]
 	equipped_melee = _admin_snapshot["equipped_melee"]

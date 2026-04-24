@@ -140,12 +140,14 @@ func _add_slider(parent: VBoxContainer, label_text: String, bus_name: String) ->
 	parent.add_child(slider)
 
 	# Connect slider changes to AudioServer
-	slider.value_changed.connect(func(val: float):
-		var idx := AudioServer.get_bus_index(bus_name)
-		if idx >= 0:
-			if val <= 0.0:
-				AudioServer.set_bus_mute(idx, true)
-			else:
-				AudioServer.set_bus_mute(idx, false)
-				AudioServer.set_bus_volume_db(idx, linear_to_db(val / 100.0))
-	)
+	slider.value_changed.connect(_on_volume_slider_changed.bind(bus_name))
+
+func _on_volume_slider_changed(val: float, bus_name: String) -> void:
+	var idx: int = AudioServer.get_bus_index(bus_name)
+	if idx < 0:
+		return
+	if val <= 0.0:
+		AudioServer.set_bus_mute(idx, true)
+	else:
+		AudioServer.set_bus_mute(idx, false)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(val / 100.0))

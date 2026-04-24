@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://player123"]
 
 [ext_resource type="Script" uid="uid://dlyn7b6a0yojw" path="res://Scripts/PlayerController.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://b11035iclj11" path="res://Scenes copy/Projectile.tscn" id="3_proj"]
+[ext_resource type="PackedScene" uid="uid://projectile123" path="res://Scenes/Projectile.tscn" id="3_proj"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 30.0
