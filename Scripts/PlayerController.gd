@@ -58,12 +58,15 @@ func _physics_process(delta):
 	if ability_cooldown > 0:
 		ability_cooldown -= delta
 	
-	if has_node("Visuals"):
-		$Visuals.look_at(get_global_mouse_position())
+	_update_aim()
 	
-	handle_state_inputs()
+	var menu_active := JoystickCursor.is_menu_active()
+	if menu_active:
+		is_aiming = false
+	else:
+		handle_state_inputs()
 	
-	var direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var direction = Vector2.ZERO if menu_active else Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var current_speed = speed
 	
 	if is_crouching:
@@ -88,9 +91,9 @@ func _physics_process(delta):
 			
 	move_and_slide()
 	
-	if GameManager.current_phase == "MISSION":
-		# Attack (left click). Using the "aim" mouse button to steady aim only.
-		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	if GameManager.current_phase == "MISSION" and not menu_active:
+		# Attack action covers LMB and the right trigger on Xbox.
+		if Input.is_action_pressed("attack"):
 			if fire_cooldown <= 0.0:
 				attack()
 		else:
@@ -102,6 +105,13 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("ability"):
 			if ability_cooldown <= 0.0:
 				use_ability()
+
+func _update_aim() -> void:
+	# Aim follows the mouse cursor. The right stick is wired to the mouse
+	# cursor via the JoystickCursor autoload, so this single path covers
+	# both keyboard+mouse and Xbox controller players.
+	if has_node("Visuals"):
+		$Visuals.look_at(get_global_mouse_position())
 
 func handle_state_inputs():
 	# Crouch
@@ -117,11 +127,19 @@ func handle_state_inputs():
 	# Aim
 	is_aiming = Input.is_action_pressed("aim")
 
-	# Weapon Switching
+	# Weapon Switching: direct (1/2/3) and cycling (LB/RB or Q/R).
 	for i in range(1, 4):
 		if Input.is_action_just_pressed("weapon_" + str(i)):
 			switch_weapon(i)
 			break
+	if Input.is_action_just_pressed("weapon_next"):
+		switch_weapon(_cycled_weapon_idx(1))
+	elif Input.is_action_just_pressed("weapon_prev"):
+		switch_weapon(_cycled_weapon_idx(-1))
+
+func _cycled_weapon_idx(step: int) -> int:
+	# Wrap current_weapon_idx in [1..3].
+	return ((current_weapon_idx - 1 + step + 3) % 3) + 1
 
 func is_crouching_state() -> bool:
 	return is_crouching

@@ -217,7 +217,6 @@ func _ready():
 	print("GameManager initialized")
 	remove_retired_ingredients()
 	_setup_audio_buses()
-	setup_inputs()
 	generate_daily_quests()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -257,37 +256,6 @@ func _set_bus_volume(bus_name: String, value: float) -> void:
 	else:
 		AudioServer.set_bus_mute(bus_idx, false)
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value / 100.0))
-
-func setup_inputs():
-	var actions = {
-		"move_up": KEY_W,
-		"move_down": KEY_S,
-		"move_left": KEY_A,
-		"move_right": KEY_D,
-		"sprint": KEY_SHIFT,
-		"crouch": KEY_CTRL,
-		"pause": KEY_ESCAPE,
-		"weapon_1": KEY_1,
-		"weapon_2": KEY_2,
-		"weapon_3": KEY_3,
-		"ability": KEY_G,
-		"interact": KEY_E
-	}
-	
-	for action in actions:
-		if not InputMap.has_action(action):
-			InputMap.add_action(action)
-			var ev = InputEventKey.new()
-			ev.physical_keycode = actions[action]
-			InputMap.action_add_event(action, ev)
-			
-
-	if not InputMap.has_action("aim"):
-		InputMap.add_action("aim")
-		var ev_aim = InputEventMouseButton.new()
-		ev_aim.button_index = MOUSE_BUTTON_RIGHT
-		InputMap.action_add_event("aim", ev_aim)
-
 
 func add_xp(amount: int):
 	xp += amount
