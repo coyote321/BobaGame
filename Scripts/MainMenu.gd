@@ -102,7 +102,7 @@ func _show_options_panel() -> void:
 	_add_slider(vbox, "MUSIC VOLUME", "Music")
 
 	var controls := Label.new()
-	controls.text = "KB/M: WASD Move | Shift Sprint | Ctrl Crouch | E Interact\n1/2/3 Weapons | G Ability | LMB Attack | RMB Aim | Esc Pause\nXbox: L-Stick Move | R-Stick Aim | RT Shoot | LT Aim\nA Interact | B Crouch | X Ability | Y Sprint\nLB/RB/R3 Weapons | Start Pause"
+	controls.text = "KB/M: WASD Move | Shift Sprint | Ctrl Crouch | E Interact\n1/2/3 or Q/R Weapons | G Ability | LMB Attack | RMB Aim | Esc Pause\nXbox: L-Stick Move (moves cursor in menus) | R-Stick Aim\nRT or Y Shoot | LT Aim | A Use/Select | B Crouch | X Ability\nL3 Sprint | LB/RB Cycle Weapon | Start Pause"
 	controls.add_theme_font_size_override("font_size", 11)
 	controls.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 	vbox.add_child(controls)
