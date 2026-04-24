@@ -70,6 +70,28 @@ func open_active_panel():
 	if active_zone == "mission":
 		var btn = $UI_Layer/MissionPanel/StartBtn
 		btn.visible = GameManager.target_order_received
+	
+	# Give first interactive control focus so controller users can navigate.
+	var panel: Control = null
+	if active_zone == "counter":
+		panel = ui_boba_panel
+	elif active_zone == "upgrade":
+		panel = ui_upgrade_panel
+	elif active_zone == "mission":
+		panel = ui_mission_panel
+	if panel:
+		var first_btn := _find_first_button(panel)
+		if first_btn:
+			first_btn.call_deferred("grab_focus")
+
+func _find_first_button(node: Node) -> Button:
+	for child in node.get_children():
+		if child is Button and child.visible:
+			return child
+		var nested := _find_first_button(child)
+		if nested:
+			return nested
+	return null
 
 func _make_panel_style(bg: Color = BG_DARK, border: Color = ACCENT_GOLD_DIM, radius: int = 6) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()

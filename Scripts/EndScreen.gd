@@ -8,6 +8,7 @@ extends Control
 func _ready():
 	retry_button.pressed.connect(_on_retry_pressed)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
+	retry_button.call_deferred("grab_focus")
 	
 
 	var stats_text = "Day " + str(GameManager.day)

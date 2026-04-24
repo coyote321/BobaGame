@@ -70,6 +70,8 @@ func resume_game() -> void:
 
 func show_pause_menu() -> void:
 	control_root.visible = true
+	if resume_button:
+		resume_button.call_deferred("grab_focus")
 
 func hide_pause_menu() -> void:
 	control_root.visible = false
@@ -94,6 +96,8 @@ func _close_options_panel() -> void:
 	if _options_panel and is_instance_valid(_options_panel):
 		_options_panel.queue_free()
 	_options_panel = null
+	if control_root.visible and resume_button:
+		resume_button.call_deferred("grab_focus")
 
 func _show_options_panel() -> void:
 	_options_panel = Panel.new()
@@ -134,7 +138,7 @@ func _show_options_panel() -> void:
 	_add_slider(vbox, "MUSIC VOLUME", "Music")
 
 	var controls_label := Label.new()
-	controls_label.text = "WASD Move  |  Shift Sprint  |  Ctrl Crouch\nE Interact  |  1/2/3 Weapons  |  G Dash\nLMB Attack  |  RMB Aim  |  Esc Pause"
+	controls_label.text = "KB/M: WASD Move | Shift Sprint | Ctrl Crouch | E Interact\n1/2/3 or Q/R Weapons | G Ability | LMB Attack | RMB Aim | Esc Pause\nXbox: L-Stick Move (moves cursor in menus) | R-Stick Aim\nRT or Y Shoot | LT Aim | A Use/Select | B Crouch | X Ability\nL3 Sprint | LB/RB Cycle Weapon | Start Pause"
 	controls_label.add_theme_font_size_override("font_size", 11)
 	controls_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 	controls_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -149,6 +153,7 @@ func _show_options_panel() -> void:
 	close_btn.add_theme_color_override("font_hover_color", ACCENT_GOLD)
 	close_btn.pressed.connect(_close_options_panel)
 	vbox.add_child(close_btn)
+	close_btn.call_deferred("grab_focus")
 
 func _add_slider(parent: VBoxContainer, label_text: String, bus_name: String) -> void:
 	var lbl := Label.new()
