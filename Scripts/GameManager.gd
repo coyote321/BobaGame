@@ -278,6 +278,73 @@ func setup_inputs():
 		ev_aim.button_index = MOUSE_BUTTON_RIGHT
 		InputMap.action_add_event("aim", ev_aim)
 
+	if not InputMap.has_action("attack"):
+		InputMap.add_action("attack")
+		var ev_atk = InputEventMouseButton.new()
+		ev_atk.button_index = MOUSE_BUTTON_LEFT
+		InputMap.action_add_event("attack", ev_atk)
+
+	_ensure_joypad_bindings()
+
+func _ensure_joypad_bindings() -> void:
+	# Xbox/Joypad bindings: add once if missing from any action.
+	# Axis constants: 0/1 = left stick X/Y, 2/3 = right stick X/Y, 4 = LT, 5 = RT.
+	# Button constants (Godot JoyButton): 0=A 1=B 2=X 3=Y 4=Back 6=Start
+	#   7=L3 8=R3 9=LB 10=RB 11=DPAD_UP 12=DPAD_DOWN 13=DPAD_LEFT 14=DPAD_RIGHT
+	var axis_map := {
+		"move_up":    [{"axis": 1, "value": -1.0}],
+		"move_down":  [{"axis": 1, "value":  1.0}],
+		"move_left":  [{"axis": 0, "value": -1.0}],
+		"move_right": [{"axis": 0, "value":  1.0}],
+		"aim":        [{"axis": 4, "value":  1.0}],
+		"attack":     [{"axis": 5, "value":  1.0}],
+	}
+	var button_map := {
+		"move_up":    [11],
+		"move_down":  [12],
+		"move_left":  [13],
+		"move_right": [14],
+		"sprint":     [3, 7],
+		"crouch":     [1],
+		"interact":   [0],
+		"ability":    [2],
+		"weapon_1":   [9],
+		"weapon_2":   [10],
+		"weapon_3":   [8],
+		"pause":      [6, 4],
+	}
+
+	for action in axis_map.keys():
+		if not InputMap.has_action(action):
+			continue
+		for cfg in axis_map[action]:
+			if not _action_has_joy_axis(action, cfg.axis, cfg.value):
+				var ev := InputEventJoypadMotion.new()
+				ev.axis = cfg.axis
+				ev.axis_value = cfg.value
+				InputMap.action_add_event(action, ev)
+
+	for action in button_map.keys():
+		if not InputMap.has_action(action):
+			continue
+		for btn in button_map[action]:
+			if not _action_has_joy_button(action, btn):
+				var ev := InputEventJoypadButton.new()
+				ev.button_index = btn
+				InputMap.action_add_event(action, ev)
+
+func _action_has_joy_button(action: String, btn: int) -> bool:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadButton and ev.button_index == btn:
+			return true
+	return false
+
+func _action_has_joy_axis(action: String, axis: int, value: float) -> bool:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadMotion and ev.axis == axis and sign(ev.axis_value) == sign(value):
+			return true
+	return false
+
 
 func add_xp(amount: int):
 	xp += amount

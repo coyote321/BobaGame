@@ -35,6 +35,8 @@ func _ready() -> void:
 
 	_animate_intro()
 	GameManager.reset_game()
+	
+	start_button.call_deferred("grab_focus")
 
 func _animate_intro() -> void:
 	var column := $CenterColumn
@@ -100,7 +102,7 @@ func _show_options_panel() -> void:
 	_add_slider(vbox, "MUSIC VOLUME", "Music")
 
 	var controls := Label.new()
-	controls.text = "WASD Move  |  Shift Sprint  |  Ctrl Crouch\nE Interact  |  1/2 Weapons  |  G Dash\nLMB Attack  |  RMB Aim"
+	controls.text = "KB/M: WASD Move | Shift Sprint | Ctrl Crouch | E Interact\n1/2/3 Weapons | G Ability | LMB Attack | RMB Aim | Esc Pause\nXbox: L-Stick Move | R-Stick Aim | RT Shoot | LT Aim\nA Interact | B Crouch | X Ability | Y Sprint\nLB/RB/R3 Weapons | Start Pause"
 	controls.add_theme_font_size_override("font_size", 11)
 	controls.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 	vbox.add_child(controls)
@@ -112,8 +114,9 @@ func _show_options_panel() -> void:
 	close_btn.add_theme_font_size_override("font_size", 14)
 	close_btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	close_btn.add_theme_color_override("font_hover_color", ACCENT_GOLD)
-	close_btn.pressed.connect(func(): options_panel.queue_free(); options_panel = null)
+	close_btn.pressed.connect(func(): options_panel.queue_free(); options_panel = null; start_button.call_deferred("grab_focus"))
 	vbox.add_child(close_btn)
+	close_btn.call_deferred("grab_focus")
 
 func _add_slider(parent: VBoxContainer, label_text: String, bus_name: String) -> void:
 	var lbl := Label.new()
