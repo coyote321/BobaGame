@@ -12,12 +12,15 @@ extends Node
 
 @export var cursor_speed: float = 900.0
 @export var sensitivity_curve: float = 1.5
+@export var hide_cursor_during_mission: bool = true
 
 func _ready() -> void:
 	# Keep moving the cursor while the game is paused (pause menu).
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func _process(delta: float) -> void:
+	_update_mouse_visibility()
+	
 	if is_menu_active() and Input.is_action_just_pressed("menu_select"):
 		_left_click_at_cursor()
 	
@@ -41,6 +44,15 @@ func _get_active_stick() -> Vector2:
 	if is_menu_active():
 		return Input.get_vector("menu_cursor_left", "menu_cursor_right", "menu_cursor_up", "menu_cursor_down")
 	return Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+
+func _update_mouse_visibility() -> void:
+	if hide_cursor_during_mission and _should_hide_cursor():
+		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+func _should_hide_cursor() -> bool:
+	return not is_menu_active() and GameManager.current_phase == "MISSION"
 
 func is_menu_active() -> bool:
 	var tree := get_tree()
