@@ -25,15 +25,16 @@ const LEVEL_INGREDIENT_UNLOCKS := {
 }
 const ALL_INGREDIENTS := ["Black Tea", "Green Tea", "Milk", "Tapioca", "Sugar", "Honey", "Taro", "Brown Sugar"]
 const REMOVED_INGREDIENTS := ["Matcha"]
-
-var unlocked_ingredients: Array = STARTING_INGREDIENTS.duplicate()
-var inventory: Dictionary = {
+const STARTING_INVENTORY := {
 	"Black Tea": 999,
 	"Green Tea": 999,
 	"Milk": 999,
 	"Tapioca": 100,
 	"Sugar": 999
 }
+
+var unlocked_ingredients: Array = STARTING_INGREDIENTS.duplicate()
+var inventory: Dictionary = STARTING_INVENTORY.duplicate(true)
 
 
 var health: int = 100
@@ -282,6 +283,26 @@ func remove_retired_ingredients() -> void:
 	for ing in REMOVED_INGREDIENTS:
 		unlocked_ingredients.erase(ing)
 		inventory.erase(ing)
+
+func get_level_available_ingredients(lvl: int = level) -> Array:
+	var available := STARTING_INGREDIENTS.duplicate()
+	var unlock_levels := LEVEL_INGREDIENT_UNLOCKS.keys()
+	unlock_levels.sort()
+	for unlock_level in unlock_levels:
+		if lvl < int(unlock_level):
+			continue
+		var ingredient: String = LEVEL_INGREDIENT_UNLOCKS[unlock_level]
+		if ingredient not in available and ingredient not in REMOVED_INGREDIENTS:
+			available.append(ingredient)
+	return available
+
+func get_orderable_ingredients() -> Array:
+	var level_available := get_level_available_ingredients()
+	var orderable := []
+	for ingredient in unlocked_ingredients:
+		if ingredient in level_available and ingredient not in REMOVED_INGREDIENTS:
+			orderable.append(ingredient)
+	return orderable if not orderable.is_empty() else STARTING_INGREDIENTS.duplicate()
 
 func unlock_all_ingredients(amount: int = 999) -> void:
 	remove_retired_ingredients()
@@ -650,6 +671,9 @@ func reset_game():
 	mission_profile = {}
 	reputation = 0
 	shop_level = 1
+	unlocked_ingredients = STARTING_INGREDIENTS.duplicate()
+	inventory = STARTING_INVENTORY.duplicate(true)
+	remove_retired_ingredients()
 	owned_weapons = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
 	equipped_main = "Pistol"
 	equipped_melee = "Kitchen Knife"

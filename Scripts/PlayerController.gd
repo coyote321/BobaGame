@@ -66,7 +66,12 @@ func _physics_process(delta):
 	else:
 		handle_state_inputs()
 	
-	var direction = Vector2.ZERO if menu_active else Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var direction := Vector2.ZERO
+	if menu_active:
+		if _allows_keyboard_movement_while_ui_active():
+			direction = _get_keyboard_movement_vector()
+	else:
+		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var current_speed = speed
 	
 	if is_crouching:
@@ -105,6 +110,25 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("ability"):
 			if ability_cooldown <= 0.0:
 				use_ability()
+
+func _allows_keyboard_movement_while_ui_active() -> bool:
+	var tree := get_tree()
+	if tree == null or tree.paused:
+		return false
+	var scene := tree.current_scene
+	return scene and scene.has_method("_allows_keyboard_movement_while_ui_active") and scene._allows_keyboard_movement_while_ui_active()
+
+func _get_keyboard_movement_vector() -> Vector2:
+	var direction := Vector2.ZERO
+	if Input.is_physical_key_pressed(KEY_A):
+		direction.x -= 1.0
+	if Input.is_physical_key_pressed(KEY_D):
+		direction.x += 1.0
+	if Input.is_physical_key_pressed(KEY_W):
+		direction.y -= 1.0
+	if Input.is_physical_key_pressed(KEY_S):
+		direction.y += 1.0
+	return direction.normalized() if direction.length_squared() > 1.0 else direction
 
 func _update_aim() -> void:
 	# Aim follows the mouse cursor. The right stick is wired to the mouse

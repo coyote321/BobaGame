@@ -258,6 +258,9 @@ func _is_any_panel_open() -> bool:
 			return true
 	return false
 
+func _allows_keyboard_movement_while_ui_active() -> bool:
+	return shift_active and active_zone == "counter"
+
 
 func setup_hotbar() -> void:
 	var hotbar = get_node_or_null("UI_Layer/Hotbar")
@@ -1445,7 +1448,7 @@ func setup_boba_ui():
 
 	var icon_size := 34
 
-	for ing in GameManager.unlocked_ingredients:
+	for ing in GameManager.get_orderable_ingredients():
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(208, 52)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL

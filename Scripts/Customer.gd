@@ -98,24 +98,25 @@ func _process(delta):
 func generate_order():
 
 
+	var orderable_ingredients := GameManager.get_orderable_ingredients()
 	var available_bases = []
-	if "Black Tea" in GameManager.unlocked_ingredients:
+	if "Black Tea" in orderable_ingredients:
 		available_bases.append("Black Tea")
-	if "Green Tea" in GameManager.unlocked_ingredients:
+	if "Green Tea" in orderable_ingredients:
 		available_bases.append("Green Tea")
 	if available_bases.is_empty():
 		available_bases = ["Black Tea"]
 	
 
-	var use_milk = "Milk" in GameManager.unlocked_ingredients and randf() > 0.5
+	var use_milk = "Milk" in orderable_ingredients and randf() > 0.5
 	
 
 	var available_toppings = []
-	if "Tapioca" in GameManager.unlocked_ingredients:
+	if "Tapioca" in orderable_ingredients:
 		available_toppings.append("Tapioca")
-	if "Sugar" in GameManager.unlocked_ingredients:
+	if "Sugar" in orderable_ingredients:
 		available_toppings.append("Sugar")
-	if "Honey" in GameManager.unlocked_ingredients:
+	if "Honey" in orderable_ingredients:
 		available_toppings.append("Honey")
 	
 

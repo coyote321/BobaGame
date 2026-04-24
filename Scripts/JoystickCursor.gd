@@ -13,6 +13,8 @@ extends Node
 @export var cursor_speed: float = 900.0
 @export var sensitivity_curve: float = 1.5
 
+const STICK_DEADZONE: float = 0.25
+
 func _ready() -> void:
 	# Keep moving the cursor while the game is paused (pause menu).
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -39,8 +41,43 @@ func _process(delta: float) -> void:
 
 func _get_active_stick() -> Vector2:
 	if is_menu_active():
-		return Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	return Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+		return _get_joypad_vector(
+			JOY_AXIS_LEFT_X,
+			JOY_AXIS_LEFT_Y,
+			JOY_BUTTON_DPAD_LEFT,
+			JOY_BUTTON_DPAD_RIGHT,
+			JOY_BUTTON_DPAD_UP,
+			JOY_BUTTON_DPAD_DOWN
+		)
+	return _get_joypad_vector(JOY_AXIS_RIGHT_X, JOY_AXIS_RIGHT_Y)
+
+func _get_joypad_vector(axis_x, axis_y, dpad_left := -1, dpad_right := -1, dpad_up := -1, dpad_down := -1) -> Vector2:
+	var strongest := Vector2.ZERO
+	for device in Input.get_connected_joypads():
+		var axis := Vector2(
+			Input.get_joy_axis(device, axis_x),
+			Input.get_joy_axis(device, axis_y)
+		)
+		if abs(axis.x) < STICK_DEADZONE:
+			axis.x = 0.0
+		if abs(axis.y) < STICK_DEADZONE:
+			axis.y = 0.0
+
+		var dpad := Vector2.ZERO
+		if dpad_left != -1 and Input.is_joy_button_pressed(device, dpad_left):
+			dpad.x -= 1.0
+		if dpad_right != -1 and Input.is_joy_button_pressed(device, dpad_right):
+			dpad.x += 1.0
+		if dpad_up != -1 and Input.is_joy_button_pressed(device, dpad_up):
+			dpad.y -= 1.0
+		if dpad_down != -1 and Input.is_joy_button_pressed(device, dpad_down):
+			dpad.y += 1.0
+
+		var vector := dpad.normalized() if dpad != Vector2.ZERO else axis
+		if vector.length() > strongest.length():
+			strongest = vector
+
+	return strongest if strongest.length() >= STICK_DEADZONE else Vector2.ZERO
 
 func is_menu_active() -> bool:
 	var tree := get_tree()
