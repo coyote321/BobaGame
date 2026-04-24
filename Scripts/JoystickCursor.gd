@@ -2,7 +2,7 @@ extends Node
 
 # Moves the OS mouse cursor with an analog stick. Bindings come from the
 # Input Map (Project Settings -> Input Map):
-#   move_left/right/up/down  -> left stick (used in menus to move cursor)
+#   menu_cursor_left/right/up/down -> left stick only (used in menus)
 #   aim_left/right/up/down   -> right stick (used in gameplay to move cursor)
 #
 # When the game is paused or there is no active player (main menu, end
@@ -39,7 +39,7 @@ func _process(delta: float) -> void:
 
 func _get_active_stick() -> Vector2:
 	if is_menu_active():
-		return Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		return Input.get_vector("menu_cursor_left", "menu_cursor_right", "menu_cursor_up", "menu_cursor_down")
 	return Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
 
 func is_menu_active() -> bool:
