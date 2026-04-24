@@ -26,12 +26,6 @@ var _death_sfx: AudioStreamPlayer = null
 
 var _current_weapon_node: Node2D = null
 
-# Aim state: last-input-wins between mouse and right stick.
-const MOUSE_AIM_NUDGE: float = 2.0
-var _last_mouse_pos: Vector2 = Vector2.ZERO
-var _mouse_aim_initialized: bool = false
-var _using_stick_aim: bool = false
-
 func _make_sfx(stream: AudioStream, volume: float = 0.0) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
 	sfx.stream = stream
@@ -65,9 +59,13 @@ func _physics_process(delta):
 	
 	_update_aim()
 	
-	handle_state_inputs()
+	var menu_active := JoystickCursor.is_menu_active()
+	if menu_active:
+		is_aiming = false
+	else:
+		handle_state_inputs()
 	
-	var direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var direction = Vector2.ZERO if menu_active else Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var current_speed = speed
 	
 	if is_crouching:
@@ -92,15 +90,9 @@ func _physics_process(delta):
 			
 	move_and_slide()
 	
-	if GameManager.current_phase == "MISSION":
-		# Attack: "attack" action covers LMB and the right trigger on Xbox.
-		# Fall back to raw mouse check if the action isn't registered.
-		var firing := false
-		if InputMap.has_action("attack"):
-			firing = Input.is_action_pressed("attack")
-		else:
-			firing = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-		if firing:
+	if GameManager.current_phase == "MISSION" and not menu_active:
+		# Attack action covers LMB and the right trigger on Xbox.
+		if Input.is_action_pressed("attack"):
 			if fire_cooldown <= 0.0:
 				attack()
 		else:
@@ -114,35 +106,11 @@ func _physics_process(delta):
 				use_ability()
 
 func _update_aim() -> void:
-	# Last-input-wins aim. Right stick (via aim_left/right/up/down actions)
-	# takes priority while it's being held; as soon as the mouse moves, we
-	# switch back to mouse aim instantly. Both work regardless of whether
-	# a controller is plugged in.
-	if not has_node("Visuals"):
-		return
-	
-	var stick_vec := Vector2.ZERO
-	if InputMap.has_action("aim_right") and InputMap.has_action("aim_left") \
-		and InputMap.has_action("aim_down") and InputMap.has_action("aim_up"):
-		stick_vec = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
-	
-	var mouse_pos := get_global_mouse_position()
-	if not _mouse_aim_initialized:
-		_last_mouse_pos = mouse_pos
-		_mouse_aim_initialized = true
-	var mouse_moved := _last_mouse_pos.distance_to(mouse_pos) > MOUSE_AIM_NUDGE
-	
-	if mouse_moved:
-		_using_stick_aim = false
-	elif stick_vec.length() > 0.1:
-		_using_stick_aim = true
-	
-	if _using_stick_aim and stick_vec.length() > 0.1:
-		$Visuals.rotation = stick_vec.angle()
-	else:
-		$Visuals.look_at(mouse_pos)
-	
-	_last_mouse_pos = mouse_pos
+	# Aim follows the mouse cursor. The right stick is wired to the mouse
+	# cursor via the JoystickCursor autoload, so this single path covers
+	# both keyboard+mouse and Xbox controller players.
+	if has_node("Visuals"):
+		$Visuals.look_at(get_global_mouse_position())
 
 func handle_state_inputs():
 	# Crouch
@@ -158,11 +126,19 @@ func handle_state_inputs():
 	# Aim
 	is_aiming = Input.is_action_pressed("aim")
 
-	# Weapon Switching
+	# Weapon Switching: direct (1/2/3) and cycling (LB/RB or Q/R).
 	for i in range(1, 4):
 		if Input.is_action_just_pressed("weapon_" + str(i)):
 			switch_weapon(i)
 			break
+	if Input.is_action_just_pressed("weapon_next"):
+		switch_weapon(_cycled_weapon_idx(1))
+	elif Input.is_action_just_pressed("weapon_prev"):
+		switch_weapon(_cycled_weapon_idx(-1))
+
+func _cycled_weapon_idx(step: int) -> int:
+	# Wrap current_weapon_idx in [1..3].
+	return ((current_weapon_idx - 1 + step + 3) % 3) + 1
 
 func is_crouching_state() -> bool:
 	return is_crouching
