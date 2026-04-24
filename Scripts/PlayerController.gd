@@ -26,6 +26,12 @@ var _death_sfx: AudioStreamPlayer = null
 
 var _current_weapon_node: Node2D = null
 
+# Aim state: last-input-wins between mouse and right stick.
+const MOUSE_AIM_NUDGE: float = 2.0
+var _last_mouse_pos: Vector2 = Vector2.ZERO
+var _mouse_aim_initialized: bool = false
+var _using_stick_aim: bool = false
+
 func _make_sfx(stream: AudioStream, volume: float = 0.0) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
 	sfx.stream = stream
@@ -57,8 +63,7 @@ func _physics_process(delta):
 	if ability_cooldown > 0:
 		ability_cooldown -= delta
 	
-	if has_node("Visuals"):
-		$Visuals.look_at(get_global_mouse_position())
+	_update_aim()
 	
 	handle_state_inputs()
 	
@@ -88,8 +93,14 @@ func _physics_process(delta):
 	move_and_slide()
 	
 	if GameManager.current_phase == "MISSION":
-		# Attack (left click). Using the "aim" mouse button to steady aim only.
-		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		# Attack: "attack" action covers LMB and the right trigger on Xbox.
+		# Fall back to raw mouse check if the action isn't registered.
+		var firing := false
+		if InputMap.has_action("attack"):
+			firing = Input.is_action_pressed("attack")
+		else:
+			firing = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+		if firing:
 			if fire_cooldown <= 0.0:
 				attack()
 		else:
@@ -101,6 +112,37 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("ability"):
 			if ability_cooldown <= 0.0:
 				use_ability()
+
+func _update_aim() -> void:
+	# Last-input-wins aim. Right stick (via aim_left/right/up/down actions)
+	# takes priority while it's being held; as soon as the mouse moves, we
+	# switch back to mouse aim instantly. Both work regardless of whether
+	# a controller is plugged in.
+	if not has_node("Visuals"):
+		return
+	
+	var stick_vec := Vector2.ZERO
+	if InputMap.has_action("aim_right") and InputMap.has_action("aim_left") \
+		and InputMap.has_action("aim_down") and InputMap.has_action("aim_up"):
+		stick_vec = Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+	
+	var mouse_pos := get_global_mouse_position()
+	if not _mouse_aim_initialized:
+		_last_mouse_pos = mouse_pos
+		_mouse_aim_initialized = true
+	var mouse_moved := _last_mouse_pos.distance_to(mouse_pos) > MOUSE_AIM_NUDGE
+	
+	if mouse_moved:
+		_using_stick_aim = false
+	elif stick_vec.length() > 0.1:
+		_using_stick_aim = true
+	
+	if _using_stick_aim and stick_vec.length() > 0.1:
+		$Visuals.rotation = stick_vec.angle()
+	else:
+		$Visuals.look_at(mouse_pos)
+	
+	_last_mouse_pos = mouse_pos
 
 func handle_state_inputs():
 	# Crouch
