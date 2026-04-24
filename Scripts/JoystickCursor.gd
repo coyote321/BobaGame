@@ -52,17 +52,16 @@ func _update_mouse_visibility() -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func _should_hide_cursor() -> bool:
-	return not is_menu_active() and GameManager.current_phase == "MISSION"
+	var tree := get_tree()
+	if tree == null or tree.paused:
+		return false
+	return GameManager.current_phase == "MISSION" and tree.get_first_node_in_group("player") != null
 
 func is_menu_active() -> bool:
 	var tree := get_tree()
 	if tree == null:
 		return true
 	if tree.paused:
-		return true
-	
-	var viewport := get_viewport()
-	if viewport and viewport.gui_get_focus_owner():
 		return true
 	
 	var scene := tree.current_scene

@@ -93,6 +93,9 @@ func _find_first_button(node: Node) -> Button:
 			return nested
 	return null
 
+func _is_any_panel_open() -> bool:
+	return ui_boba_panel.visible or ui_upgrade_panel.visible or ui_mission_panel.visible
+
 func _make_panel_style(bg: Color = BG_DARK, border: Color = ACCENT_GOLD_DIM, radius: int = 6) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = bg
