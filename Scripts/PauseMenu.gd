@@ -112,8 +112,8 @@ func _show_options_panel() -> void:
 	_options_panel = Panel.new()
 	_options_panel.process_mode = Node.PROCESS_MODE_ALWAYS
 	_options_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_options_panel.size = Vector2(420, 360)
-	_options_panel.position = Vector2(-210, -180)
+	_options_panel.size = Vector2(560, 480)
+	_options_panel.position = Vector2(-280, -240)
 	control_root.add_child(_options_panel)
 
 	var style := StyleBoxFlat.new()
@@ -151,7 +151,13 @@ func _show_options_panel() -> void:
 	controls_label.add_theme_font_size_override("font_size", 11)
 	controls_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
 	controls_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	controls_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	controls_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(controls_label)
+
+	var close_spacer := Control.new()
+	close_spacer.custom_minimum_size = Vector2(0, 8)
+	vbox.add_child(close_spacer)
 
 	var close_btn := Button.new()
 	close_btn.text = "CLOSE"
