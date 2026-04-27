@@ -199,6 +199,7 @@ var customers_served_today: int = 0
 
 
 var mission_profile: Dictionary = {}
+var mission_aborting: bool = false
 
 
 var daily_quests: Array = []
@@ -534,23 +535,27 @@ const QUEST_POOL := [
 
 
 func start_mission():
+	mission_aborting = false
 	current_phase = "MISSION"
 	print("Starting Mission Phase...")
 
-func start_shop():
+func start_shop(clear_abort_state: bool = true):
 	current_phase = "SHOP"
 	day += 1
 	daily_earnings = 0
 	customers_served_today = 0
 	mission_profile = {}
 	generate_daily_quests()
+	if clear_abort_state:
+		mission_aborting = false
 	print("Starting Shop Phase - Day ", day)
 
 func abort_mission_to_shop() -> void:
+	mission_aborting = true
 	target_order_received = false
 	current_contract = {}
 	mission_profile = {}
-	start_shop()
+	start_shop(false)
 	get_tree().change_scene_to_file("res://Scenes/ShopScene.tscn")
 
 func end_day():
@@ -681,6 +686,7 @@ func reset_game():
 	xp = 0
 	level = 1
 	current_phase = "SHOP"
+	mission_aborting = false
 	target_order_received = false
 	current_contract = {}
 	contracts_completed = 0

@@ -308,7 +308,7 @@ func update_stealth(delta: float):
 		hud.update_stealth(stealth_rating)
 
 func check_mission_status():
-	if mission_complete or mission_failed or mission_aborting:
+	if mission_complete or mission_failed or mission_aborting or GameManager.mission_aborting:
 		return
 
 	var living := _living_enemy_count()
@@ -318,8 +318,6 @@ func check_mission_status():
 			if _is_target_defeated():
 				on_mission_complete()
 				return
-			if living == 0:
-				on_mission_complete()
 		"extermination", "timed_hunt":
 			if _is_target_defeated():
 				on_mission_complete()
@@ -352,7 +350,7 @@ func _is_living_enemy(enemy) -> bool:
 	return true
 
 func on_mission_complete():
-	if mission_complete or mission_failed or mission_aborting:
+	if mission_complete or mission_failed or mission_aborting or GameManager.mission_aborting:
 		return
 
 	mission_complete = true

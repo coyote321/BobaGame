@@ -332,14 +332,12 @@ func die():
 	is_dead = true
 	state = State.DEAD
 
-	if is_target:
-		GameManager.complete_contract()
-		GameManager.add_xp(_xp_reward_target)
-	else:
-		GameManager.add_xp(_xp_reward)
-
-	GameManager.add_money(_money_reward)
-	GameManager.update_quest_progress("kill_enemies", 1)
+	if not GameManager.mission_aborting:
+		if is_target:
+			GameManager.add_xp(_xp_reward_target)
+		else:
+			GameManager.add_xp(_xp_reward)
+		GameManager.update_quest_progress("kill_enemies", 1)
 
 	died.emit(self)
 	remove_from_group("enemy")
