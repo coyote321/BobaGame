@@ -9,8 +9,6 @@ const ACCENT_RED := Color(1.0, 0.45, 0.45, 1.0)
 @onready var health_text: Label = $HealthPanel/HealthText
 @onready var objective_label: Label = $MissionPanel/ObjectiveLabel
 @onready var timer_label: Label = $MissionPanel/TimerLabel
-@onready var abort_button: Button = $MissionPanel/AbortButton
-@onready var abort_hint_label: Label = $MissionPanel/AbortHintLabel
 @onready var return_button: Button = $MissionPanel/ReturnButton
 @onready var money_label: Label = $MoneyPanel/MoneyLabel
 @onready var level_label: Label = $ProgressionPanel/LevelLabel
@@ -162,10 +160,6 @@ func _show_mission_end_state(text: String, color: Color):
 		objective_label.add_theme_color_override("font_color", color)
 	if timer_label:
 		timer_label.visible = false
-	if abort_button:
-		abort_button.visible = false
-	if abort_hint_label:
-		abort_hint_label.visible = false
 	if return_button:
 		return_button.visible = true
 
