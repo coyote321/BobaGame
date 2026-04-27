@@ -61,6 +61,7 @@ var _panel_cooldown: float = 0.0
 
 var _cash_register_sfx: AudioStreamPlayer = null
 var _error_sfx: AudioStreamPlayer = null
+var _day_summary_overlay: Control = null
 var _debug_f9_was_pressed: bool = false
 var _last_hud_second: int = -1
 var _last_day_text: String = ""
@@ -134,7 +135,8 @@ func _process(delta):
 			interact_with_zone(active_zone)
 
 	if Input.is_action_just_pressed("pause"):
-		_close_all_panels()
+		if _day_summary_overlay == null:
+			_close_all_panels()
 
 	for i in range(1, 4):
 		if Input.is_action_just_pressed("weapon_" + str(i)):
@@ -252,6 +254,8 @@ func _close_panel(panel: Control):
 	)
 
 func _is_any_panel_open() -> bool:
+	if _day_summary_overlay != null and is_instance_valid(_day_summary_overlay):
+		return true
 	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel", "UI_Layer/AbilityPanel"]:
 		var p = get_node_or_null(path)
 		if p and p.visible:
@@ -1623,6 +1627,7 @@ func show_day_summary():
 	var overlay = Control.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	$UI_Layer.add_child(overlay)
+	_day_summary_overlay = overlay
 
 	var bg = ColorRect.new()
 	bg.color = Color(0.02, 0.02, 0.04, 0.94)
@@ -1687,13 +1692,15 @@ func show_day_summary():
 	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(btn_row)
 
+	var mission_btn: Button = null
 	if GameManager.target_order_received:
-		var mission_btn := _styled_button("GO ON MISSION", Vector2(190, 52))
+		mission_btn = _styled_button("GO ON MISSION", Vector2(190, 52))
 		mission_btn.add_theme_font_size_override("font_size", 15)
 		mission_btn.add_theme_stylebox_override("normal", _make_panel_style(
 			Color(0.14, 0.08, 0.08, 0.95), Color(1.0, 0.35, 0.35, 0.5), 8))
 		mission_btn.add_theme_color_override("font_color", TEXT_RED)
 		mission_btn.pressed.connect(func():
+			_day_summary_overlay = null
 			var c: Dictionary = GameManager.current_contract
 			var c_scene: String = c.get("scene", "res://Scenes/MissionScene.tscn")
 			GameManager.mission_profile = GameManager.build_mission_profile(
@@ -1714,10 +1721,14 @@ func show_day_summary():
 	var continue_btn := _styled_button("NEXT DAY", Vector2(190, 52))
 	continue_btn.add_theme_font_size_override("font_size", 15)
 	continue_btn.pressed.connect(func():
+		_day_summary_overlay = null
 		GameManager.start_shop()
 		get_tree().reload_current_scene()
 	)
 	btn_row.add_child(continue_btn)
+
+	var primary_btn: Button = mission_btn if mission_btn != null else continue_btn
+	primary_btn.call_deferred("grab_focus")
 
 	overlay.modulate.a = 0.0
 	center_panel.scale = Vector2(0.9, 0.9)
