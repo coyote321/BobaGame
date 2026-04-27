@@ -1351,7 +1351,8 @@ func _launch_mission(m: Dictionary):
 		m.get("reward_xp", 40),
 		tl,
 		"",
-		int(m.get("waves", 0))
+		int(m.get("waves", 0)),
+		String(m.get("scene", ""))
 	)
 	GameManager.start_mission()
 	get_tree().change_scene_to_file(GameManager.get_mission_scene())

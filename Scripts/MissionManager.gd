@@ -3,6 +3,7 @@ extends Node2D
 var enemies_container: Node2D
 var mission_complete: bool = false
 var mission_failed: bool = false
+var mission_aborting: bool = false
 var target_enemy: Node = null
 var stealth_rating: float = 100.0
 var initial_enemy_count: int = 0
@@ -307,7 +308,7 @@ func update_stealth(delta: float):
 		hud.update_stealth(stealth_rating)
 
 func check_mission_status():
-	if mission_complete or mission_failed:
+	if mission_complete or mission_failed or mission_aborting:
 		return
 
 	var living := _living_enemy_count()
@@ -351,7 +352,7 @@ func _is_living_enemy(enemy) -> bool:
 	return true
 
 func on_mission_complete():
-	if mission_complete or mission_failed:
+	if mission_complete or mission_failed or mission_aborting:
 		return
 
 	mission_complete = true
@@ -382,6 +383,10 @@ func on_mission_failed(reason: String):
 		hud.show_mission_failed(reason)
 
 func _on_abort_pressed():
+	if mission_aborting:
+		return
+	mission_aborting = true
+	mission_failed = true
 	GameManager.abort_mission_to_shop()
 
 func _on_return_pressed():

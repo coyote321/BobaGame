@@ -206,7 +206,7 @@ func serve_complete():
 func leave_angry():
 	is_waiting = false
 	satisfaction_score = 0
-	order_label.text = "😤 Too slow!"
+	order_label.text = "Too slow!"
 	await get_tree().create_timer(1.0).timeout
 	leave_shop()
 
