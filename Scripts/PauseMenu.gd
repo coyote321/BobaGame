@@ -9,6 +9,7 @@ var _options_panel: Panel = null
 
 @onready var control_root: Control = $Control
 @onready var resume_button: Button = $Control/PanelContainer/MarginContainer/VBoxContainer/ResumeButton
+@onready var abort_mission_button: Button = $Control/PanelContainer/MarginContainer/VBoxContainer/AbortMissionButton
 @onready var options_button: Button = $Control/PanelContainer/MarginContainer/VBoxContainer/OptionsButton
 @onready var quit_button: Button = $Control/PanelContainer/MarginContainer/VBoxContainer/QuitButton
 
@@ -27,6 +28,7 @@ func _ready() -> void:
 	# Connect all menu buttons with click sound
 	var button_map = {
 		resume_button: _on_resume_pressed,
+		abort_mission_button: _on_abort_mission_pressed,
 		options_button: _on_options_pressed,
 		quit_button: _on_quit_pressed,
 	}
@@ -70,6 +72,8 @@ func resume_game() -> void:
 
 func show_pause_menu() -> void:
 	control_root.visible = true
+	if abort_mission_button:
+		abort_mission_button.visible = GameManager.current_phase == "MISSION"
 	if resume_button:
 		resume_button.call_deferred("grab_focus")
 
@@ -81,6 +85,11 @@ func _on_resume_pressed() -> void:
 
 func _on_options_pressed() -> void:
 	_toggle_options_panel()
+
+func _on_abort_mission_pressed() -> void:
+	hide_pause_menu()
+	get_tree().paused = false
+	GameManager.abort_mission_to_shop()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

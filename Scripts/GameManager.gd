@@ -534,6 +534,13 @@ func start_shop():
 	generate_daily_quests()
 	print("Starting Shop Phase - Day ", day)
 
+func abort_mission_to_shop() -> void:
+	target_order_received = false
+	current_contract = {}
+	mission_profile = {}
+	start_shop()
+	get_tree().change_scene_to_file("res://Scenes/ShopScene.tscn")
+
 func end_day():
 	print("Day ", day, " ended. Earnings: $", daily_earnings)
 

@@ -10,6 +10,7 @@ const ACCENT_RED := Color(1.0, 0.45, 0.45, 1.0)
 @onready var objective_label: Label = $MissionPanel/ObjectiveLabel
 @onready var timer_label: Label = $MissionPanel/TimerLabel
 @onready var abort_button: Button = $MissionPanel/AbortButton
+@onready var abort_hint_label: Label = $MissionPanel/AbortHintLabel
 @onready var return_button: Button = $MissionPanel/ReturnButton
 @onready var money_label: Label = $MoneyPanel/MoneyLabel
 @onready var level_label: Label = $ProgressionPanel/LevelLabel
@@ -163,12 +164,12 @@ func _show_mission_end_state(text: String, color: Color):
 		timer_label.visible = false
 	if abort_button:
 		abort_button.visible = false
+	if abort_hint_label:
+		abort_hint_label.visible = false
 	if return_button:
 		return_button.visible = true
 
-func connect_buttons(abort_callback: Callable, return_callback: Callable):
-	if abort_button:
-		abort_button.pressed.connect(abort_callback)
+func connect_buttons(_abort_callback: Callable, return_callback: Callable):
 	if return_button:
 		return_button.pressed.connect(return_callback)
 

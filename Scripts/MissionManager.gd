@@ -289,11 +289,6 @@ func _update_hud_counters() -> void:
 			total = max(total, remaining + (waves_total - waves_spawned) * 4)
 		hud.update_enemy_count(remaining, max(total, remaining))
 
-func _input(event):
-	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_B:
-			_on_abort_pressed()
-
 func update_stealth(delta: float):
 	var spotted = false
 	if enemies_container:
@@ -387,11 +382,7 @@ func on_mission_failed(reason: String):
 		hud.show_mission_failed(reason)
 
 func _on_abort_pressed():
-	GameManager.target_order_received = false
-	GameManager.current_contract = {}
-	GameManager.mission_profile = {}
-	GameManager.start_shop()
-	get_tree().change_scene_to_file("res://Scenes/ShopScene.tscn")
+	GameManager.abort_mission_to_shop()
 
 func _on_return_pressed():
 	GameManager.start_shop()
