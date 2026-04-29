@@ -6,6 +6,10 @@ const ACCENT_GREEN := Color(0.45, 0.95, 0.45, 1.0)
 const ACCENT_RED := Color(1.0, 0.45, 0.45, 1.0)
 const MISSION_PANEL_COMPACT_BOTTOM := 124.0
 const MISSION_PANEL_EXPANDED_BOTTOM := 156.0
+const MISSION_PANEL_MIN_WIDTH := 210.0
+const MISSION_PANEL_MAX_WIDTH := 320.0
+const MISSION_PANEL_SIDE_PADDING := 24.0
+const OBJECTIVE_CHAR_WIDTH := 9.5
 
 @onready var health_bar: ProgressBar = $HealthPanel/HealthBar
 @onready var health_text: Label = $HealthPanel/HealthText
@@ -45,6 +49,7 @@ func _ready():
 			objective_label.text = "TARGET: " + GameManager.current_contract["target"]
 		else:
 			objective_label.text = _default_objective_text()
+		_fit_mission_panel_to_objective(false)
 
 	_selected_style = StyleBoxFlat.new()
 	_selected_style.bg_color = Color(0.18, 0.15, 0.08, 0.95)
@@ -83,6 +88,26 @@ func _default_objective_text() -> String:
 func _set_mission_panel_expanded(expanded: bool) -> void:
 	if mission_panel:
 		mission_panel.offset_bottom = MISSION_PANEL_EXPANDED_BOTTOM if expanded else MISSION_PANEL_COMPACT_BOTTOM
+
+func _get_objective_panel_width() -> float:
+	if not objective_label:
+		return MISSION_PANEL_MIN_WIDTH
+	var estimated_width := objective_label.text.length() * OBJECTIVE_CHAR_WIDTH + MISSION_PANEL_SIDE_PADDING
+	return clampf(estimated_width, MISSION_PANEL_MIN_WIDTH, MISSION_PANEL_MAX_WIDTH)
+
+func _fit_mission_panel_to_objective(expanded: bool) -> void:
+	if not mission_panel:
+		return
+	var panel_width := _get_objective_panel_width()
+	mission_panel.offset_right = mission_panel.offset_left + panel_width
+	if objective_label:
+		objective_label.offset_right = panel_width - 12.0
+	if timer_label:
+		timer_label.offset_right = panel_width - 14.0
+	if return_button:
+		return_button.offset_right = panel_width - 14.0
+		return_button.offset_left = maxf(12.0, panel_width - 190.0)
+	_set_mission_panel_expanded(expanded)
 
 func update_health(current_hp: int, max_hp: int):
 	if not health_bar or not health_text:
@@ -131,8 +156,10 @@ func update_weapon(weapon_idx: int, _weapon_name: String):
 func update_objective(text: String):
 	if objective_label:
 		objective_label.text = text
+	var expanded := false
 	if timer_label and return_button:
-		_set_mission_panel_expanded(timer_label.visible or return_button.visible)
+		expanded = timer_label.visible or return_button.visible
+	_fit_mission_panel_to_objective(expanded)
 
 func update_timer(seconds_remaining: float):
 	if not timer_label:
@@ -140,9 +167,9 @@ func update_timer(seconds_remaining: float):
 	if seconds_remaining < 0:
 		timer_label.visible = false
 		if return_button == null or not return_button.visible:
-			_set_mission_panel_expanded(false)
+			_fit_mission_panel_to_objective(false)
 		return
-	_set_mission_panel_expanded(true)
+	_fit_mission_panel_to_objective(true)
 	timer_label.visible = true
 	var secs := int(ceil(seconds_remaining))
 	timer_label.text = "TIME  %02d:%02d" % [secs / 60, secs % 60]
@@ -167,10 +194,10 @@ func show_mission_failed(reason: String):
 	_show_mission_end_state("MISSION FAILED — " + reason, ACCENT_RED)
 
 func _show_mission_end_state(text: String, color: Color):
-	_set_mission_panel_expanded(true)
 	if objective_label:
 		objective_label.text = text
 		objective_label.add_theme_color_override("font_color", color)
+	_fit_mission_panel_to_objective(true)
 	if timer_label:
 		timer_label.visible = false
 	if return_button:

@@ -3,8 +3,8 @@
 [ext_resource type="Script" uid="uid://4p8pqstb1nfu" path="res://Scripts/Customer.gd" id="1_script"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_customer"]
-radius = 20.0
-height = 60.0
+radius = 30.0
+height = 74.0
 
 [node name="Customer" type="CharacterBody2D"]
 collision_layer = 4
