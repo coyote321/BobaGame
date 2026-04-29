@@ -26,6 +26,7 @@ var _death_sfx: AudioStreamPlayer = null
 
 var _current_weapon_node: Node2D = null
 var _weapon_scene_cache: Dictionary = {}
+var _crosshair: Node2D = null
 
 func _make_sfx(stream: AudioStream, volume: float = 0.0) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
@@ -50,6 +51,7 @@ func _ready():
 	
 	await get_tree().process_frame
 	hud_node = get_tree().current_scene.find_child("HUD", true, false)
+	_create_crosshair()
 	_update_weapon_scene()
 
 func _physics_process(delta):
@@ -134,8 +136,49 @@ func _update_aim() -> void:
 	# Aim follows the mouse cursor. The right stick is wired to the mouse
 	# cursor via the JoystickCursor autoload, so this single path covers
 	# both keyboard+mouse and Xbox controller players.
+	_update_crosshair()
 	if has_node("Visuals"):
 		$Visuals.look_at(get_global_mouse_position())
+
+func _create_crosshair() -> void:
+	if _crosshair != null:
+		return
+	_crosshair = Node2D.new()
+	_crosshair.name = "Crosshair"
+	_crosshair.top_level = true
+	_crosshair.z_index = 500
+	_crosshair.visible = false
+	add_child(_crosshair)
+
+	var col := Color(1.0, 0.18, 0.18, 0.95)
+	var segments := [
+		[Vector2(-18, 0), Vector2(-6, 0)],
+		[Vector2(6, 0), Vector2(18, 0)],
+		[Vector2(0, -18), Vector2(0, -6)],
+		[Vector2(0, 6), Vector2(0, 18)],
+	]
+	for segment in segments:
+		var line := Line2D.new()
+		line.width = 2.0
+		line.default_color = col
+		line.add_point(segment[0])
+		line.add_point(segment[1])
+		_crosshair.add_child(line)
+
+	var center := Line2D.new()
+	center.width = 2.0
+	center.default_color = Color(1.0, 0.85, 0.35, 0.95)
+	center.add_point(Vector2(-2, 0))
+	center.add_point(Vector2(2, 0))
+	_crosshair.add_child(center)
+
+func _update_crosshair() -> void:
+	if _crosshair == null:
+		return
+	var menu_active := JoystickCursor.is_menu_active()
+	_crosshair.visible = GameManager.current_phase == "MISSION" and not menu_active and not is_game_over
+	if _crosshair.visible:
+		_crosshair.global_position = get_global_mouse_position()
 
 func handle_state_inputs():
 	# Crouch
@@ -454,6 +497,33 @@ func take_damage(amount):
 	if health <= 0:
 		die()
 
+func melt_die() -> void:
+	if is_game_over:
+		return
+	is_game_over = true
+	set_physics_process(false)
+	health = 0
+	_update_hud_health()
+	if _crosshair:
+		_crosshair.visible = false
+	if _death_sfx:
+		_death_sfx.play()
+	if hud_node and hud_node.has_method("hide_hud"):
+		hud_node.hide_hud()
+	var visuals := get_node_or_null("Visuals") as Node2D
+	var tween := create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	if visuals:
+		tween.set_parallel(true)
+		tween.tween_property(visuals, "modulate", Color(0.25, 1.0, 0.15, 0.15), 0.7)
+		tween.tween_property(visuals, "scale", Vector2(1.4, 0.12), 0.7)
+		tween.tween_property(visuals, "rotation", visuals.rotation + 0.5, 0.7)
+	else:
+		tween.tween_property(self, "modulate", Color(0.25, 1.0, 0.15, 0.15), 0.7)
+	await tween.finished
+	await get_tree().create_timer(0.25).timeout
+	GameManager.health = GameManager.max_health
+	get_tree().change_scene_to_file("res://Scenes/EndScreen.tscn")
+
 func heal(amount: int) -> void:
 	health = min(health + amount, GameManager.max_health)
 	
@@ -471,6 +541,8 @@ func die():
 		return
 	is_game_over = true
 	set_physics_process(false)
+	if _crosshair:
+		_crosshair.visible = false
 	
 	# Play death sound
 	if _death_sfx:

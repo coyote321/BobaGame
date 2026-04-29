@@ -372,7 +372,7 @@ const CONTRACT_POOL := [
 	},
 	{
 		"target": "The Chief Engineer",
-		"desc": "Rogue insider holed up in the reactor hall — mind the waste pools.",
+		"desc": "Rogue insider holed up in a nuclear plant — radioactive sludge melts on contact.",
 		"scene": "res://Scenes/MissionScene5.tscn",
 		"mission_type": "boss_hunt",
 		"reward_min": 280, "reward_max": 400,
@@ -476,7 +476,7 @@ const MISSION_CATALOG := [
 	 "scene": "res://Scenes/MissionScene4.tscn",
 	 "reward_money": 200, "reward_xp": 140, "waves": 3, "time_limit": 120.0, "unlock_missions": 3,
 	 "color": Color(0.7, 0.45, 1.0)},
-	{"type": "boss_hunt", "label": "Reactor Breach", "desc": "Eliminate the rogue Chief Engineer inside an unstable reactor hall.",
+	{"type": "boss_hunt", "label": "Reactor Breach", "desc": "Eliminate the rogue Chief Engineer and avoid radioactive sludge.",
 	 "scene": "res://Scenes/MissionScene5.tscn",
 	 "reward_money": 240, "reward_xp": 180, "unlock_missions": 4,
 	 "color": Color(0.55, 0.95, 0.35)},

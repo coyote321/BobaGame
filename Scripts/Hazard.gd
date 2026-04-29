@@ -25,7 +25,7 @@ func _ready() -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if mode == Mode.WASTE:
-		_apply_damage(body, 9999.0)
+		_apply_sludge_melt(body)
 		return
 	if body not in _bodies:
 		_bodies.append(body)
@@ -43,3 +43,9 @@ func _on_tick() -> void:
 func _apply_damage(body: Node, amount: float) -> void:
 	if body.has_method("take_damage"):
 		body.take_damage(amount)
+
+func _apply_sludge_melt(body: Node) -> void:
+	if body.has_method("melt_die"):
+		body.melt_die()
+	else:
+		_apply_damage(body, 9999.0)

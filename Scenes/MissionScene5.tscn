@@ -99,58 +99,58 @@ scale = Vector2(1.4, 1.4)
 
 [node name="Hazards" type="Node2D" parent="."]
 
-[node name="WastePoolWest" type="Area2D" parent="Hazards"]
+[node name="RadioactiveSludgeWest" type="Area2D" parent="Hazards"]
 position = Vector2(820, 760)
 collision_layer = 0
 collision_mask = 6
 script = ExtResource("7_hazard")
 mode = 1
 
-[node name="Visual" type="Polygon2D" parent="Hazards/WastePoolWest"]
-color = Color(0.62, 0.96, 0.18, 0.85)
+[node name="Visual" type="Polygon2D" parent="Hazards/RadioactiveSludgeWest"]
+color = Color(0.5, 1, 0.05, 0.9)
 polygon = PackedVector2Array(-90, -50, -40, -70, 30, -65, 80, -40, 90, 20, 50, 70, -20, 80, -75, 60, -100, 10)
 
-[node name="VisualGlow" type="Polygon2D" parent="Hazards/WastePoolWest"]
-color = Color(0.85, 1.0, 0.4, 0.35)
+[node name="VisualGlow" type="Polygon2D" parent="Hazards/RadioactiveSludgeWest"]
+color = Color(0.9, 1, 0.2, 0.4)
 polygon = PackedVector2Array(-110, -60, -50, -85, 40, -80, 95, -50, 110, 25, 65, 85, -25, 100, -90, 75, -120, 15)
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hazards/WastePoolWest"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hazards/RadioactiveSludgeWest"]
 polygon = PackedVector2Array(-90, -50, -40, -70, 30, -65, 80, -40, 90, 20, 50, 70, -20, 80, -75, 60, -100, 10)
 
-[node name="WastePoolEast" type="Area2D" parent="Hazards"]
+[node name="RadioactiveSludgeEast" type="Area2D" parent="Hazards"]
 position = Vector2(1580, 760)
 collision_layer = 0
 collision_mask = 6
 script = ExtResource("7_hazard")
 mode = 1
 
-[node name="Visual" type="Polygon2D" parent="Hazards/WastePoolEast"]
-color = Color(0.62, 0.96, 0.18, 0.85)
+[node name="Visual" type="Polygon2D" parent="Hazards/RadioactiveSludgeEast"]
+color = Color(0.5, 1, 0.05, 0.9)
 polygon = PackedVector2Array(-80, -60, -10, -75, 60, -55, 95, -10, 90, 50, 40, 80, -30, 75, -85, 40, -100, -10)
 
-[node name="VisualGlow" type="Polygon2D" parent="Hazards/WastePoolEast"]
-color = Color(0.85, 1.0, 0.4, 0.35)
+[node name="VisualGlow" type="Polygon2D" parent="Hazards/RadioactiveSludgeEast"]
+color = Color(0.9, 1, 0.2, 0.4)
 polygon = PackedVector2Array(-95, -75, -15, -90, 70, -70, 110, -15, 105, 60, 50, 95, -35, 90, -100, 55, -115, -15)
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hazards/WastePoolEast"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hazards/RadioactiveSludgeEast"]
 polygon = PackedVector2Array(-80, -60, -10, -75, 60, -55, 95, -10, 90, 50, 40, 80, -30, 75, -85, 40, -100, -10)
 
-[node name="WastePoolSouth" type="Area2D" parent="Hazards"]
+[node name="RadioactiveSludgeSouth" type="Area2D" parent="Hazards"]
 position = Vector2(1400, 1320)
 collision_layer = 0
 collision_mask = 6
 script = ExtResource("7_hazard")
 mode = 1
 
-[node name="Visual" type="Polygon2D" parent="Hazards/WastePoolSouth"]
-color = Color(0.62, 0.96, 0.18, 0.85)
+[node name="Visual" type="Polygon2D" parent="Hazards/RadioactiveSludgeSouth"]
+color = Color(0.5, 1, 0.05, 0.9)
 polygon = PackedVector2Array(-110, -40, -50, -60, 30, -55, 90, -30, 110, 20, 70, 55, 0, 65, -70, 50, -120, 15)
 
-[node name="VisualGlow" type="Polygon2D" parent="Hazards/WastePoolSouth"]
-color = Color(0.85, 1.0, 0.4, 0.35)
+[node name="VisualGlow" type="Polygon2D" parent="Hazards/RadioactiveSludgeSouth"]
+color = Color(0.9, 1, 0.2, 0.4)
 polygon = PackedVector2Array(-130, -50, -55, -75, 35, -70, 100, -40, 130, 25, 80, 70, 5, 80, -80, 65, -140, 20)
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hazards/WastePoolSouth"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Hazards/RadioactiveSludgeSouth"]
 polygon = PackedVector2Array(-110, -40, -50, -60, 30, -55, 90, -30, 110, 20, 70, 55, 0, 65, -70, 50, -120, 15)
 
 [node name="RadiationCorridorNW" type="Area2D" parent="Hazards"]
