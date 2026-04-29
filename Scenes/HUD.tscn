@@ -103,21 +103,21 @@ text = "100 / 100"
 [node name="MissionPanel" type="Panel" parent="."]
 offset_left = 16.0
 offset_top = 76.0
-offset_right = 360.0
-offset_bottom = 132.0
+offset_right = 296.0
+offset_bottom = 124.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="ObjectiveLabel" type="Label" parent="MissionPanel"]
 layout_mode = 0
-offset_left = 14.0
-offset_top = 12.0
-offset_right = 336.0
-offset_bottom = 42.0
+offset_left = 12.0
+offset_top = 9.0
+offset_right = 272.0
+offset_bottom = 38.0
 theme_override_colors/font_color = Color(0.45, 0.95, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("7_font_bold")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 text = "ELIMINATE ALL ENEMIES"
 
 [node name="TimerLabel" type="Label" parent="MissionPanel"]
@@ -125,7 +125,7 @@ visible = false
 layout_mode = 0
 offset_left = 14.0
 offset_top = 44.0
-offset_right = 336.0
+offset_right = 272.0
 offset_bottom = 72.0
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -137,9 +137,9 @@ text = "TIME: 60s"
 [node name="ReturnButton" type="Button" parent="MissionPanel"]
 visible = false
 layout_mode = 0
-offset_left = 144.0
+offset_left = 96.0
 offset_top = 44.0
-offset_right = 336.0
+offset_right = 272.0
 offset_bottom = 72.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)

@@ -4,9 +4,12 @@ const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const ACCENT_CYAN := Color(0.45, 0.95, 1.0, 1.0)
 const ACCENT_GREEN := Color(0.45, 0.95, 0.45, 1.0)
 const ACCENT_RED := Color(1.0, 0.45, 0.45, 1.0)
+const MISSION_PANEL_COMPACT_BOTTOM := 124.0
+const MISSION_PANEL_EXPANDED_BOTTOM := 156.0
 
 @onready var health_bar: ProgressBar = $HealthPanel/HealthBar
 @onready var health_text: Label = $HealthPanel/HealthText
+@onready var mission_panel: Panel = $MissionPanel
 @onready var objective_label: Label = $MissionPanel/ObjectiveLabel
 @onready var timer_label: Label = $MissionPanel/TimerLabel
 @onready var return_button: Button = $MissionPanel/ReturnButton
@@ -77,6 +80,10 @@ func _default_objective_text() -> String:
 			return "SURVIVE ALL WAVES"
 	return "ELIMINATE ALL ENEMIES"
 
+func _set_mission_panel_expanded(expanded: bool) -> void:
+	if mission_panel:
+		mission_panel.offset_bottom = MISSION_PANEL_EXPANDED_BOTTOM if expanded else MISSION_PANEL_COMPACT_BOTTOM
+
 func update_health(current_hp: int, max_hp: int):
 	if not health_bar or not health_text:
 		return
@@ -124,13 +131,18 @@ func update_weapon(weapon_idx: int, _weapon_name: String):
 func update_objective(text: String):
 	if objective_label:
 		objective_label.text = text
+	if timer_label and return_button:
+		_set_mission_panel_expanded(timer_label.visible or return_button.visible)
 
 func update_timer(seconds_remaining: float):
 	if not timer_label:
 		return
 	if seconds_remaining < 0:
 		timer_label.visible = false
+		if return_button == null or not return_button.visible:
+			_set_mission_panel_expanded(false)
 		return
+	_set_mission_panel_expanded(true)
 	timer_label.visible = true
 	var secs := int(ceil(seconds_remaining))
 	timer_label.text = "TIME  %02d:%02d" % [secs / 60, secs % 60]
@@ -155,6 +167,7 @@ func show_mission_failed(reason: String):
 	_show_mission_end_state("MISSION FAILED — " + reason, ACCENT_RED)
 
 func _show_mission_end_state(text: String, color: Color):
+	_set_mission_panel_expanded(true)
 	if objective_label:
 		objective_label.text = text
 		objective_label.add_theme_color_override("font_color", color)
