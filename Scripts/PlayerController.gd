@@ -348,7 +348,7 @@ func _ability_smoke_bomb():
 func _ability_shuriken_burst():
 	modulate = Color(0.9, 0.4, 0.4, 0.8)
 	
-	var base_damage = GameManager.get_weapon_damage("Pistol") * 0.6
+	var base_damage = GameManager.get_weapon_damage("Boba Gun") * 0.6
 	var count := 8
 	for i in range(count):
 		var angle = i * (TAU / count)
@@ -411,7 +411,7 @@ func _ability_poison_cloud():
 	
 	await get_tree().physics_frame
 	
-	var tick_damage = GameManager.get_weapon_damage("Pistol") * 0.4
+	var tick_damage = GameManager.get_weapon_damage("Boba Gun") * 0.4
 	var ticks := 6
 	
 	for tick in range(ticks):

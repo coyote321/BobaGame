@@ -42,7 +42,7 @@ var max_health: int = 100
 
 
 var weapons: Dictionary = {
-	"Pistol": {
+	"Boba Gun": {
 		"damage": 10, "fire_rate": 0.4, "unlock_level": 1, "cost": 0, "type": "ranged",
 		"weapon_scene": "res://Scenes/Pistol.tscn",
 		"tuning": {
@@ -111,8 +111,8 @@ var weapons: Dictionary = {
 		}
 	}
 }
-var owned_weapons: Array = ["Pistol", "Whisk", "Tapioca Launcher"]
-var equipped_main: String = "Pistol"
+var owned_weapons: Array = ["Boba Gun", "Whisk", "Tapioca Launcher"]
+var equipped_main: String = "Boba Gun"
 var equipped_melee: String = "Whisk"
 var equipped_special: String = "Tapioca Launcher"
 var player_damage_multiplier: float = 1.0
@@ -699,8 +699,8 @@ func reset_game():
 	unlocked_ingredients = STARTING_INGREDIENTS.duplicate()
 	inventory = STARTING_INVENTORY.duplicate(true)
 	remove_retired_ingredients()
-	owned_weapons = ["Pistol", "Whisk", "Tapioca Launcher"]
-	equipped_main = "Pistol"
+	owned_weapons = ["Boba Gun", "Whisk", "Tapioca Launcher"]
+	equipped_main = "Boba Gun"
 	equipped_melee = "Whisk"
 	equipped_special = "Tapioca Launcher"
 	player_damage_multiplier = 1.0

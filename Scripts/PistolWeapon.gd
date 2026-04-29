@@ -1,5 +1,5 @@
 extends "res://Scripts/WeaponBase.gd"
-## Pistol / ranged weapon — shoots boba projectiles.
+## Boba Gun / ranged weapon — shoots boba projectiles.
 
 const BOBA_PROJECTILE_SCRIPT := preload("res://Scripts/BobaProjectile.gd")
 
