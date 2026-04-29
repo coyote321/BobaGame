@@ -23,6 +23,7 @@ var reward_xp: int = 40
 
 
 var hud = null
+var _exit_door: Area2D = null
 
 
 var _enemy_scene: PackedScene = preload("res://Scenes/Enemy.tscn")
@@ -92,6 +93,7 @@ func _apply_mission_setup() -> void:
 	for enemy in enemies_container.get_children():
 		_connect_enemy(enemy)
 	initial_enemy_count = live_enemy_count
+	_update_hud_counters()
 
 func _apply_difficulty_scale(enemy: Node, scale: float) -> void:
 	if not enemy:
@@ -135,10 +137,12 @@ func _connect_enemy(enemy: Node) -> void:
 
 func _on_enemy_died(enemy) -> void:
 	_untrack_enemy(enemy)
+	_update_hud_counters()
 	call_deferred("check_mission_status")
 
 func _on_enemy_tree_exited(enemy) -> void:
 	_untrack_enemy(enemy)
+	_update_hud_counters()
 	call_deferred("check_mission_status")
 
 func _untrack_enemy(enemy) -> void:
@@ -370,8 +374,10 @@ func on_mission_complete():
 	if GameManager.current_contract.size() > 0:
 		GameManager.complete_contract()
 
+	_update_hud_counters()
 	if hud and hud.has_method("show_mission_complete"):
 		hud.show_mission_complete(stealth_bonus)
+	_spawn_shop_exit_door()
 
 func on_mission_failed(reason: String):
 	if mission_complete or mission_failed:
@@ -379,6 +385,69 @@ func on_mission_failed(reason: String):
 	mission_failed = true
 	if hud and hud.has_method("show_mission_failed"):
 		hud.show_mission_failed(reason)
+	_spawn_shop_exit_door()
+
+func _spawn_shop_exit_door() -> void:
+	if _exit_door and is_instance_valid(_exit_door):
+		return
+
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	var spawn_pos := Vector2(160, 160)
+	if player:
+		spawn_pos = player.global_position + Vector2(120, 0)
+
+	_exit_door = Area2D.new()
+	_exit_door.name = "ShopExitDoor"
+	_exit_door.collision_layer = 0
+	_exit_door.collision_mask = 2
+	_exit_door.global_position = spawn_pos
+	_exit_door.body_entered.connect(_on_shop_exit_door_entered)
+	add_child(_exit_door)
+
+	var glow := Polygon2D.new()
+	glow.name = "Glow"
+	glow.color = Color(0.91, 0.76, 0.29, 0.28)
+	glow.polygon = PackedVector2Array(-54, -74, 54, -74, 54, 74, -54, 74)
+	glow.z_index = 95
+	_exit_door.add_child(glow)
+
+	var frame := Polygon2D.new()
+	frame.name = "DoorFrame"
+	frame.color = Color(0.16, 0.1, 0.04, 1.0)
+	frame.polygon = PackedVector2Array(-38, -62, 38, -62, 38, 62, -38, 62)
+	frame.z_index = 96
+	_exit_door.add_child(frame)
+
+	var opening := Polygon2D.new()
+	opening.name = "Opening"
+	opening.color = Color(0.02, 0.02, 0.03, 1.0)
+	opening.polygon = PackedVector2Array(-26, -48, 26, -48, 26, 62, -26, 62)
+	opening.z_index = 97
+	_exit_door.add_child(opening)
+
+	var sign := Label.new()
+	sign.name = "Sign"
+	sign.text = "SHOP EXIT"
+	sign.position = Vector2(-48, -96)
+	sign.size = Vector2(96, 24)
+	sign.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sign.add_theme_font_size_override("font_size", 13)
+	sign.add_theme_color_override("font_color", Color(1.0, 0.9, 0.45))
+	sign.add_theme_color_override("font_outline_color", Color.BLACK)
+	sign.add_theme_constant_override("outline_size", 4)
+	sign.z_index = 100
+	_exit_door.add_child(sign)
+
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(72, 118)
+	shape.shape = rect
+	_exit_door.add_child(shape)
+
+func _on_shop_exit_door_entered(body: Node) -> void:
+	if body.name != "Player" and not body.is_in_group("player"):
+		return
+	_on_return_pressed()
 
 func _on_abort_pressed():
 	if not is_mission_active_for_abort():

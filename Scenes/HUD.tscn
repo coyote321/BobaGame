@@ -183,16 +183,6 @@ theme_override_font_sizes/font_size = 16
 text = "NEXT MISSION"
 flat = true
 
-[node name="ReturnShopButton" type="Button" parent="MissionEndPanel/VBox/Buttons"]
-custom_minimum_size = Vector2(180, 50)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
-theme_override_fonts/font = ExtResource("7_font_bold")
-theme_override_font_sizes/font_size = 16
-text = "RETURN TO SHOP"
-flat = true
-
 [node name="MoneyPanel" type="Panel" parent="."]
 offset_left = 1040.0
 offset_top = 12.0
@@ -217,7 +207,7 @@ text = "$ 0"
 offset_left = 1040.0
 offset_top = 68.0
 offset_right = 1264.0
-offset_bottom = 172.0
+offset_bottom = 184.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hp_bg")
 
 [node name="LevelLabel" type="Label" parent="ProgressionPanel"]
@@ -259,12 +249,12 @@ layout_mode = 0
 offset_left = 14.0
 offset_top = 80.0
 offset_right = 210.0
-offset_bottom = 100.0
+offset_bottom = 110.0
 theme_override_colors/font_color = Color(1, 0.55, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
-theme_override_fonts/font = ExtResource("8_font_semi")
-theme_override_font_sizes/font_size = 14
-text = "ENEMIES: 0"
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 17
+text = "ENEMIES LEFT  0 / 0"
 
 [node name="Hotbar" parent="." instance=ExtResource("6_hotbar")]

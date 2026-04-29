@@ -20,7 +20,6 @@ const OBJECTIVE_CHAR_WIDTH := 9.5
 @onready var mission_end_title: Label = get_node_or_null("MissionEndPanel/VBox/Title") as Label
 @onready var mission_end_subtitle: Label = get_node_or_null("MissionEndPanel/VBox/Subtitle") as Label
 @onready var next_mission_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/NextMissionButton") as Button
-@onready var return_shop_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/ReturnShopButton") as Button
 @onready var money_label: Label = $MoneyPanel/MoneyLabel
 @onready var level_label: Label = $ProgressionPanel/LevelLabel
 @onready var xp_label: Label = $ProgressionPanel/XPLabel
@@ -184,15 +183,15 @@ func update_timer(seconds_remaining: float):
 
 func update_enemy_count(remaining: int, total: int):
 	if enemy_label:
-		enemy_label.text = "ENEMIES  %d / %d" % [remaining, total]
+		enemy_label.text = "ENEMIES LEFT  %d / %d" % [remaining, total]
 
 func update_stealth(_stealth_rating: float):
 	pass
 
 func show_mission_complete(stealth_bonus: int):
-	var subtitle := "Choose your next move."
+	var subtitle := "Walk through the shop door to return."
 	if stealth_bonus > 0:
-		subtitle = "Stealth bonus: $" + str(stealth_bonus)
+		subtitle = "Stealth bonus: $" + str(stealth_bonus) + "  |  Use the shop door to leave."
 	_show_mission_end_state("MISSION COMPLETE", ACCENT_GREEN, subtitle, true)
 
 func show_mission_failed(reason: String):
@@ -216,15 +215,11 @@ func _show_mission_end_state(text: String, color: Color, subtitle: String, show_
 		next_mission_button.visible = show_next
 	if show_next and next_mission_button:
 		next_mission_button.call_deferred("grab_focus")
-	elif return_shop_button:
-		return_shop_button.call_deferred("grab_focus")
 
 func is_mission_end_panel_visible() -> bool:
 	return mission_end_panel != null and mission_end_panel.visible
 
-func connect_buttons(_abort_callback: Callable, return_callback: Callable, next_callback: Callable = Callable()):
-	if return_shop_button:
-		return_shop_button.pressed.connect(return_callback)
+func connect_buttons(_abort_callback: Callable, _return_callback: Callable, next_callback: Callable = Callable()):
 	if next_mission_button and next_callback.is_valid():
 		next_mission_button.pressed.connect(next_callback)
 
