@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="The Soul (4.2)"
+config/name="Boba Odyyssey"
 run/main_scene="res://Scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
@@ -31,7 +31,7 @@ window/stretch/aspect="expand"
 
 [dotnet]
 
-project/assembly_name="The Soul (4.2)"
+project/assembly_name="Boba Odyyssey"
 
 [input]
 

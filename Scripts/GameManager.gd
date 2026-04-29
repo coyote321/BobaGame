@@ -65,15 +65,15 @@ var weapons: Dictionary = {
 			"poison_tick_damage": 1.0, "poison_ticks": 10, "poison_interval": 1.0
 		}
 	},
-	"Kitchen Knife": {
+	"Whisk": {
 		"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee",
 		"weapon_scene": "res://Scenes/KitchenKnife.tscn",
 		"hold_offset": Vector2(40, 6),
 		"tuning": {
 			"melee_range": 120.0, "melee_arc_dot": 0.4, "lunge_distance": 10.0,
 			"swing_rotation": 0.35, "kick_duration": 0.06, "recover_duration": 0.09,
-			"flash_scale": Vector2(14, 7), "flash_color": Color(1.0, 0.95, 1.0, 0.75), "flash_duration": 0.06,
-			"camera_shake": 1.8, "burst_color": Color(1.0, 0.85, 0.96), "sparkle_amount": 16
+			"flash_scale": Vector2(14, 7), "flash_color": Color(0.95, 0.9, 0.75, 0.75), "flash_duration": 0.06,
+			"camera_shake": 1.8, "burst_color": Color(0.95, 0.86, 0.68), "sparkle_amount": 16
 		}
 	},
 	"Tapioca Launcher": {
@@ -111,9 +111,9 @@ var weapons: Dictionary = {
 		}
 	}
 }
-var owned_weapons: Array = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
+var owned_weapons: Array = ["Pistol", "Whisk", "Tapioca Launcher"]
 var equipped_main: String = "Pistol"
-var equipped_melee: String = "Kitchen Knife"
+var equipped_melee: String = "Whisk"
 var equipped_special: String = "Tapioca Launcher"
 var player_damage_multiplier: float = 1.0
 
@@ -699,9 +699,9 @@ func reset_game():
 	unlocked_ingredients = STARTING_INGREDIENTS.duplicate()
 	inventory = STARTING_INVENTORY.duplicate(true)
 	remove_retired_ingredients()
-	owned_weapons = ["Pistol", "Kitchen Knife", "Tapioca Launcher"]
+	owned_weapons = ["Pistol", "Whisk", "Tapioca Launcher"]
 	equipped_main = "Pistol"
-	equipped_melee = "Kitchen Knife"
+	equipped_melee = "Whisk"
 	equipped_special = "Tapioca Launcher"
 	player_damage_multiplier = 1.0
 	owned_active_abilities = ["Shadow Dash"]

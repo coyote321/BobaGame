@@ -1,5 +1,5 @@
 extends "res://Scripts/WeaponBase.gd"
-## Kitchen Knife / melee weapon — swing attack with slash arc VFX.
+## Whisk / melee weapon — swing attack with slash arc VFX.
 
 func attack() -> void:
 	if weapon_name == "":
