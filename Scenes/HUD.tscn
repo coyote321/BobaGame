@@ -134,13 +134,58 @@ theme_override_fonts/font = ExtResource("7_font_bold")
 theme_override_font_sizes/font_size = 18
 text = "TIME: 60s"
 
-[node name="ReturnButton" type="Button" parent="MissionPanel"]
+[node name="MissionEndPanel" type="Panel" parent="."]
 visible = false
+offset_left = 406.0
+offset_top = 210.0
+offset_right = 874.0
+offset_bottom = 398.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="MissionEndPanel"]
 layout_mode = 0
-offset_left = 44.0
-offset_top = 44.0
-offset_right = 220.0
-offset_bottom = 72.0
+offset_left = 24.0
+offset_top = 22.0
+offset_right = 444.0
+offset_bottom = 166.0
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="MissionEndPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.95, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 30
+text = "MISSION COMPLETE"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="MissionEndPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_fonts/font = ExtResource("9_font_medium")
+theme_override_font_sizes/font_size = 16
+text = "Choose your next move."
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="MissionEndPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="NextMissionButton" type="Button" parent="MissionEndPanel/VBox/Buttons"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 16
+text = "NEXT MISSION"
+flat = true
+
+[node name="ReturnShopButton" type="Button" parent="MissionEndPanel/VBox/Buttons"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
 theme_override_fonts/font = ExtResource("7_font_bold")

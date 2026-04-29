@@ -24,23 +24,23 @@ shape = SubResource("CapsuleShape2D_customer")
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = -40.0
+offset_left = -65.0
 offset_top = -90.0
-offset_right = 40.0
+offset_right = 65.0
 offset_bottom = -40.0
 
 [node name="ProgressBar" type="ProgressBar" parent="Control"]
 layout_mode = 0
-offset_right = 80.0
+offset_right = 130.0
 offset_bottom = 10.0
 show_percentage = false
 
 [node name="OrderLabel" type="Label" parent="Control"]
 layout_mode = 0
 offset_top = 15.0
-offset_right = 80.0
+offset_right = 130.0
 offset_bottom = 65.0
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "..."
 horizontal_alignment = 1
 autowrap_mode = 3

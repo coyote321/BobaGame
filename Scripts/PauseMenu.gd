@@ -73,7 +73,7 @@ func resume_game() -> void:
 func show_pause_menu() -> void:
 	control_root.visible = true
 	if abort_mission_button:
-		abort_mission_button.visible = GameManager.current_phase == "MISSION"
+		abort_mission_button.visible = _can_abort_current_mission()
 	if resume_button:
 		resume_button.call_deferred("grab_focus")
 
@@ -87,9 +87,19 @@ func _on_options_pressed() -> void:
 	_toggle_options_panel()
 
 func _on_abort_mission_pressed() -> void:
+	if not _can_abort_current_mission():
+		return
 	hide_pause_menu()
 	get_tree().paused = false
 	GameManager.abort_mission_to_shop()
+
+func _can_abort_current_mission() -> bool:
+	if GameManager.current_phase != "MISSION":
+		return false
+	var scene := get_tree().current_scene
+	if scene and scene.has_method("is_mission_active_for_abort"):
+		return scene.is_mission_active_for_abort()
+	return true
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

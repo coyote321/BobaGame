@@ -16,7 +16,11 @@ const OBJECTIVE_CHAR_WIDTH := 9.5
 @onready var mission_panel: Panel = $MissionPanel
 @onready var objective_label: Label = $MissionPanel/ObjectiveLabel
 @onready var timer_label: Label = $MissionPanel/TimerLabel
-@onready var return_button: Button = $MissionPanel/ReturnButton
+@onready var mission_end_panel: Panel = get_node_or_null("MissionEndPanel") as Panel
+@onready var mission_end_title: Label = get_node_or_null("MissionEndPanel/VBox/Title") as Label
+@onready var mission_end_subtitle: Label = get_node_or_null("MissionEndPanel/VBox/Subtitle") as Label
+@onready var next_mission_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/NextMissionButton") as Button
+@onready var return_shop_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/ReturnShopButton") as Button
 @onready var money_label: Label = $MoneyPanel/MoneyLabel
 @onready var level_label: Label = $ProgressionPanel/LevelLabel
 @onready var xp_label: Label = $ProgressionPanel/XPLabel
@@ -43,6 +47,8 @@ func _ready():
 		health_bar.value = GameManager.max_health
 	if health_text:
 		health_text.text = str(GameManager.max_health) + " / " + str(GameManager.max_health)
+	if mission_end_panel:
+		mission_end_panel.visible = false
 
 	if objective_label:
 		if GameManager.current_contract.size() > 0:
@@ -104,9 +110,6 @@ func _fit_mission_panel_to_objective(expanded: bool) -> void:
 		objective_label.offset_right = panel_width - 12.0
 	if timer_label:
 		timer_label.offset_right = panel_width - 14.0
-	if return_button:
-		return_button.offset_right = panel_width - 14.0
-		return_button.offset_left = maxf(12.0, panel_width - 190.0)
 	_set_mission_panel_expanded(expanded)
 
 func update_health(current_hp: int, max_hp: int):
@@ -157,8 +160,8 @@ func update_objective(text: String):
 	if objective_label:
 		objective_label.text = text
 	var expanded := false
-	if timer_label and return_button:
-		expanded = timer_label.visible or return_button.visible
+	if timer_label:
+		expanded = timer_label.visible
 	_fit_mission_panel_to_objective(expanded)
 
 func update_timer(seconds_remaining: float):
@@ -166,8 +169,7 @@ func update_timer(seconds_remaining: float):
 		return
 	if seconds_remaining < 0:
 		timer_label.visible = false
-		if return_button == null or not return_button.visible:
-			_fit_mission_panel_to_objective(false)
+		_fit_mission_panel_to_objective(false)
 		return
 	_fit_mission_panel_to_objective(true)
 	timer_label.visible = true
@@ -187,25 +189,44 @@ func update_enemy_count(remaining: int, total: int):
 func update_stealth(_stealth_rating: float):
 	pass
 
-func show_mission_complete(_stealth_bonus: int):
-	_show_mission_end_state("MISSION COMPLETE", ACCENT_GREEN)
+func show_mission_complete(stealth_bonus: int):
+	var subtitle := "Choose your next move."
+	if stealth_bonus > 0:
+		subtitle = "Stealth bonus: $" + str(stealth_bonus)
+	_show_mission_end_state("MISSION COMPLETE", ACCENT_GREEN, subtitle, true)
 
 func show_mission_failed(reason: String):
-	_show_mission_end_state("MISSION FAILED — " + reason, ACCENT_RED)
+	_show_mission_end_state("MISSION FAILED", ACCENT_RED, reason, false)
 
-func _show_mission_end_state(text: String, color: Color):
+func _show_mission_end_state(text: String, color: Color, subtitle: String, show_next: bool):
 	if objective_label:
 		objective_label.text = text
 		objective_label.add_theme_color_override("font_color", color)
-	_fit_mission_panel_to_objective(true)
+	_fit_mission_panel_to_objective(false)
 	if timer_label:
 		timer_label.visible = false
-	if return_button:
-		return_button.visible = true
+	if mission_end_panel:
+		mission_end_panel.visible = true
+	if mission_end_title:
+		mission_end_title.text = text
+		mission_end_title.add_theme_color_override("font_color", color)
+	if mission_end_subtitle:
+		mission_end_subtitle.text = subtitle
+	if next_mission_button:
+		next_mission_button.visible = show_next
+	if show_next and next_mission_button:
+		next_mission_button.call_deferred("grab_focus")
+	elif return_shop_button:
+		return_shop_button.call_deferred("grab_focus")
 
-func connect_buttons(_abort_callback: Callable, return_callback: Callable):
-	if return_button:
-		return_button.pressed.connect(return_callback)
+func is_mission_end_panel_visible() -> bool:
+	return mission_end_panel != null and mission_end_panel.visible
+
+func connect_buttons(_abort_callback: Callable, return_callback: Callable, next_callback: Callable = Callable()):
+	if return_shop_button:
+		return_shop_button.pressed.connect(return_callback)
+	if next_mission_button and next_callback.is_valid():
+		next_mission_button.pressed.connect(next_callback)
 
 func _process(_delta):
 	if money_label:

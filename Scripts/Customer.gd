@@ -133,10 +133,7 @@ func generate_order():
 
 func update_order_display():
 	var text = ""
-	
-	if is_secret_agent:
-		text = "SECRET ORDER\n"
-	
+
 	text += order["base"]
 	if order["milk"] == "Milk":
 		text += " + Milk"

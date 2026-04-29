@@ -150,7 +150,7 @@ func _create_crosshair() -> void:
 	_crosshair.visible = false
 	add_child(_crosshair)
 
-	var col := Color(1.0, 0.18, 0.18, 0.95)
+	var col := Color(1.0, 1.0, 1.0, 0.95)
 	var segments := [
 		[Vector2(-18, 0), Vector2(-6, 0)],
 		[Vector2(6, 0), Vector2(18, 0)],
@@ -167,7 +167,7 @@ func _create_crosshair() -> void:
 
 	var center := Line2D.new()
 	center.width = 2.0
-	center.default_color = Color(1.0, 0.85, 0.35, 0.95)
+	center.default_color = col
 	center.add_point(Vector2(-2, 0))
 	center.add_point(Vector2(2, 0))
 	_crosshair.add_child(center)

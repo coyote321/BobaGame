@@ -50,7 +50,7 @@ func _ready():
 	await get_tree().process_frame
 	hud = find_child("HUD", true, false)
 	if hud:
-		hud.connect_buttons(_on_abort_pressed, _on_return_pressed)
+		hud.connect_buttons(_on_abort_pressed, _on_return_pressed, _on_next_mission_pressed)
 
 	_apply_mission_setup()
 
@@ -381,12 +381,45 @@ func on_mission_failed(reason: String):
 		hud.show_mission_failed(reason)
 
 func _on_abort_pressed():
-	if mission_aborting:
+	if not is_mission_active_for_abort():
 		return
 	mission_aborting = true
 	mission_failed = true
 	GameManager.abort_mission_to_shop()
 
+func is_mission_active_for_abort() -> bool:
+	return not mission_complete and not mission_failed and not mission_aborting and not GameManager.mission_aborting
+
+func _is_any_panel_open() -> bool:
+	return hud != null and hud.has_method("is_mission_end_panel_visible") and hud.is_mission_end_panel_visible()
+
 func _on_return_pressed():
 	GameManager.start_shop()
 	get_tree().change_scene_to_file("res://Scenes/ShopScene.tscn")
+
+func _on_next_mission_pressed():
+	var available := GameManager.get_available_missions()
+	if available.is_empty():
+		_on_return_pressed()
+		return
+
+	var current_scene := String(GameManager.mission_profile.get("scene", ""))
+	var next_index := 0
+	for i in range(available.size()):
+		if String(available[i].get("scene", "")) == current_scene:
+			next_index = (i + 1) % available.size()
+			break
+
+	var m: Dictionary = available[next_index]
+	GameManager.mission_profile = GameManager.build_mission_profile(
+		String(m.get("type", "extermination")),
+		int(m.get("tier", 1)),
+		int(m.get("reward_money", 60)),
+		int(m.get("reward_xp", 40)),
+		float(m.get("time_limit", 0.0)),
+		"",
+		int(m.get("waves", 0)),
+		String(m.get("scene", ""))
+	)
+	GameManager.start_mission()
+	get_tree().change_scene_to_file(GameManager.get_mission_scene())

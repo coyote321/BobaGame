@@ -1416,7 +1416,7 @@ func setup_boba_ui():
 	var order_header = _styled_label("ORDER", font_bold, 13, ACCENT_GOLD_DIM)
 	order_vbox.add_child(order_header)
 
-	lbl_order_display = _styled_label("No customer waiting", font_bold, 14, TEXT_WHITE)
+	lbl_order_display = _styled_label("No customer waiting", font_bold, 18, TEXT_WHITE)
 	lbl_order_display.autowrap_mode = TextServer.AUTOWRAP_WORD
 	order_vbox.add_child(lbl_order_display)
 	_last_order_text = ""
