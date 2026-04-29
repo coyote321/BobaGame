@@ -215,11 +215,84 @@ const ADMIN_MONEY_GRANT: int = 999999
 var admin_mode: bool = false
 var _admin_snapshot: Dictionary = {}
 
+const _AGENT_DEBUG_LOG_REL := "res://.cursor/debug-6f1b6e.log"
+const _AGENT_DEBUG_INGEST := "http://127.0.0.1:7813/ingest/0aca1ad4-5c0c-40c7-aa6a-dc265157d894"
+
 func _ready():
 	print("GameManager initialized")
 	remove_retired_ingredients()
 	_setup_audio_buses()
 	generate_daily_quests()
+	#region agent log
+	agent_debug_log("Scripts/GameManager.gd:_ready", "GameManager ready", {
+		"current_phase": current_phase,
+		"weapon_count": weapons.size(),
+		"mission_count": MISSION_CATALOG.size(),
+	}, "H6")
+	#endregion
+
+#region agent log
+func agent_debug_log(location: String, message: String, data: Dictionary, hypothesis_id: String, run_id: String = "initial") -> void:
+	var payload := {
+		"sessionId": "6f1b6e",
+		"runId": run_id,
+		"hypothesisId": hypothesis_id,
+		"location": location,
+		"message": message,
+		"data": data,
+		"timestamp": int(Time.get_unix_time_from_system() * 1000.0),
+	}
+	var line := JSON.stringify(payload)
+	# Godot nuance: `WRITE_READ` truncates existing files per open; use WRITE for create, READ_WRITE + seek_end to append.
+	var attempted: Array[String] = []
+	var ok_any := false
+	var paths: PackedStringArray = PackedStringArray([
+		ProjectSettings.globalize_path(_AGENT_DEBUG_LOG_REL),
+		ProjectSettings.globalize_path("user://cursor_debug/debug-6f1b6e.log"),
+	])
+	for p in paths:
+		attempted.append(p)
+		var parent := p.get_base_dir()
+		if parent.length() > 0:
+			DirAccess.make_dir_recursive_absolute(parent)
+		var f: FileAccess
+		if FileAccess.file_exists(p):
+			f = FileAccess.open(p, FileAccess.READ_WRITE)
+			if f:
+				f.seek_end()
+		else:
+
+
+			f = FileAccess.open(p, FileAccess.WRITE)
+		if f:
+			f.store_line(line)
+			f.flush()
+			f.close()
+			ok_any = true
+			break
+
+
+	if not ok_any:
+		push_error("agent_debug_log: file write FAILED; attempted=" + str(attempted) + "; err=" + str(FileAccess.get_open_error()))
+
+	_agent_debug_notify_ingest(line)
+
+func _agent_debug_notify_ingest(json_line: String) -> void:
+	var http := HTTPRequest.new()
+	http.timeout = 3
+	add_child(http)
+	http.request_completed.connect(func(_result: int, _response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+		http.queue_free()
+	)
+	var err := http.request(
+		_AGENT_DEBUG_INGEST,
+		PackedStringArray(["Content-Type: application/json", "X-Debug-Session-Id: 6f1b6e"]),
+		HTTPClient.METHOD_POST,
+		json_line
+	)
+	if err != OK:
+		http.queue_free()
+#endregion
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -502,7 +575,7 @@ func get_mission_scene() -> String:
 	return "res://Scenes/MissionScene.tscn"
 
 func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp: int, time_limit: float = 0.0, contract_target: String = "", waves: int = 0, scene: String = "") -> Dictionary:
-	return {
+	var profile := {
 		"type": type,
 		"tier": tier,
 		"time_limit": time_limit,
@@ -512,6 +585,10 @@ func build_mission_profile(type: String, tier: int, reward_money: int, reward_xp
 		"waves": waves,
 		"scene": scene,
 	}
+	#region agent log
+	agent_debug_log("Scripts/GameManager.gd:build_mission_profile", "Mission profile built", profile.duplicate(), "H2,H3")
+	#endregion
+	return profile
 
 
 

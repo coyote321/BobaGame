@@ -28,21 +28,15 @@ func _ready():
 	_setup_customer_animation()
 
 	if is_secret_agent:
-		body_sprite.modulate = Color(0.55, 0.5, 0.85)
-		# Add a pulsing gold outline effect
-		var glow_tween = create_tween().set_loops()
-		glow_tween.tween_property(body_sprite, "modulate", Color(1.2, 1.0, 0.6), 0.8)
-		glow_tween.tween_property(body_sprite, "modulate", Color(0.8, 0.7, 0.5), 0.8)
-		# Add a visible label above the customer
-		var agent_label = Label.new()
-		agent_label.text = "⚑ SECRET"
-		agent_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		agent_label.position = Vector2(-40, -50)
-		agent_label.add_theme_font_size_override("font_size", 11)
-		agent_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-		agent_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-		agent_label.add_theme_constant_override("outline_size", 3)
-		add_child(agent_label)
+		body_sprite.modulate = Color(1.05, 0.98, 0.88)
+		# Subtle flag hint — player needs to pay attention to spot it
+		var hint_label = Label.new()
+		hint_label.text = "⚑"
+		hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint_label.position = Vector2(20, -45)
+		hint_label.add_theme_font_size_override("font_size", 9)
+		hint_label.add_theme_color_override("font_color", Color(0.85, 0.72, 0.4, 0.6))
+		add_child(hint_label)
 	else:
 		body_sprite.modulate = Color.WHITE
 	

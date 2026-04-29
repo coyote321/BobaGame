@@ -50,6 +50,8 @@ func _ready():
 		mission_end_panel.visible = false
 
 	if objective_label:
+		objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		objective_label.clip_text = true
 		if GameManager.current_contract.size() > 0:
 			objective_label.text = "TARGET: " + GameManager.current_contract["target"]
 		else:
@@ -83,7 +85,7 @@ func _default_objective_text() -> String:
 		"extermination":
 			return "ELIMINATE ALL ENEMIES"
 		"timed_hunt":
-			return "CLEAR BEFORE TIME RUNS OUT"
+			return "TIMED: ELIMINATE ALL"
 		"boss_hunt":
 			return "DEFEAT THE BOSS"
 		"survival":

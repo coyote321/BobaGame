@@ -47,16 +47,36 @@ func _ready():
 		waves_total = int(profile.get("waves", 0))
 		reward_money = int(profile.get("reward_money", 60))
 		reward_xp = int(profile.get("reward_xp", 40))
+	#region agent log
+	GameManager.agent_debug_log("Scripts/MissionManager.gd:_ready", "Mission scene ready with profile", {
+		"profile_size": profile.size(),
+		"profile": profile.duplicate(),
+		"mission_type": mission_type,
+		"time_remaining": time_remaining,
+		"waves_total": waves_total,
+		"current_scene": String(scene_file_path),
+		"has_enemies_container": enemies_container != null,
+	}, "H2,H3,H4")
+	#endregion
 
 	await get_tree().process_frame
 	hud = find_child("HUD", true, false)
 	if hud:
 		hud.connect_buttons(_on_abort_pressed, _on_return_pressed, _on_next_mission_pressed)
+	#region agent log
+	GameManager.agent_debug_log("Scripts/MissionManager.gd:_ready", "Mission HUD lookup complete", {
+		"has_hud": hud != null,
+		"enemy_children": enemies_container.get_child_count() if enemies_container else -1,
+		"mission_type": mission_type,
+	}, "H4")
+	#endregion
 
 	_apply_mission_setup()
 
 	if hud and hud.has_method("update_objective"):
 		hud.update_objective(_objective_text())
+	if hud and hud.has_method("update_timer"):
+		hud.update_timer(time_remaining)
 
 func _apply_mission_setup() -> void:
 	if not enemies_container:
@@ -237,7 +257,7 @@ func _objective_text() -> String:
 		"extermination":
 			return "ELIMINATE ALL ENEMIES"
 		"timed_hunt":
-			return "CLEAR ALL ENEMIES — BEAT THE CLOCK"
+			return "TIMED: ELIMINATE ALL"
 		"boss_hunt":
 			return "DEFEAT THE BOSS"
 		"survival":
@@ -407,21 +427,21 @@ func _spawn_shop_exit_door() -> void:
 	var glow := Polygon2D.new()
 	glow.name = "Glow"
 	glow.color = Color(0.91, 0.76, 0.29, 0.28)
-	glow.polygon = PackedVector2Array(-54, -74, 54, -74, 54, 74, -54, 74)
+	glow.polygon = PackedVector2Array([Vector2(-54, -74), Vector2(54, -74), Vector2(54, 74), Vector2(-54, 74)])
 	glow.z_index = 95
 	_exit_door.add_child(glow)
 
 	var frame := Polygon2D.new()
 	frame.name = "DoorFrame"
 	frame.color = Color(0.16, 0.1, 0.04, 1.0)
-	frame.polygon = PackedVector2Array(-38, -62, 38, -62, 38, 62, -38, 62)
+	frame.polygon = PackedVector2Array([Vector2(-38, -62), Vector2(38, -62), Vector2(38, 62), Vector2(-38, 62)])
 	frame.z_index = 96
 	_exit_door.add_child(frame)
 
 	var opening := Polygon2D.new()
 	opening.name = "Opening"
 	opening.color = Color(0.02, 0.02, 0.03, 1.0)
-	opening.polygon = PackedVector2Array(-26, -48, 26, -48, 26, 62, -26, 62)
+	opening.polygon = PackedVector2Array([Vector2(-26, -48), Vector2(26, -48), Vector2(26, 62), Vector2(-26, 62)])
 	opening.z_index = 97
 	_exit_door.add_child(opening)
 

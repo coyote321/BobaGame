@@ -1343,6 +1343,15 @@ func _build_mission_card(parent: VBoxContainer, m: Dictionary):
 	card_hbox.add_child(go_btn)
 
 func _launch_mission(m: Dictionary):
+	#region agent log
+	GameManager.agent_debug_log("Scripts/ShopManager.gd:_launch_mission", "Catalog GO pressed", {
+		"type": String(m.get("type", "")),
+		"tier": int(m.get("tier", 0)),
+		"scene": String(m.get("scene", "")),
+		"reward_money": int(m.get("reward_money", 0)),
+		"time_limit": float(m.get("time_limit", 0.0)),
+	}, "H2,H3")
+	#endregion
 	var tl = m.get("time_limit", 0.0)
 	GameManager.mission_profile = GameManager.build_mission_profile(
 		m.get("type", "extermination"),
@@ -1355,6 +1364,12 @@ func _launch_mission(m: Dictionary):
 		String(m.get("scene", ""))
 	)
 	GameManager.start_mission()
+	#region agent log
+	GameManager.agent_debug_log("Scripts/ShopManager.gd:_launch_mission", "Changing to catalog mission scene", {
+		"resolved_scene": GameManager.get_mission_scene(),
+		"profile": GameManager.mission_profile.duplicate(),
+	}, "H2,H4")
+	#endregion
 	get_tree().change_scene_to_file(GameManager.get_mission_scene())
 
 func _on_start_contract_mission():
@@ -1704,6 +1719,15 @@ func show_day_summary():
 			_day_summary_overlay = null
 			var c: Dictionary = GameManager.current_contract
 			var c_scene: String = c.get("scene", "res://Scenes/MissionScene.tscn")
+			#region agent log
+			GameManager.agent_debug_log("Scripts/ShopManager.gd:day_summary_go", "Contract GO pressed", {
+				"contract_size": c.size(),
+				"target": String(c.get("target", "")),
+				"scene": c_scene,
+				"mission_type": String(c.get("mission_type", "")),
+				"reward": int(c.get("reward", 0)),
+			}, "H2,H5")
+			#endregion
 			GameManager.mission_profile = GameManager.build_mission_profile(
 				c.get("mission_type", "extermination"),
 				1,
@@ -1715,6 +1739,12 @@ func show_day_summary():
 				c_scene
 			)
 			GameManager.start_mission()
+			#region agent log
+			GameManager.agent_debug_log("Scripts/ShopManager.gd:day_summary_go", "Changing to contract mission scene", {
+				"resolved_scene": c_scene,
+				"profile": GameManager.mission_profile.duplicate(),
+			}, "H2,H4,H5")
+			#endregion
 			get_tree().change_scene_to_file(c_scene)
 		)
 		btn_row.add_child(mission_btn)
