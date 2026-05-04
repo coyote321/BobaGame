@@ -522,6 +522,11 @@ func melt_die() -> void:
 	await tween.finished
 	await get_tree().create_timer(0.25).timeout
 	GameManager.health = GameManager.max_health
+	
+	# Stop MissionManager processing without spawning a door
+	var mission_mgr = get_tree().current_scene
+	if mission_mgr and "mission_failed" in mission_mgr:
+		mission_mgr.mission_failed = true
 	get_tree().change_scene_to_file("res://Scenes/EndScreen.tscn")
 
 func heal(amount: int) -> void:
@@ -551,6 +556,11 @@ func die():
 	# Hide the HUD
 	if hud_node and hud_node.has_method("hide_hud"):
 		hud_node.hide_hud()
+	
+	# Stop the MissionManager from processing (don't call on_mission_failed — that spawns a door)
+	var mission_mgr = get_tree().current_scene
+	if mission_mgr and "mission_failed" in mission_mgr:
+		mission_mgr.mission_failed = true
 	
 	# Brief red flash before transition
 	modulate = Color(1, 0.2, 0.2)

@@ -27,18 +27,8 @@ var is_secret_agent: bool = false
 func _ready():
 	_setup_customer_animation()
 
-	if is_secret_agent:
-		body_sprite.modulate = Color(1.05, 0.98, 0.88)
-		# Subtle flag hint — player needs to pay attention to spot it
-		var hint_label = Label.new()
-		hint_label.text = "⚑"
-		hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hint_label.position = Vector2(20, -45)
-		hint_label.add_theme_font_size_override("font_size", 9)
-		hint_label.add_theme_color_override("font_color", Color(0.85, 0.72, 0.4, 0.6))
-		add_child(hint_label)
-	else:
-		body_sprite.modulate = Color.WHITE
+	# Secret agents look identical to regular customers — no visual hints
+	body_sprite.modulate = Color.WHITE
 	
 	max_patience = 60.0 - (GameManager.day * 2) 
 	if max_patience < 20: max_patience = 20
@@ -182,9 +172,8 @@ func calculate_accuracy(item: Dictionary) -> int:
 func serve_complete():
 	is_waiting = false
 	
-	if is_secret_agent:
-		order_label.text = "Contract accepted."
-	elif satisfaction_score >= 4:
+	# Secret agents show the same feedback as regular customers
+	if satisfaction_score >= 4:
 		order_label.text = "★★★★★ Amazing!"
 	elif satisfaction_score >= 3:
 		order_label.text = "★★★☆☆ Thanks!"

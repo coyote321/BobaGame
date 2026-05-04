@@ -2,9 +2,9 @@ extends Node2D
 
 const SHIFT_DURATION: float = 120.0
 const MAX_CUSTOMERS: int = 5
-const CUSTOMER_SLOTS_Y: float = 350.0
+const CUSTOMER_SLOTS_Y: float = 200.0
 const SLOT_SPACING: float = 120.0
-const SLOT_START_X: float = 400.0
+const SLOT_START_X: float = 800.0
 
 const TEX_MILK_ICON := preload("res://Assets/Sprites/MilkIngredientIconDesign.png")
 const TEX_SUGAR_ICON := preload("res://Assets/Sprites/SugarIconPicture.png")
@@ -587,7 +587,7 @@ func spawn_customer():
 	customer_slots_taken[slot_index] = true
 
 	var cust = customer_scene.instantiate()
-	var slot_x = SLOT_START_X + (slot_index * SLOT_SPACING)
+	var slot_x = SLOT_START_X - (slot_index * SLOT_SPACING)
 	cust.position = Vector2(slot_x, CUSTOMER_SLOTS_Y)
 	cust.set_meta("slot_index", slot_index)
 
@@ -1591,9 +1591,8 @@ func _update_order_display():
 			parts.append("Milk")
 		if o.get("topping", "None") != "None":
 			parts.append(o["topping"])
-		var prefix = "⚑ " if target_customer.is_secret_agent else ""
-		display_text = prefix + " + ".join(parts)
-		display_color = Color(1.0, 0.75, 0.55) if target_customer.is_secret_agent else TEXT_WHITE
+		display_text = " + ".join(parts)
+		display_color = TEXT_WHITE
 	if display_text != _last_order_text:
 		lbl_order_display.text = display_text
 		_last_order_text = display_text

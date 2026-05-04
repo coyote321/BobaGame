@@ -343,9 +343,7 @@ func check_mission_status():
 				on_mission_complete()
 				return
 		"extermination", "timed_hunt":
-			if _is_target_defeated():
-				on_mission_complete()
-				return
+			# Must kill ALL enemies, not just the target
 			if living == 0:
 				on_mission_complete()
 		"survival":
