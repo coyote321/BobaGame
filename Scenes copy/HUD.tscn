@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://c8ungd4jd7yww"]
+[gd_scene load_steps=10 format=3 uid="uid://old_hud_copy_unused"]
 
 [ext_resource type="Script" uid="uid://coltxto0566oy" path="res://Scripts/HUD.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="6_hotbar"]

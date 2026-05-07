@@ -199,6 +199,8 @@ var customers_served_today: int = 0
 
 
 var mission_profile: Dictionary = {}
+## Live seconds remaining for timed missions; MissionManager writes, HUD reads. < 0 means no timer.
+var mission_countdown_seconds: float = -1.0
 var mission_aborting: bool = false
 
 
@@ -622,6 +624,7 @@ func start_shop(clear_abort_state: bool = true):
 	daily_earnings = 0
 	customers_served_today = 0
 	mission_profile = {}
+	mission_countdown_seconds = -1.0
 	generate_daily_quests()
 	if clear_abort_state:
 		mission_aborting = false
@@ -771,6 +774,7 @@ func reset_game():
 	daily_earnings = 0
 	customers_served_today = 0
 	mission_profile = {}
+	mission_countdown_seconds = -1.0
 	reputation = 0
 	shop_level = 1
 	unlocked_ingredients = STARTING_INGREDIENTS.duplicate()

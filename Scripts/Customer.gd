@@ -4,7 +4,8 @@ signal customer_left(customer)
 signal order_ready(customer)
 
 const CUSTOMER_FRAME_COUNT: int = 4
-const CUSTOMER_ANIM_FPS: float = 6.0
+const CUSTOMER_IDLE_FPS: float = 6.0
+const CUSTOMER_WALK_FPS: float = 10.0
 const CUSTOMER_SHEETS := [
 	preload("res://Assets/Sprites/customer 1.png"),
 	preload("res://Assets/Sprites/customer 2 (1).png"),
@@ -19,6 +20,8 @@ var is_waiting: bool = false
 var has_ordered: bool = false
 var satisfaction_score: int = 0
 var is_secret_agent: bool = false
+
+var _queue_move_tween: Tween
 
 @onready var patience_bar = $Control/ProgressBar
 @onready var order_label = $Control/OrderLabel
@@ -51,18 +54,41 @@ func _setup_customer_animation() -> void:
 	var frame_width: int = int(sheet.get_width() / CUSTOMER_FRAME_COUNT)
 	var frame_height: int = sheet.get_height()
 	var frames := SpriteFrames.new()
-	frames.add_animation("idle")
-	frames.set_animation_speed("idle", CUSTOMER_ANIM_FPS)
-	frames.set_animation_loop("idle", true)
-
-	for frame_idx in range(CUSTOMER_FRAME_COUNT):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = sheet
-		atlas.region = Rect2(frame_idx * frame_width, 0, frame_width, frame_height)
-		frames.add_frame("idle", atlas)
+	for anim_name in [&"idle", &"walk"]:
+		frames.add_animation(anim_name)
+		frames.set_animation_loop(anim_name, true)
+		if anim_name == &"idle":
+			frames.set_animation_speed(anim_name, CUSTOMER_IDLE_FPS)
+		else:
+			frames.set_animation_speed(anim_name, CUSTOMER_WALK_FPS)
+		for frame_idx in range(CUSTOMER_FRAME_COUNT):
+			var atlas := AtlasTexture.new()
+			atlas.atlas = sheet
+			atlas.region = Rect2(frame_idx * frame_width, 0, frame_width, frame_height)
+			frames.add_frame(anim_name, atlas)
 
 	body_sprite.sprite_frames = frames
-	body_sprite.play("idle")
+	body_sprite.play(&"idle")
+
+func move_to_queue_slot(target_pos: Vector2, duration: float = 0.4) -> void:
+	if (position - target_pos).length() <= 1.0:
+		return
+	if _queue_move_tween != null and is_instance_valid(_queue_move_tween):
+		_queue_move_tween.kill()
+	_queue_move_tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	if body_sprite is AnimatedSprite2D and body_sprite.sprite_frames != null:
+		if body_sprite.sprite_frames.has_animation(&"walk"):
+			body_sprite.play(&"walk")
+	_queue_move_tween.tween_property(self, "position", target_pos, duration)
+	_queue_move_tween.finished.connect(_on_queue_move_finished, CONNECT_ONE_SHOT)
+
+func _on_queue_move_finished() -> void:
+	_queue_move_tween = null
+	if not is_instance_valid(self):
+		return
+	if body_sprite is AnimatedSprite2D and body_sprite.sprite_frames != null:
+		if body_sprite.sprite_frames.has_animation(&"idle"):
+			body_sprite.play(&"idle")
 
 func _process(delta):
 	if is_waiting:

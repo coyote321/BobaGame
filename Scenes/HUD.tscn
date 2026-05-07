@@ -101,6 +101,7 @@ theme_override_font_sizes/font_size = 18
 text = "100 / 100"
 
 [node name="MissionPanel" type="Panel" parent="."]
+clip_contents = false
 offset_left = 16.0
 offset_top = 76.0
 offset_right = 244.0
@@ -133,6 +134,35 @@ theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("7_font_bold")
 theme_override_font_sizes/font_size = 18
 text = "TIME: 60s"
+
+[node name="TopCountdown" type="Label" parent="."]
+visible = false
+z_index = 200
+layout_mode = 0
+anchors_preset = 10
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -200.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 52.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 28
+text = "TIME LEFT  1:00"
+horizontal_alignment = 1
+
+[node name="MissionCountdownTickTimer" type="Timer" parent="."]
+process_callback = 0
+wait_time = 0.1
+one_shot = false
+autostart = false
 
 [node name="MissionEndPanel" type="Panel" parent="."]
 visible = false
@@ -184,18 +214,26 @@ text = "NEXT MISSION"
 flat = true
 
 [node name="MoneyPanel" type="Panel" parent="."]
-offset_left = 1040.0
+layout_mode = 0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -168.0
 offset_top = 12.0
-offset_right = 1264.0
+offset_right = -8.0
 offset_bottom = 60.0
+grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_money_panel")
 
 [node name="MoneyLabel" type="Label" parent="MoneyPanel"]
 layout_mode = 0
-offset_left = 14.0
+offset_left = 10.0
 offset_top = 6.0
-offset_right = 210.0
+offset_right = 150.0
 offset_bottom = 42.0
+horizontal_alignment = 2
 theme_override_colors/font_color = Color(0.55, 1, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
@@ -204,17 +242,24 @@ theme_override_font_sizes/font_size = 26
 text = "$ 0"
 
 [node name="ProgressionPanel" type="Panel" parent="."]
-offset_left = 1040.0
+layout_mode = 0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -168.0
 offset_top = 68.0
-offset_right = 1264.0
+offset_right = -8.0
 offset_bottom = 184.0
+grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hp_bg")
 
 [node name="LevelLabel" type="Label" parent="ProgressionPanel"]
 layout_mode = 0
 offset_left = 14.0
 offset_top = 8.0
-offset_right = 210.0
+offset_right = 150.0
 offset_bottom = 34.0
 theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -227,7 +272,7 @@ text = "LVL 1"
 layout_mode = 0
 offset_left = 14.0
 offset_top = 36.0
-offset_right = 210.0
+offset_right = 150.0
 offset_bottom = 58.0
 theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
 theme_override_fonts/font = ExtResource("9_font_medium")
@@ -238,7 +283,7 @@ text = "XP 0 / 50"
 layout_mode = 0
 offset_left = 14.0
 offset_top = 62.0
-offset_right = 210.0
+offset_right = 150.0
 offset_bottom = 78.0
 max_value = 50.0
 value = 0.0
@@ -248,7 +293,7 @@ show_percentage = false
 layout_mode = 0
 offset_left = 14.0
 offset_top = 80.0
-offset_right = 210.0
+offset_right = 150.0
 offset_bottom = 110.0
 theme_override_colors/font_color = Color(1, 0.55, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)

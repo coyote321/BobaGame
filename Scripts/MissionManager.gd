@@ -41,12 +41,15 @@ func _ready():
 	if profile.size() > 0:
 		mission_type = profile.get("type", "extermination")
 		mission_tier = int(profile.get("tier", 1))
+		waves_total = int(profile.get("waves", 0))
 		time_remaining = float(profile.get("time_limit", 0.0))
 		if time_remaining <= 0.0:
-			time_remaining = -1.0
-		waves_total = int(profile.get("waves", 0))
+			time_remaining = _fallback_time_limit_for_mission(mission_type, waves_total)
 		reward_money = int(profile.get("reward_money", 60))
 		reward_xp = int(profile.get("reward_xp", 40))
+		GameManager.mission_countdown_seconds = time_remaining
+	else:
+		GameManager.mission_countdown_seconds = -1.0
 	#region agent log
 	GameManager.agent_debug_log("Scripts/MissionManager.gd:_ready", "Mission scene ready with profile", {
 		"profile_size": profile.size(),
@@ -59,8 +62,7 @@ func _ready():
 	}, "H2,H3,H4")
 	#endregion
 
-	await get_tree().process_frame
-	hud = find_child("HUD", true, false)
+	_resolve_hud()
 	if hud:
 		hud.connect_buttons(_on_abort_pressed, _on_return_pressed, _on_next_mission_pressed)
 	#region agent log
@@ -73,6 +75,31 @@ func _ready():
 
 	_apply_mission_setup()
 
+	_sync_mission_hud()
+	call_deferred("_sync_mission_hud")
+	# Extra deferred sync to catch late HUD readiness
+	get_tree().create_timer(0.1).timeout.connect(_sync_mission_hud)
+
+func _fallback_time_limit_for_mission(mtype: String, _waves: int) -> float:
+	match mtype:
+		"timed_hunt":
+			return 60.0
+		"survival":
+			return 120.0
+	return -1.0
+
+func _resolve_hud() -> void:
+	hud = get_node_or_null("HUD")
+	if hud == null:
+		hud = find_child("HUD", true, false)
+	if hud == null:
+		var grouped := get_tree().get_nodes_in_group("mission_hud")
+		if not grouped.is_empty():
+			hud = grouped[0]
+
+func _sync_mission_hud() -> void:
+	if hud == null:
+		_resolve_hud()
 	if hud and hud.has_method("update_objective"):
 		hud.update_objective(_objective_text())
 	if hud and hud.has_method("update_timer"):
@@ -268,6 +295,8 @@ func _process(delta):
 	if mission_complete or mission_failed:
 		return
 
+	if hud == null:
+		_resolve_hud()
 	update_stealth(delta)
 	update_timer(delta)
 	_tick_survival(delta)
@@ -276,10 +305,12 @@ func _process(delta):
 
 func update_timer(delta: float) -> void:
 	if time_remaining < 0.0:
+		GameManager.mission_countdown_seconds = -1.0
 		if hud and hud.has_method("update_timer"):
 			hud.update_timer(-1.0)
 		return
 	time_remaining -= delta
+	GameManager.mission_countdown_seconds = time_remaining
 	if hud and hud.has_method("update_timer"):
 		hud.update_timer(time_remaining)
 	if time_remaining <= 0.0:
@@ -376,6 +407,7 @@ func on_mission_complete():
 		return
 
 	mission_complete = true
+	GameManager.mission_countdown_seconds = -1.0
 
 
 	GameManager.add_xp(reward_xp)
@@ -401,6 +433,7 @@ func on_mission_failed(reason: String):
 	if mission_complete or mission_failed:
 		return
 	mission_failed = true
+	GameManager.mission_countdown_seconds = -1.0
 	if hud and hud.has_method("show_mission_failed"):
 		hud.show_mission_failed(reason)
 	_spawn_shop_exit_door()
@@ -445,9 +478,9 @@ func _spawn_shop_exit_door() -> void:
 
 	var sign := Label.new()
 	sign.name = "Sign"
-	sign.text = "SHOP EXIT"
-	sign.position = Vector2(-48, -96)
-	sign.size = Vector2(96, 24)
+	sign.text = "BACK TO SHOP"
+	sign.position = Vector2(-70, -96)
+	sign.size = Vector2(140, 24)
 	sign.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sign.add_theme_font_size_override("font_size", 13)
 	sign.add_theme_color_override("font_color", Color(1.0, 0.9, 0.45))

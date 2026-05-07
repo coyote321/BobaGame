@@ -195,6 +195,12 @@ func _styled_label(text: String, font_ref: Font, size: int, color: Color) -> Lab
 	lbl.add_theme_color_override("font_color", color)
 	return lbl
 
+func _styled_label_wrapped(text: String, font_ref: Font, size: int, color: Color) -> Label:
+	var lbl := _styled_label(text, font_ref, size, color)
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return lbl
+
 func _styled_button(text: String, min_size: Vector2 = Vector2(140, 42)) -> Button:
 	var btn := Button.new()
 	btn.text = text
@@ -578,6 +584,35 @@ func get_free_slot() -> int:
 			return i
 	return -1
 
+func _customer_queue_sort_index(c: Node) -> int:
+	if c and c.has_meta("slot_index"):
+		return int(c.get_meta("slot_index"))
+	return 999
+
+func _slot_world_position(slot_index: int) -> Vector2:
+	return Vector2(SLOT_START_X - (slot_index * SLOT_SPACING), CUSTOMER_SLOTS_Y)
+
+func _repack_customer_slots() -> void:
+	for i in range(MAX_CUSTOMERS):
+		customer_slots_taken[i] = false
+	if active_customers.is_empty():
+		return
+	var sorted: Array = active_customers.duplicate()
+	sorted.sort_custom(func(a, b): return _customer_queue_sort_index(a) < _customer_queue_sort_index(b))
+	for new_idx in range(sorted.size()):
+		var c: Node2D = sorted[new_idx]
+		if not is_instance_valid(c):
+			continue
+		c.set_meta("slot_index", new_idx)
+		customer_slots_taken[new_idx] = true
+		var target_pos := _slot_world_position(new_idx)
+		if (c.position - target_pos).length() > 1.0:
+			if c.has_method("move_to_queue_slot"):
+				c.move_to_queue_slot(target_pos, 0.4)
+			else:
+				var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+				t.tween_property(c, "position", target_pos, 0.4)
+
 func spawn_customer():
 	if not spawn_point: return
 
@@ -606,11 +641,7 @@ func _on_customer_left(customer):
 	if customer in active_customers:
 		active_customers.erase(customer)
 		_update_order_display()
-
-		if customer.has_meta("slot_index"):
-			var idx = customer.get_meta("slot_index")
-			if idx >= 0 and idx < MAX_CUSTOMERS:
-				customer_slots_taken[idx] = false
+		_repack_customer_slots()
 
 		if customer.satisfaction_score > 0:
 			GameManager.add_reputation(customer.satisfaction_score * 10)
@@ -1205,6 +1236,7 @@ func _build_passive_card(passive_name: String) -> PanelContainer:
 func show_mission_panel():
 	var panel = get_node_or_null("UI_Layer/MissionPanel")
 	if not panel: return
+	panel.clip_contents = true
 
 	for child in panel.get_children():
 		if child.name != "CloseMission":
@@ -1224,6 +1256,8 @@ func show_mission_panel():
 	if close_btn: panel.move_child(close_btn, -1)
 
 	var outer_vbox := VBoxContainer.new()
+	outer_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer_vbox.add_theme_constant_override("separation", 8)
 	margin.add_child(outer_vbox)
 
@@ -1236,6 +1270,7 @@ func show_mission_panel():
 
 	if GameManager.target_order_received and GameManager.current_contract.size() > 0:
 		var contract_card := PanelContainer.new()
+		contract_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		contract_card.add_theme_stylebox_override("panel", _make_card_style(Color(1.0, 0.3, 0.3, 0.25)))
 		outer_vbox.add_child(contract_card)
 
@@ -1250,12 +1285,10 @@ func show_mission_panel():
 
 		var ct: Dictionary = GameManager.current_contract
 		info_col.add_child(_styled_label("ACTIVE CONTRACT", font_semi, 10, TEXT_RED))
-		info_col.add_child(_styled_label(ct.get("target", "?"), font_bold, 15, TEXT_WHITE))
+		info_col.add_child(_styled_label_wrapped(ct.get("target", "?"), font_bold, 15, TEXT_WHITE))
 		var desc: String = ct.get("desc", "")
 		if desc != "":
-			var desc_lbl = _styled_label(desc, font_medium, 11, TEXT_DIM)
-			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-			info_col.add_child(desc_lbl)
+			info_col.add_child(_styled_label_wrapped(desc, font_medium, 11, TEXT_DIM))
 		var meta_parts: Array = []
 		var mtype_s: String = ct.get("mission_type", "")
 		if mtype_s != "":
@@ -1265,9 +1298,10 @@ func show_mission_panel():
 		if int(ct.get("waves", 0)) > 0:
 			meta_parts.append(str(int(ct["waves"])) + " WAVES")
 		meta_parts.append("$" + str(int(ct.get("reward", 0))))
-		info_col.add_child(_styled_label("  ·  ".join(meta_parts), font_medium, 11, TEXT_GREEN))
+		info_col.add_child(_styled_label_wrapped("  ·  ".join(meta_parts), font_medium, 11, TEXT_GREEN))
 
 		var go_btn := _styled_button("GO", Vector2(70, 36))
+		go_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 		go_btn.add_theme_font_size_override("font_size", 13)
 		go_btn.add_theme_stylebox_override("normal", _make_panel_style(
 			Color(0.14, 0.08, 0.08, 0.95), Color(1.0, 0.35, 0.35, 0.5), 6))
@@ -1280,6 +1314,7 @@ func show_mission_panel():
 
 
 	var scroll := ScrollContainer.new()
+	scroll.clip_contents = true
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	outer_vbox.add_child(scroll)
@@ -1292,7 +1327,8 @@ func show_mission_panel():
 	var missions = GameManager.get_available_missions()
 	if missions.is_empty():
 		var empty_lbl = _styled_label("No missions available yet.\nServe customers to unlock contracts.", font_medium, 13, TEXT_DIM)
-		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		mission_list.add_child(empty_lbl)
 	else:
@@ -1308,6 +1344,7 @@ func _build_mission_card(parent: VBoxContainer, m: Dictionary):
 	var card_color: Color = m.get("color", ACCENT_GOLD_DIM)
 
 	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.add_theme_stylebox_override("panel", _make_card_style(card_color.lerp(Color.TRANSPARENT, 0.6)))
 	parent.add_child(card)
 
@@ -1322,21 +1359,24 @@ func _build_mission_card(parent: VBoxContainer, m: Dictionary):
 
 	var tier_text = "  I" if tier == 1 else ("  II" if tier == 2 else "  III")
 	var name_row := HBoxContainer.new()
+	name_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_row.add_theme_constant_override("separation", 6)
 	info_col.add_child(name_row)
-	name_row.add_child(_styled_label(label_text + tier_text, font_bold, 16, card_color))
+	var title_lbl := _styled_label_wrapped(label_text + tier_text, font_bold, 16, card_color)
+	name_row.add_child(title_lbl)
 
 	var desc_text: String = m.get("desc", "")
 	if m.has("time_limit"):
 		desc_text += "  (" + str(int(m["time_limit"])) + "s)"
-	info_col.add_child(_styled_label(desc_text, font_medium, 13, TEXT_WHITE))
+	info_col.add_child(_styled_label_wrapped(desc_text, font_medium, 13, TEXT_WHITE))
 
 	var reward_parts := []
 	reward_parts.append("$" + str(m.get("reward_money", 0)))
 	reward_parts.append(str(m.get("reward_xp", 0)) + " XP")
-	info_col.add_child(_styled_label("  ·  ".join(reward_parts), font_semi, 13, TEXT_GREEN))
+	info_col.add_child(_styled_label_wrapped("  ·  ".join(reward_parts), font_semi, 13, TEXT_GREEN))
 
 	var go_btn := _styled_button("GO", Vector2(80, 40))
+	go_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 	go_btn.add_theme_font_size_override("font_size", 15)
 	var captured_m = m.duplicate()
 	go_btn.pressed.connect(func(_m = captured_m): _launch_mission(_m))
@@ -1601,17 +1641,19 @@ func _update_order_display():
 		_last_order_color = display_color
 
 func _get_waiting_customer():
+	var best = null
+	var best_slot := 999
 	for c in active_customers:
-		if c.is_waiting:
-			return c
-	return null
+		if not c.is_waiting:
+			continue
+		var si := _customer_queue_sort_index(c)
+		if si < best_slot:
+			best_slot = si
+			best = c
+	return best
 
 func _on_serve_drink():
-	var target_customer = null
-	for c in active_customers:
-		if c.is_waiting:
-			target_customer = c
-			break
+	var target_customer = _get_waiting_customer()
 
 	if target_customer:
 		var created_drink = CraftingSystem.validate_mix(current_mix, target_customer.order)

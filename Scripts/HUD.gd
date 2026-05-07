@@ -15,16 +15,17 @@ const OBJECTIVE_CHAR_WIDTH := 9.5
 @onready var health_text: Label = $HealthPanel/HealthText
 @onready var mission_panel: Panel = $MissionPanel
 @onready var objective_label: Label = $MissionPanel/ObjectiveLabel
-@onready var timer_label: Label = $MissionPanel/TimerLabel
+var timer_label: Label = null
+var mission_countdown_tick_timer: Timer = null
 @onready var mission_end_panel: Panel = get_node_or_null("MissionEndPanel") as Panel
 @onready var mission_end_title: Label = get_node_or_null("MissionEndPanel/VBox/Title") as Label
 @onready var mission_end_subtitle: Label = get_node_or_null("MissionEndPanel/VBox/Subtitle") as Label
 @onready var next_mission_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/NextMissionButton") as Button
-@onready var money_label: Label = $MoneyPanel/MoneyLabel
-@onready var level_label: Label = $ProgressionPanel/LevelLabel
-@onready var xp_label: Label = $ProgressionPanel/XPLabel
-@onready var xp_bar: ProgressBar = $ProgressionPanel/XPBar
-@onready var enemy_label: Label = $ProgressionPanel/EnemyLabel
+@onready var money_label: Label = get_node_or_null("MoneyPanel/MoneyLabel")
+@onready var level_label: Label = get_node_or_null("ProgressionPanel/LevelLabel")
+@onready var xp_label: Label = get_node_or_null("ProgressionPanel/XPLabel")
+@onready var xp_bar: ProgressBar = get_node_or_null("ProgressionPanel/XPBar") as ProgressBar
+@onready var enemy_label: Label = get_node_or_null("ProgressionPanel/EnemyLabel")
 
 @onready var hotbar_slot1: Panel = $Hotbar/HBox/Slot1
 @onready var hotbar_slot2: Panel = $Hotbar/HBox/Slot2
@@ -41,6 +42,8 @@ var _last_xp_value: int = -1
 var _last_xp_need: int = -1
 
 func _ready():
+	add_to_group("mission_hud")
+	_ensure_timer_nodes()
 	if health_bar:
 		health_bar.max_value = GameManager.max_health
 		health_bar.value = GameManager.max_health
@@ -77,6 +80,89 @@ func _ready():
 
 	_refresh_hotbar()
 	update_weapon(1, GameManager.equipped_main)
+	if mission_countdown_tick_timer:
+		mission_countdown_tick_timer.timeout.connect(_on_mission_countdown_tick)
+	call_deferred("_prime_mission_countdown_display")
+
+## Create timer/countdown nodes programmatically if they don't exist in the scene.
+func _ensure_timer_nodes() -> void:
+	# -- TimerLabel inside MissionPanel --
+	timer_label = get_node_or_null("MissionPanel/TimerLabel") as Label
+	if timer_label == null and mission_panel:
+		var font_semi = load("res://Assets/Fonts/Montserrat-SemiBold.ttf")
+		timer_label = Label.new()
+		timer_label.name = "TimerLabel"
+		timer_label.visible = false
+		timer_label.offset_left = 14.0
+		timer_label.offset_top = 38.0
+		timer_label.offset_right = 220.0
+		timer_label.offset_bottom = 60.0
+		timer_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3, 1))
+		timer_label.add_theme_color_override("font_outline_color", Color.BLACK)
+		timer_label.add_theme_constant_override("outline_size", 3)
+		if font_semi:
+			timer_label.add_theme_font_override("font", font_semi)
+		timer_label.add_theme_font_size_override("font_size", 14)
+		timer_label.text = ""
+		mission_panel.add_child(timer_label)
+
+
+
+	# -- MissionCountdownTickTimer --
+	mission_countdown_tick_timer = get_node_or_null("MissionCountdownTickTimer") as Timer
+	if mission_countdown_tick_timer == null:
+		mission_countdown_tick_timer = Timer.new()
+		mission_countdown_tick_timer.name = "MissionCountdownTickTimer"
+		mission_countdown_tick_timer.process_callback = Timer.TIMER_PROCESS_IDLE
+		mission_countdown_tick_timer.wait_time = 0.1
+		mission_countdown_tick_timer.one_shot = false
+		mission_countdown_tick_timer.autostart = false
+		add_child(mission_countdown_tick_timer)
+
+func _bootstrap_seconds_from_profile() -> float:
+	var p: Dictionary = GameManager.mission_profile
+	if p.is_empty():
+		return -1.0
+	var tl := float(p.get("time_limit", 0.0))
+	if tl > 0.0:
+		return tl
+	match String(p.get("type", "")):
+		"timed_hunt":
+			return 60.0
+		"survival":
+			return 120.0
+		_:
+			return -1.0
+
+func _prime_mission_countdown_display() -> void:
+	if GameManager.current_phase != "MISSION":
+		return
+	var sec := GameManager.mission_countdown_seconds
+	if sec < 0.0:
+		sec = _bootstrap_seconds_from_profile()
+		if sec > 0.0:
+			GameManager.mission_countdown_seconds = sec
+	if sec >= 0.0:
+		update_timer(sec)
+		if mission_countdown_tick_timer and mission_countdown_tick_timer.is_stopped():
+			mission_countdown_tick_timer.start()
+	elif mission_countdown_tick_timer:
+		mission_countdown_tick_timer.stop()
+
+func _stop_mission_countdown_tick_timer() -> void:
+	if mission_countdown_tick_timer and not mission_countdown_tick_timer.is_stopped():
+		mission_countdown_tick_timer.stop()
+
+func _on_mission_countdown_tick() -> void:
+	if GameManager.current_phase != "MISSION":
+		_stop_mission_countdown_tick_timer()
+		return
+	var sec := GameManager.mission_countdown_seconds
+	if sec < 0.0:
+		_stop_mission_countdown_tick_timer()
+		update_timer(-1.0)
+		return
+	update_timer(sec)
 
 func _default_objective_text() -> String:
 	var profile = GameManager.mission_profile
@@ -166,22 +252,26 @@ func update_objective(text: String):
 	_fit_mission_panel_to_objective(expanded)
 
 func update_timer(seconds_remaining: float):
-	if not timer_label:
-		return
-	if seconds_remaining < 0:
-		timer_label.visible = false
+	if seconds_remaining < 0.0:
+		_stop_mission_countdown_tick_timer()
+		if timer_label:
+			timer_label.visible = false
 		_fit_mission_panel_to_objective(false)
 		return
-	_fit_mission_panel_to_objective(true)
-	timer_label.visible = true
-	var secs := int(ceil(seconds_remaining))
-	timer_label.text = "TIME  %02d:%02d" % [secs / 60, secs % 60]
+	var secs := maxi(0, int(ceil(seconds_remaining)))
+	var txt := "TIME LEFT  %02d:%02d" % [secs / 60, secs % 60]
+	var col: Color
 	if seconds_remaining < 10.0:
-		timer_label.add_theme_color_override("font_color", ACCENT_RED)
-	elif seconds_remaining < 20.0:
-		timer_label.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
+		col = ACCENT_RED
+	elif seconds_remaining < 30.0:
+		col = Color(1, 0.8, 0.3)
 	else:
-		timer_label.add_theme_color_override("font_color", ACCENT_GOLD)
+		col = ACCENT_GOLD
+	_fit_mission_panel_to_objective(true)
+	if timer_label:
+		timer_label.visible = true
+		timer_label.text = txt
+		timer_label.add_theme_color_override("font_color", col)
 
 func update_enemy_count(remaining: int, total: int):
 	if enemy_label:
@@ -200,6 +290,7 @@ func show_mission_failed(reason: String):
 	_show_mission_end_state("MISSION FAILED", ACCENT_RED, reason, false)
 
 func _show_mission_end_state(text: String, color: Color, subtitle: String, show_next: bool):
+	_stop_mission_countdown_tick_timer()
 	if objective_label:
 		objective_label.text = text
 		objective_label.add_theme_color_override("font_color", color)
@@ -226,6 +317,25 @@ func connect_buttons(_abort_callback: Callable, _return_callback: Callable, next
 		next_mission_button.pressed.connect(next_callback)
 
 func _process(_delta):
+	# --- Self-update mission timer from GameManager every frame ---
+	if GameManager.current_phase == "MISSION":
+		var sec := GameManager.mission_countdown_seconds
+		if sec >= 0.0:
+			var secs := maxi(0, int(ceil(sec)))
+			var txt := "TIME LEFT  %02d:%02d" % [secs / 60, secs % 60]
+			var col: Color
+			if sec < 10.0:
+				col = ACCENT_RED
+			elif sec < 30.0:
+				col = Color(1, 0.8, 0.3)
+			else:
+				col = ACCENT_GOLD
+			_fit_mission_panel_to_objective(true)
+			if timer_label:
+				timer_label.visible = true
+				timer_label.text = txt
+				timer_label.add_theme_color_override("font_color", col)
+
 	if money_label:
 		var money_text := "$ " + str(GameManager.money)
 		if money_text != _last_money_text:
@@ -250,4 +360,5 @@ func _process(_delta):
 			_last_xp_text = xp_text
 
 func hide_hud():
+	_stop_mission_countdown_tick_timer()
 	visible = false
