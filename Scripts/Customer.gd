@@ -6,6 +6,7 @@ signal order_ready(customer)
 const CUSTOMER_FRAME_COUNT: int = 4
 const CUSTOMER_IDLE_FPS: float = 6.0
 const CUSTOMER_WALK_FPS: float = 10.0
+const LEAVE_SHOP_DURATION: float = 0.8
 const CUSTOMER_SHEETS := [
 	preload("res://Assets/Sprites/customer 1.png"),
 	preload("res://Assets/Sprites/customer 2 (1).png"),
@@ -20,8 +21,10 @@ var is_waiting: bool = false
 var has_ordered: bool = false
 var satisfaction_score: int = 0
 var is_secret_agent: bool = false
+var exit_position: Vector2 = Vector2.ZERO
 
 var _queue_move_tween: Tween
+var _leaving_shop: bool = false
 
 @onready var patience_bar = $Control/ProgressBar
 @onready var order_label = $Control/OrderLabel
@@ -71,6 +74,8 @@ func _setup_customer_animation() -> void:
 	body_sprite.play(&"idle")
 
 func move_to_queue_slot(target_pos: Vector2, duration: float = 0.4) -> void:
+	if _leaving_shop:
+		return
 	if (position - target_pos).length() <= 1.0:
 		return
 	if _queue_move_tween != null and is_instance_valid(_queue_move_tween):
@@ -81,6 +86,9 @@ func move_to_queue_slot(target_pos: Vector2, duration: float = 0.4) -> void:
 			body_sprite.play(&"walk")
 	_queue_move_tween.tween_property(self, "position", target_pos, duration)
 	_queue_move_tween.finished.connect(_on_queue_move_finished, CONNECT_ONE_SHOT)
+
+func set_exit_position(target_pos: Vector2) -> void:
+	exit_position = target_pos
 
 func _on_queue_move_finished() -> void:
 	_queue_move_tween = null
@@ -206,16 +214,36 @@ func serve_complete():
 	else:
 		order_label.text = "★☆☆☆☆ Meh."
 	
-	await get_tree().create_timer(1.5).timeout
+	await get_tree().create_timer(0.4).timeout
 	leave_shop()
 
 func leave_angry():
 	is_waiting = false
 	satisfaction_score = 0
 	order_label.text = "Too slow!"
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(0.6).timeout
 	leave_shop()
 
 func leave_shop():
+	if _leaving_shop:
+		return
+	_leaving_shop = true
+	is_waiting = false
 	emit_signal("customer_left", self)
-	queue_free()
+
+	if _queue_move_tween != null and is_instance_valid(_queue_move_tween):
+		_queue_move_tween.kill()
+
+	if exit_position == Vector2.ZERO:
+		queue_free()
+		return
+
+	if body_sprite is AnimatedSprite2D and body_sprite.sprite_frames != null:
+		if body_sprite.sprite_frames.has_animation(&"walk"):
+			body_sprite.play(&"walk")
+
+	_queue_move_tween = create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_queue_move_tween.set_parallel(true)
+	_queue_move_tween.tween_property(self, "position", exit_position, LEAVE_SHOP_DURATION)
+	_queue_move_tween.tween_property(self, "modulate:a", 0.0, LEAVE_SHOP_DURATION)
+	_queue_move_tween.chain().tween_callback(queue_free)

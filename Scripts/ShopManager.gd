@@ -5,6 +5,8 @@ const MAX_CUSTOMERS: int = 5
 const CUSTOMER_SLOTS_Y: float = 200.0
 const SLOT_SPACING: float = 120.0
 const SLOT_START_X: float = 800.0
+const CUSTOMER_QUEUE_SHIFT_DURATION: float = 0.55
+const CUSTOMER_ENTER_DURATION: float = 1.0
 
 const TEX_MILK_ICON := preload("res://Assets/Sprites/MilkIngredientIconDesign.png")
 const TEX_SUGAR_ICON := preload("res://Assets/Sprites/SugarIconPicture.png")
@@ -608,10 +610,10 @@ func _repack_customer_slots() -> void:
 		var target_pos := _slot_world_position(new_idx)
 		if (c.position - target_pos).length() > 1.0:
 			if c.has_method("move_to_queue_slot"):
-				c.move_to_queue_slot(target_pos, 0.4)
+				c.move_to_queue_slot(target_pos, CUSTOMER_QUEUE_SHIFT_DURATION)
 			else:
 				var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-				t.tween_property(c, "position", target_pos, 0.4)
+				t.tween_property(c, "position", target_pos, CUSTOMER_QUEUE_SHIFT_DURATION)
 
 func spawn_customer():
 	if not spawn_point: return
@@ -622,9 +624,12 @@ func spawn_customer():
 	customer_slots_taken[slot_index] = true
 
 	var cust = customer_scene.instantiate()
-	var slot_x = SLOT_START_X - (slot_index * SLOT_SPACING)
-	cust.position = Vector2(slot_x, CUSTOMER_SLOTS_Y)
+	var target_pos := _slot_world_position(slot_index)
+	var spawn_pos := to_local(spawn_point.global_position)
+	cust.position = spawn_pos
 	cust.set_meta("slot_index", slot_index)
+	if cust.has_method("set_exit_position"):
+		cust.set_exit_position(spawn_pos)
 
 	var is_first_customer = customers_spawned == 0
 	if (is_first_customer or randf() < 0.5) and not GameManager.target_order_received:
@@ -634,8 +639,14 @@ func spawn_customer():
 	customers_spawned += 1
 	cust.customer_left.connect(_on_customer_left)
 	cust.order_ready.connect(_on_customer_order)
-	add_child(cust)
 	active_customers.append(cust)
+	add_child(cust)
+
+	if cust.has_method("move_to_queue_slot"):
+		cust.move_to_queue_slot(target_pos, CUSTOMER_ENTER_DURATION)
+	else:
+		var t := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+		t.tween_property(cust, "position", target_pos, CUSTOMER_ENTER_DURATION)
 
 func _on_customer_left(customer):
 	if customer in active_customers:
