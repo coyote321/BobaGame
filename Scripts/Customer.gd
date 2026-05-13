@@ -114,9 +114,11 @@ func _process(delta):
 			leave_angry()
 
 func generate_order():
-
-
+	# Snapshot the currently-orderable ingredients at the moment of order
+	# creation. Customers must NEVER request anything outside this list
+	# (e.g. Honey before the level-2 unlock).
 	var orderable_ingredients := GameManager.get_orderable_ingredients()
+
 	var available_bases = []
 	if "Black Tea" in orderable_ingredients:
 		available_bases.append("Black Tea")
@@ -124,26 +126,32 @@ func generate_order():
 		available_bases.append("Green Tea")
 	if available_bases.is_empty():
 		available_bases = ["Black Tea"]
-	
 
 	var use_milk = "Milk" in orderable_ingredients and randf() > 0.5
-	
 
+	# Only toppings that CraftingSystem.validate_mix can resolve are eligible
+	# here. Adding new toppings (e.g. Taro) requires teaching the crafter
+	# about them first, otherwise the player would not be able to serve.
 	var available_toppings = []
-	if "Tapioca" in orderable_ingredients:
-		available_toppings.append("Tapioca")
-	if "Sugar" in orderable_ingredients:
-		available_toppings.append("Sugar")
-	if "Honey" in orderable_ingredients:
-		available_toppings.append("Honey")
-	
+	for topping in ["Tapioca", "Sugar", "Honey"]:
+		if topping in orderable_ingredients:
+			available_toppings.append(topping)
+
+	var chosen_topping := "None"
+	if available_toppings.size() > 0 and randf() > 0.3:
+		chosen_topping = available_toppings.pick_random()
+
+	# Final defensive check: never let a locked ingredient through, even if
+	# something upstream produced an inconsistent orderable list.
+	if chosen_topping != "None" and chosen_topping not in orderable_ingredients:
+		chosen_topping = "None"
 
 	order = {
 		"base": available_bases.pick_random(),
 		"milk": "Milk" if use_milk else "No Milk",
-		"topping": available_toppings.pick_random() if available_toppings.size() > 0 and randf() > 0.3 else "None"
+		"topping": chosen_topping
 	}
-	
+
 	update_order_display()
 	has_ordered = true
 	is_waiting = true
