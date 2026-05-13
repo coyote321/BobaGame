@@ -34,6 +34,8 @@ var mission_countdown_tick_timer: Timer = null
 var _selected_style: StyleBoxFlat
 var _unselected_style: StyleBoxFlat
 var _health_fill_style: StyleBoxFlat
+var _xp_background_style: StyleBoxFlat
+var _xp_fill_style: StyleBoxFlat
 var _last_health_color_key: String = ""
 var _last_money_text: String = ""
 var _last_level_text: String = ""
@@ -77,6 +79,15 @@ func _ready():
 	_health_fill_style.set_corner_radius_all(3)
 	if health_bar:
 		health_bar.add_theme_stylebox_override("fill", _health_fill_style)
+	_xp_background_style = StyleBoxFlat.new()
+	_xp_background_style.bg_color = Color(0.04, 0.04, 0.07, 1.0)
+	_xp_background_style.set_corner_radius_all(8)
+	_xp_fill_style = StyleBoxFlat.new()
+	_xp_fill_style.bg_color = ACCENT_GOLD
+	_xp_fill_style.set_corner_radius_all(8)
+	if xp_bar:
+		xp_bar.add_theme_stylebox_override("background", _xp_background_style)
+		xp_bar.add_theme_stylebox_override("fill", _xp_fill_style)
 
 	_refresh_hotbar()
 	update_weapon(1, GameManager.equipped_main)
