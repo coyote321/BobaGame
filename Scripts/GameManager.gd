@@ -211,6 +211,10 @@ var master_volume: float = 80.0
 var sfx_volume: float = 80.0
 var _sfx_bus_idx: int = -1
 
+# True after the player has dismissed the first-time kitchen tutorial overlay.
+# Persists for the play session so the tutorial only shows once.
+var tutorial_seen: bool = false
+
 
 const ADMIN_TARGET_LEVEL: int = 99
 const ADMIN_MONEY_GRANT: int = 999999
@@ -797,6 +801,7 @@ func reset_game():
 	max_health_bonus = 0
 	cooldown_reduction = 0.0
 	max_health = 100
+	tutorial_seen = false
 	generate_daily_quests()
 	print("Game state fully reset")
 

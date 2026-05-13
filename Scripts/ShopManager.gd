@@ -64,6 +64,7 @@ var _panel_cooldown: float = 0.0
 var _cash_register_sfx: AudioStreamPlayer = null
 var _error_sfx: AudioStreamPlayer = null
 var _day_summary_overlay: Control = null
+var _tutorial_overlay: Control = null
 var _debug_f9_was_pressed: bool = false
 var _last_hud_second: int = -1
 var _last_day_text: String = ""
@@ -100,6 +101,8 @@ func _ready():
 	_error_sfx = _make_sfx(preload("res://Assets/Audio/sfx/sfx_error_sound.wav"))
 	_make_sfx(preload("res://Assets/Audio/music/mus_day.wav"), -10.0, &"Music", true)
 
+	_maybe_show_tutorial()
+
 func _animate_scene_enter():
 	if hud_container:
 		hud_container.modulate.a = 0.0
@@ -126,11 +129,21 @@ func _process(delta):
 	if _panel_cooldown > 0.0:
 		_panel_cooldown -= delta
 
-	if shift_active:
+	var tutorial_open := _tutorial_overlay != null and is_instance_valid(_tutorial_overlay)
+
+	if shift_active and not tutorial_open:
 		time_remaining -= delta
 		update_hud()
 		if time_remaining <= 0:
 			end_day()
+
+	if tutorial_open:
+		if Input.is_action_just_pressed("interact") \
+			or Input.is_action_just_pressed("pause") \
+			or Input.is_action_just_pressed("ui_accept") \
+			or Input.is_action_just_pressed("ui_cancel"):
+			_dismiss_tutorial()
+		return
 
 	if active_zone and Input.is_action_just_pressed("interact"):
 		if _panel_cooldown <= 0.0:
@@ -263,6 +276,8 @@ func _close_panel(panel: Control):
 
 func _is_any_panel_open() -> bool:
 	if _day_summary_overlay != null and is_instance_valid(_day_summary_overlay):
+		return true
+	if _tutorial_overlay != null and is_instance_valid(_tutorial_overlay):
 		return true
 	for path in ["UI_Layer/BobaPanel", "UI_Layer/UpgradePanel", "UI_Layer/MissionPanel", "UI_Layer/AbilityPanel"]:
 		var p = get_node_or_null(path)
@@ -1821,3 +1836,165 @@ func show_day_summary():
 	tween.set_parallel(true)
 	tween.tween_property(overlay, "modulate:a", 1.0, 0.5)
 	tween.tween_property(center_panel, "scale", Vector2.ONE, 0.4).set_delay(0.1)
+
+
+# --- First-time kitchen tutorial overlay ---------------------------------
+
+func _maybe_show_tutorial() -> void:
+	if GameManager.tutorial_seen:
+		return
+	if GameManager.day != 1:
+		return
+	_show_tutorial()
+
+func _show_tutorial() -> void:
+	if _tutorial_overlay != null and is_instance_valid(_tutorial_overlay):
+		return
+
+	var overlay := Control.new()
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	$UI_Layer.add_child(overlay)
+	_tutorial_overlay = overlay
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.02, 0.02, 0.04, 0.78)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(bg)
+
+	var center_panel := Panel.new()
+	center_panel.set_anchors_preset(Control.PRESET_CENTER)
+	center_panel.offset_left = -340
+	center_panel.offset_top = -260
+	center_panel.offset_right = 340
+	center_panel.offset_bottom = 260
+	center_panel.add_theme_stylebox_override("panel", _make_panel_style(
+		Color(0.05, 0.05, 0.07, 0.98), Color(0.91, 0.76, 0.29, 0.45), 14))
+	overlay.add_child(center_panel)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 32)
+	margin.add_theme_constant_override("margin_top", 26)
+	margin.add_theme_constant_override("margin_right", 32)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	center_panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(vbox)
+
+	var title = _styled_label("WELCOME TO THE SHOP", font_bold, 26, ACCENT_GOLD)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var subtitle = _styled_label("Here's how you make it in this city.", font_medium, 13, TEXT_DIM)
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(subtitle)
+
+	vbox.add_child(_make_divider(ACCENT_GOLD_DIM))
+
+	var tips := [
+		{
+			"color": ACCENT_GOLD,
+			"label": "BOBA COUNTER",
+			"text": "Press [E] at the counter to mix drinks. Match each customer's order to earn tips and XP.",
+		},
+		{
+			"color": Color(1.0, 0.45, 0.45),
+			"label": "CONTRACTS",
+			"text": "Some customers slip you a secret order — a contract. Take it for big money on assassination missions.",
+		},
+		{
+			"color": Color(0.8, 0.55, 1.0),
+			"label": "ABILITIES",
+			"text": "Serve customers and finish missions to level up. Spend levels and cash on abilities and passive upgrades.",
+		},
+		{
+			"color": Color(0.45, 0.72, 1.0),
+			"label": "WEAPON SHOP",
+			"text": "Use your earnings to buy stronger weapons. Equip them to slots 1, 2, and 3 for missions.",
+		},
+	]
+
+	for tip in tips:
+		vbox.add_child(_make_tutorial_row(tip["color"], String(tip["label"]), String(tip["text"])))
+
+	vbox.add_child(_make_spacer(8))
+
+	var hint = _styled_label("Walk into a glowing zone, then press [E] to interact.", font_medium, 12, TEXT_DIM)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 12)
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(btn_row)
+
+	var got_it := _styled_button("GOT IT", Vector2(180, 46))
+	got_it.add_theme_font_size_override("font_size", 15)
+	got_it.add_theme_stylebox_override("normal", _make_panel_style(
+		Color(0.14, 0.12, 0.06, 0.95), ACCENT_GOLD_DIM, 8))
+	got_it.add_theme_stylebox_override("hover", _make_panel_style(
+		Color(0.2, 0.17, 0.08, 0.95), ACCENT_GOLD, 8))
+	got_it.add_theme_color_override("font_color", ACCENT_GOLD)
+	got_it.add_theme_color_override("font_hover_color", Color.WHITE)
+	got_it.pressed.connect(_dismiss_tutorial)
+	btn_row.add_child(got_it)
+
+	got_it.call_deferred("grab_focus")
+
+	overlay.modulate.a = 0.0
+	center_panel.scale = Vector2(0.92, 0.92)
+	center_panel.pivot_offset = center_panel.size / 2.0
+
+	var tween := create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.set_parallel(true)
+	tween.tween_property(overlay, "modulate:a", 1.0, 0.4)
+	tween.tween_property(center_panel, "scale", Vector2.ONE, 0.4).set_delay(0.05)
+
+func _make_tutorial_row(accent: Color, label_text: String, body_text: String) -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _make_card_style(
+		Color(accent.r, accent.g, accent.b, 0.35)))
+
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	card.add_child(hbox)
+
+	var dot := ColorRect.new()
+	dot.custom_minimum_size = Vector2(6, 0)
+	dot.color = accent
+	dot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox.add_child(dot)
+
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 2)
+	hbox.add_child(text_col)
+
+	var head = _styled_label(label_text, font_bold, 14, accent)
+	text_col.add_child(head)
+
+	var body = _styled_label(body_text, font_medium, 12, TEXT_WHITE)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD
+	body.custom_minimum_size = Vector2(560, 0)
+	text_col.add_child(body)
+
+	return card
+
+func _dismiss_tutorial() -> void:
+	if _tutorial_overlay == null or not is_instance_valid(_tutorial_overlay):
+		_tutorial_overlay = null
+		GameManager.tutorial_seen = true
+		return
+
+	var overlay := _tutorial_overlay
+	GameManager.tutorial_seen = true
+	_tutorial_overlay = null
+	_panel_cooldown = PANEL_ANIM_SPEED + 0.1
+
+	var tween := create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(overlay, "modulate:a", 0.0, 0.25)
+	tween.tween_callback(overlay.queue_free)
