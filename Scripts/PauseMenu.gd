@@ -53,11 +53,32 @@ func _unhandled_input(event: InputEvent) -> void:
 				shop._close_all_panels()
 			get_viewport().set_input_as_handled()
 			return
+		# Safety net: don't allow pausing on non-gameplay scenes (main menu,
+		# intro, end screen). These scenes have their own Esc handling and
+		# pausing on top of them strands the player when the next scene loads.
+		if not _is_pauseable_scene():
+			return
 		if get_tree().paused:
 			resume_game()
 		else:
 			pause_game()
 		get_viewport().set_input_as_handled()
+
+func _is_pauseable_scene() -> bool:
+	var scene: Node = get_tree().current_scene
+	if scene == null:
+		return false
+	var scene_script: Script = scene.get_script()
+	if scene_script == null:
+		return true
+	var path: String = scene_script.resource_path
+	# Block pause toggling on these top-level non-gameplay screens.
+	var blocked: Array[String] = [
+		"res://Scripts/MainMenu.gd",
+		"res://Scripts/IntroScene.gd",
+		"res://Scripts/EndScreen.gd",
+	]
+	return path not in blocked
 
 func pause_game() -> void:
 	show_pause_menu()
