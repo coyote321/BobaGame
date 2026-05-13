@@ -449,14 +449,6 @@ const CONTRACT_POOL := [
 		"reward_min": 200, "reward_max": 280,
 		"time_limit": 120.0, "waves": 3,
 	},
-	{
-		"target": "The Chief Engineer",
-		"desc": "Rogue insider holed up in a nuclear plant — radioactive sludge melts on contact.",
-		"scene": "res://Scenes/MissionScene5.tscn",
-		"mission_type": "boss_hunt",
-		"reward_min": 280, "reward_max": 400,
-		"time_limit": 0.0, "waves": 0,
-	},
 ]
 
 func generate_random_contract() -> Dictionary:
@@ -557,7 +549,13 @@ const MISSION_CATALOG := [
 	 "color": Color(0.7, 0.45, 1.0)},
 	{"type": "boss_hunt", "label": "Reactor Breach", "desc": "Eliminate the rogue Chief Engineer and avoid radioactive sludge.",
 	 "scene": "res://Scenes/MissionScene5.tscn",
-	 "reward_money": 240, "reward_xp": 180, "unlock_missions": 4,
+	 "reward_money": 500, "reward_xp": 360, "unlock_missions": 4, "tier": 3,
+	 "is_final_mission": true,
+	 "story_pages": [
+		{"title": "THE WASTELAND GATE", "body": "Every contract points to the same dead horizon: the abandoned nuclear plant beyond town. The air glows. The ground has split. Nothing grows there except fear."},
+		{"title": "THE REACTOR OVERLORD", "body": "The Chief Engineer was never just a rogue worker. He became a giant reactor-fed tyrant, using the plant to power every gang, every bribe, every weapon pointed at your town."},
+		{"title": "RESTORE THE TOWN", "body": "Cut through the wasteland, breach the reactor yard, and defeat him. If the Overlord falls, the city can breathe again."},
+	 ],
 	 "color": Color(0.55, 0.95, 0.35)},
 ]
 
@@ -568,7 +566,7 @@ func get_available_missions() -> Array:
 		if total_done < entry.get("unlock_missions", 0):
 			continue
 		var card = entry.duplicate()
-		card["tier"] = 1
+		card["tier"] = int(entry.get("tier", 1))
 		result.append(card)
 	return result
 

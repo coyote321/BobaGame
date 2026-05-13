@@ -1,5 +1,7 @@
 extends Node2D
 
+const MissionTileDresser := preload("res://Scripts/MissionTileDresser.gd")
+
 var enemies_container: Node2D
 var mission_complete: bool = false
 var mission_failed: bool = false
@@ -33,6 +35,8 @@ var _elite_scene: PackedScene = preload("res://Scenes/EnemyElite.tscn")
 func _ready():
 	if GameManager.current_phase != "MISSION":
 		GameManager.start_mission()
+
+	MissionTileDresser.decorate(self)
 
 	enemies_container = get_node_or_null("Enemies")
 
@@ -238,19 +242,38 @@ func _setup_boss() -> void:
 	if children.size() == 0:
 		_spawn_extra_enemy(true)
 		children = enemies_container.get_children()
-	var boss = children[0]
+	var boss = _find_boss_target(children)
 	boss.is_target = true
+	var is_reactor_overlord := boss.has_method("is_reactor_overlord")
 	if "max_health" in boss:
-		boss.max_health = boss.max_health * 3.5
+		boss.max_health = boss.max_health * (1.55 if is_reactor_overlord else 3.5)
 	if "health" in boss:
-		boss.health = boss.max_health if "max_health" in boss else boss.health * 3.5
+		boss.health = boss.max_health if "max_health" in boss else boss.health * (1.55 if is_reactor_overlord else 3.5)
 	if "attack_damage" in boss:
-		boss.attack_damage = boss.attack_damage * 1.8
+		boss.attack_damage = boss.attack_damage * (1.35 if is_reactor_overlord else 1.8)
 	if "scale" in boss:
-		boss.scale = Vector2(1.5, 1.5)
+		boss.scale = Vector2(1.0, 1.0) if is_reactor_overlord else Vector2(1.5, 1.5)
 	if boss.has_method("setup_visuals"):
 		boss.setup_visuals()
 	target_enemy = boss
+
+func _find_boss_target(children: Array) -> Node:
+	if _is_final_mission():
+		for child in children:
+			if child and child.has_method("is_reactor_overlord"):
+				return child
+		for child in children:
+			if child and String(child.name).contains("Reactor"):
+				return child
+	for child in children:
+		if child and String(child.name).to_lower().contains("boss"):
+			return child
+	return children[0]
+
+func _is_final_mission() -> bool:
+	if bool(GameManager.mission_profile.get("is_final_mission", false)):
+		return true
+	return String(scene_file_path).ends_with("MissionScene5.tscn")
 
 func _spawn_wave() -> void:
 	waves_spawned += 1
@@ -286,6 +309,8 @@ func _objective_text() -> String:
 		"timed_hunt":
 			return "TIMED: ELIMINATE ALL"
 		"boss_hunt":
+			if _is_final_mission():
+				return "DEFEAT THE REACTOR OVERLORD"
 			return "DEFEAT THE BOSS"
 		"survival":
 			return "SURVIVE %d WAVES" % waves_total
@@ -541,5 +566,6 @@ func _on_next_mission_pressed():
 		int(m.get("waves", 0)),
 		String(m.get("scene", ""))
 	)
+	GameManager.mission_profile["is_final_mission"] = bool(m.get("is_final_mission", false))
 	GameManager.start_mission()
 	get_tree().change_scene_to_file(GameManager.get_mission_scene())

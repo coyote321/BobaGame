@@ -13,6 +13,10 @@ const PAGES: Array = [
 		"body": "Corrupt gang leaders exploit the same technology that built our future.\n\nThey crave money without work. Power without effort. They sit on stolen fortunes inside guarded mansions, untouchable by the law.\n\nThey believe they are [color=#e8c34a]on top of the world[/color]."
 	},
 	{
+		"title": "THE REACTOR OVERLORD",
+		"body": "Behind every gang, every paid-off guard, and every blackout is one giant boss: the Chief Engineer of the ruined nuclear plant.\n\nHe feeds on reactor power, controls the city through fear, and keeps your town trapped under his machine.\n\nTo restore peace, you will have to reach the wasteland and [color=#e8c34a]bring him down[/color]."
+	},
+	{
 		"title": "YOU ARE THE BOBARISTA",
 		"body": "By day, you serve drinks with a smile.\nBy night, a [color=#e8c34a]secret menu order[/color] is whispered across the counter — a contract.\n\nSlip out of your apron.\nFollow the clues through rundown streets and watchful windows.\nFind the target. Finish the job."
 	},
@@ -22,7 +26,7 @@ const PAGES: Array = [
 	},
 	{
 		"title": "BREW. SERVE. STRIKE.",
-		"body": "Run your shop. Earn your reputation.\nTake the contracts. Cleanse the city.\n\nThe world is watching. Don't keep them waiting."
+		"body": "Run your shop. Earn your reputation.\nTake the contracts. Cleanse the city.\n\nWhen the final mission opens, breach the nuclear wasteland and end the Overlord's rule."
 	},
 ]
 

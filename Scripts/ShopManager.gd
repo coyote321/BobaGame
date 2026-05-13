@@ -1335,7 +1335,7 @@ func show_mission_panel():
 			Color(0.2, 0.1, 0.1, 0.95), Color(1.0, 0.35, 0.35, 0.8), 6))
 		go_btn.add_theme_color_override("font_color", TEXT_RED)
 		go_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.5, 0.5))
-		go_btn.pressed.connect(_on_start_contract_mission)
+		go_btn.pressed.connect(_show_contract_cutscene)
 		card_hbox.add_child(go_btn)
 
 
@@ -1405,8 +1405,135 @@ func _build_mission_card(parent: VBoxContainer, m: Dictionary):
 	go_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 	go_btn.add_theme_font_size_override("font_size", 15)
 	var captured_m = m.duplicate()
-	go_btn.pressed.connect(func(_m = captured_m): _launch_mission(_m))
+	go_btn.pressed.connect(func(_m = captured_m):
+		_show_mission_cutscene(_m, Callable(self, "_launch_mission").bind(_m))
+	)
 	card_hbox.add_child(go_btn)
+
+func _mission_story_pages(m: Dictionary) -> Array:
+	if m.has("story_pages") and m["story_pages"] is Array and not (m["story_pages"] as Array).is_empty():
+		return (m["story_pages"] as Array).duplicate(true)
+
+	var label_text: String = m.get("label", "Mission")
+	var desc_text: String = m.get("desc", "Follow the contract and finish the job.")
+	var mtype: String = String(m.get("type", "mission")).to_upper().replace("_", " ")
+	return [
+		{
+			"title": label_text.to_upper(),
+			"body": desc_text + "\n\nThe contract is marked " + mtype + ". Get in, stay alive, and come back with the town a little safer."
+		}
+	]
+
+func _show_contract_cutscene() -> void:
+	var contract: Dictionary = GameManager.current_contract.duplicate()
+	var pages := [
+		{
+			"title": "SECRET ORDER",
+			"body": "The customer slides the cup back with a message under the sleeve.\n\nTarget: " + String(contract.get("target", "?")) + "\n\n" + String(contract.get("desc", "A contract has opened."))
+		}
+	]
+	_show_story_overlay(pages, Callable(self, "_on_start_contract_mission"))
+
+func _show_mission_cutscene(m: Dictionary, on_complete: Callable) -> void:
+	_show_story_overlay(_mission_story_pages(m), on_complete)
+
+func _show_story_overlay(pages: Array, on_complete: Callable) -> void:
+	if pages.is_empty():
+		if on_complete.is_valid():
+			on_complete.call()
+		return
+
+	var host := get_node_or_null("UI_Layer")
+	if host == null:
+		host = self
+
+	var overlay := Control.new()
+	overlay.name = "MissionStoryOverlay"
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.z_index = 500
+	host.add_child(overlay)
+
+	var shade := ColorRect.new()
+	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shade.color = Color(0.015, 0.018, 0.015, 0.94)
+	overlay.add_child(shade)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(720, 380)
+	panel.add_theme_stylebox_override("panel", _make_panel_style(
+		Color(0.04, 0.05, 0.04, 0.98), Color(0.55, 0.95, 0.35, 0.45), 8))
+	center.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 34)
+	margin.add_theme_constant_override("margin_top", 28)
+	margin.add_theme_constant_override("margin_right", 34)
+	margin.add_theme_constant_override("margin_bottom", 26)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 16)
+	margin.add_child(vbox)
+
+	var title_lbl := _styled_label("", font_bold, 28, ACCENT_GOLD)
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title_lbl)
+
+	var body_lbl := RichTextLabel.new()
+	body_lbl.bbcode_enabled = true
+	body_lbl.fit_content = true
+	body_lbl.scroll_active = false
+	body_lbl.custom_minimum_size = Vector2(0, 190)
+	body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_lbl.add_theme_font_override("normal_font", font_medium)
+	body_lbl.add_theme_font_size_override("normal_font_size", 17)
+	body_lbl.add_theme_color_override("default_color", TEXT_WHITE)
+	vbox.add_child(body_lbl)
+
+	var button_row := HBoxContainer.new()
+	button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_row.add_theme_constant_override("separation", 12)
+	vbox.add_child(button_row)
+
+	var quit_btn := _styled_button("QUIT", Vector2(120, 42))
+	var next_btn := _styled_button("NEXT", Vector2(150, 42))
+	button_row.add_child(quit_btn)
+	button_row.add_child(next_btn)
+
+	var page_state := {"index": 0}
+	var show_page := func(idx: int):
+		var page: Dictionary = pages[idx]
+		title_lbl.text = String(page.get("title", "MISSION"))
+		body_lbl.text = "[center]" + String(page.get("body", "")) + "[/center]"
+		next_btn.text = "BEGIN" if idx >= pages.size() - 1 else "NEXT"
+
+	var finish := func():
+		overlay.queue_free()
+		if on_complete.is_valid():
+			on_complete.call()
+
+	quit_btn.pressed.connect(func():
+		overlay.queue_free()
+	)
+	next_btn.pressed.connect(func():
+		var page_index: int = int(page_state["index"])
+		if page_index >= pages.size() - 1:
+			finish.call()
+			return
+		page_state["index"] = page_index + 1
+		show_page.call(int(page_state["index"]))
+	)
+
+	overlay.modulate.a = 0.0
+	var fade := create_tween()
+	fade.tween_property(overlay, "modulate:a", 1.0, 0.25)
+	show_page.call(int(page_state["index"]))
 
 func _launch_mission(m: Dictionary):
 	#region agent log
@@ -1429,6 +1556,7 @@ func _launch_mission(m: Dictionary):
 		int(m.get("waves", 0)),
 		String(m.get("scene", ""))
 	)
+	GameManager.mission_profile["is_final_mission"] = bool(m.get("is_final_mission", false))
 	GameManager.start_mission()
 	#region agent log
 	GameManager.agent_debug_log("Scripts/ShopManager.gd:_launch_mission", "Changing to catalog mission scene", {

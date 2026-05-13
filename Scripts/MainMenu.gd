@@ -1,8 +1,23 @@
 extends Control
 
-const WORLD_SCENE_PATH: String = "res://Scenes/IntroScene.tscn"
+const WORLD_SCENE_PATH: String = "res://Scenes/ShopScene.tscn"
+const INTRO_SCENE_PATH: String = "res://Scenes/IntroScene.tscn"
 const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const BG_DARK := Color(0.1, 0.1, 0.12, 0.97)
+const OPENING_STORY := [
+	{
+		"title": "THE YEAR IS 2030...",
+		"body": "The Boba Shop is the last warm light in a city that forgot how to rest.\n\nBy day, people line up for sweet tea. By night, frightened customers whisper names under cup sleeves."
+	},
+	{
+		"title": "THE REACTOR OVERLORD",
+		"body": "Behind every gang, blackout, and paid-off guard is one giant boss: the Chief Engineer of the ruined nuclear plant.\n\nHe feeds on reactor power and controls the town through fear."
+	},
+	{
+		"title": "RESTORE PEACE",
+		"body": "Serve the town. Take the contracts. Grow strong enough to cross the wasteland.\n\nWhen the final mission opens, kill the Reactor Overlord and bring peace back home."
+	},
+]
 
 @onready var start_button: Button = $CenterColumn/ButtonContainer/StartButton
 @onready var options_button: Button = $CenterColumn/ButtonContainer/OptionsButton
@@ -51,7 +66,94 @@ func _on_start_button_pressed() -> void:
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.4)
 	await tween.finished
+	get_tree().change_scene_to_file(INTRO_SCENE_PATH)
+
+func _begin_world() -> void:
+	var tween := create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.4)
+	await tween.finished
 	get_tree().change_scene_to_file(WORLD_SCENE_PATH)
+
+func _show_opening_story() -> void:
+	var overlay := Control.new()
+	overlay.name = "OpeningStoryOverlay"
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.z_index = 100
+	add_child(overlay)
+
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.015, 0.015, 0.018, 0.96)
+	overlay.add_child(bg)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(760, 410)
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_DARK
+	style.border_color = ACCENT_GOLD
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+	center.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 36)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_right", 36)
+	margin.add_theme_constant_override("margin_bottom", 28)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 18)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", ACCENT_GOLD)
+	vbox.add_child(title)
+
+	var body := RichTextLabel.new()
+	body.bbcode_enabled = true
+	body.fit_content = true
+	body.scroll_active = false
+	body.custom_minimum_size = Vector2(0, 210)
+	body.add_theme_font_size_override("normal_font_size", 18)
+	body.add_theme_color_override("default_color", Color(0.93, 0.93, 0.93, 1))
+	vbox.add_child(body)
+
+	var next_btn := Button.new()
+	next_btn.custom_minimum_size = Vector2(180, 46)
+	next_btn.text = "NEXT"
+	next_btn.add_theme_font_size_override("font_size", 18)
+	vbox.add_child(next_btn)
+
+	var page_state := {"index": 0}
+	var show_page := func(idx: int):
+		var page: Dictionary = OPENING_STORY[idx]
+		title.text = String(page.get("title", ""))
+		body.text = "[center]" + String(page.get("body", "")) + "[/center]"
+		next_btn.text = "BEGIN" if idx >= OPENING_STORY.size() - 1 else "NEXT"
+
+	next_btn.pressed.connect(func():
+		if _click_sfx:
+			_click_sfx.play()
+		var page_index: int = int(page_state["index"])
+		if page_index >= OPENING_STORY.size() - 1:
+			overlay.queue_free()
+			_begin_world()
+			return
+		page_state["index"] = page_index + 1
+		show_page.call(int(page_state["index"]))
+	)
+
+	show_page.call(int(page_state["index"]))
+	next_btn.call_deferred("grab_focus")
 
 func _on_options_button_pressed() -> void:
 	_show_options_panel()
