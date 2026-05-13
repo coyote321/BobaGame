@@ -1,6 +1,6 @@
 extends Control
 
-const WORLD_SCENE_PATH: String = "res://Scenes/ShopScene.tscn"
+const WORLD_SCENE_PATH: String = "res://Scenes/IntroScene.tscn"
 const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const BG_DARK := Color(0.1, 0.1, 0.12, 0.97)
 
