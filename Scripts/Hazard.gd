@@ -45,7 +45,18 @@ func _apply_damage(body: Node, amount: float) -> void:
 		body.take_damage(amount)
 
 func _apply_sludge_melt(body: Node) -> void:
+	if _is_protected_boss_target(body):
+		return
 	if body.has_method("melt_die"):
 		body.melt_die()
 	else:
 		_apply_damage(body, 9999.0)
+
+func _is_protected_boss_target(body: Node) -> bool:
+	if body == null:
+		return false
+	if body.has_method("is_reactor_overlord"):
+		return true
+	if "is_target" in body and body.is_target:
+		return true
+	return false

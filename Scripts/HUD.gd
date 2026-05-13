@@ -7,7 +7,7 @@ const ACCENT_RED := Color(1.0, 0.45, 0.45, 1.0)
 const MISSION_PANEL_COMPACT_BOTTOM := 124.0
 const MISSION_PANEL_EXPANDED_BOTTOM := 156.0
 const MISSION_PANEL_MIN_WIDTH := 210.0
-const MISSION_PANEL_MAX_WIDTH := 320.0
+const MISSION_PANEL_MAX_WIDTH := 520.0
 const MISSION_PANEL_SIDE_PADDING := 24.0
 const OBJECTIVE_CHAR_WIDTH := 9.5
 
@@ -77,6 +77,7 @@ func _ready():
 	_health_fill_style.set_corner_radius_all(3)
 	if health_bar:
 		health_bar.add_theme_stylebox_override("fill", _health_fill_style)
+		update_health(int(health_bar.value), int(health_bar.max_value))
 
 	_refresh_hotbar()
 	update_weapon(1, GameManager.equipped_main)
@@ -173,6 +174,8 @@ func _default_objective_text() -> String:
 		"timed_hunt":
 			return "TIMED: ELIMINATE ALL"
 		"boss_hunt":
+			if bool(profile.get("is_final_mission", false)):
+				return "DEFEAT THE REACTOR OVERLORD"
 			return "DEFEAT THE BOSS"
 		"survival":
 			return "SURVIVE ALL WAVES"
@@ -282,9 +285,13 @@ func update_stealth(_stealth_rating: float):
 
 func show_mission_complete(stealth_bonus: int):
 	var subtitle := "Walk through the shop door to return."
+	var show_next := true
+	if bool(GameManager.mission_profile.get("is_final_mission", false)):
+		subtitle = "The Overlord is gone. Peace can return to town."
+		show_next = false
 	if stealth_bonus > 0:
-		subtitle = "Stealth bonus: $" + str(stealth_bonus) + "  |  Use the shop door to leave."
-	_show_mission_end_state("MISSION COMPLETE", ACCENT_GREEN, subtitle, true)
+		subtitle += "  Stealth bonus: $" + str(stealth_bonus)
+	_show_mission_end_state("MISSION COMPLETE", ACCENT_GREEN, subtitle, show_next)
 
 func show_mission_failed(reason: String):
 	_show_mission_end_state("MISSION FAILED", ACCENT_RED, reason, false)

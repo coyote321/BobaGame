@@ -1,0 +1,108 @@
+[gd_scene load_steps=4 format=3 uid="uid://intro_story_scene"]
+
+[ext_resource type="Script" path="res://Scripts/IntroScene.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://Assets/Fonts/Montserrat-Bold.ttf" id="2_font_bold"]
+[ext_resource type="FontFile" path="res://Assets/Fonts/Montserrat-Medium.ttf" id="3_font_medium"]
+
+[node name="IntroScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.035, 0.05, 1)
+
+[node name="Vignette" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.28)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(860, 520)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="TitleLabel" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("2_font_bold")
+theme_override_font_sizes/font_size = 42
+text = "THE YEAR IS 2030..."
+horizontal_alignment = 1
+
+[node name="AccentLine" type="ColorRect" parent="Center/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(0.91, 0.76, 0.29, 0.55)
+
+[node name="BodyLabel" type="RichTextLabel" parent="Center/VBox"]
+custom_minimum_size = Vector2(860, 330)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.93, 0.93, 0.93, 1)
+theme_override_fonts/normal_font = ExtResource("3_font_medium")
+theme_override_font_sizes/normal_font_size = 21
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = ""
+
+[node name="PromptLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = -82.0
+offset_right = 0.0
+offset_bottom = -52.0
+theme_override_colors/font_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_fonts/font = ExtResource("3_font_medium")
+theme_override_font_sizes/font_size = 15
+text = ""
+horizontal_alignment = 1
+
+[node name="SkipLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -240.0
+offset_top = 26.0
+offset_right = -28.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(0.62, 0.62, 0.68, 1)
+theme_override_fonts/font = ExtResource("3_font_medium")
+theme_override_font_sizes/font_size = 13
+text = "ESC / START TO SKIP"
+horizontal_alignment = 2
