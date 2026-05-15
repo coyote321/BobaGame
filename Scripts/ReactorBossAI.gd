@@ -1,10 +1,10 @@
 extends "res://Scripts/EnemyBase.gd"
 
-const MINION_SCENE: PackedScene = preload("res://Scenes/Enemy.tscn")
-const ELITE_SCENE: PackedScene = preload("res://Scenes/EnemyElite.tscn")
+const SLIME_SCENE: PackedScene = preload("res://Scenes/SlimeEnemy.tscn")
 
 var _phase: int = 0
 var _special_cooldown: float = 2.4
+var _slime_spawn_cooldown: float = 4.0
 
 func is_reactor_overlord() -> bool:
 	return true
@@ -17,8 +17,8 @@ func _ready():
 	detection_range = 1100.0
 	attack_range = 150.0
 	_body_color = Color(0.28, 0.85, 0.18, 1)
-	_body_size = Vector2(132, 132)
-	_body_offset = Vector2(-66, -66)
+	_body_size = Vector2(164, 164)
+	_body_offset = Vector2(-82, -82)
 	_patrol_extent = Vector2(240, 140)
 	_idle_wait_range = Vector2(0.2, 0.8)
 	_alert_icon_text = "!!!"
@@ -36,8 +36,8 @@ func setup_visuals():
 		body_rect.size = _body_size
 		body_rect.color = Color(0.75, 0.95, 0.12, 1) if is_target else _body_color
 	if health_bar:
-		health_bar.position = Vector2(-78, -96)
-		health_bar.size = Vector2(156, 12)
+		health_bar.position = Vector2(-95, -118)
+		health_bar.size = Vector2(190, 12)
 		health_bar.max_value = max_health
 		health_bar.value = health
 
@@ -49,6 +49,10 @@ func _physics_process(delta):
 	if player and is_instance_valid(player) and _special_cooldown <= 0.0:
 		_reactor_pulse()
 		_special_cooldown = randf_range(2.6, 4.2)
+	_slime_spawn_cooldown -= delta
+	if player and is_instance_valid(player) and _slime_spawn_cooldown <= 0.0:
+		_try_periodic_slime_spawn()
+		_slime_spawn_cooldown = randf_range(5.5, 8.0)
 
 func take_damage(amount: float):
 	super.take_damage(amount)
@@ -79,27 +83,43 @@ func _update_phase() -> void:
 		_phase = 1
 		chase_speed += 35.0
 		attack_damage += 5.0
-		_summon_minions(3)
+		_summon_slimes(3)
 	elif _phase == 1 and ratio <= 0.33:
 		_phase = 2
 		chase_speed += 45.0
 		attack_damage += 7.0
 		_special_cooldown = 0.4
-		_summon_minions(5)
+		_summon_slimes(5)
 
-func _summon_minions(count: int) -> void:
+func _summon_slimes(count: int) -> void:
 	var holder := get_parent()
 	if holder == null:
 		return
 	for i in range(count):
-		var scene := ELITE_SCENE if i == count - 1 and _phase >= 2 else MINION_SCENE
-		var minion = scene.instantiate()
+		var slime = SLIME_SCENE.instantiate()
 		var angle: float = (TAU / float(max(count, 1))) * float(i)
-		minion.global_position = global_position + Vector2(cos(angle), sin(angle)) * randf_range(180.0, 280.0)
-		holder.add_child(minion)
+		slime.global_position = global_position + Vector2(cos(angle), sin(angle)) * randf_range(180.0, 280.0)
+		holder.add_child(slime)
 		var mission = get_tree().current_scene
 		if mission and mission.has_method("_connect_enemy"):
-			mission._connect_enemy(minion)
+			mission._connect_enemy(slime)
+
+func _try_periodic_slime_spawn() -> void:
+	var holder := get_parent()
+	if holder == null:
+		return
+	var slime_cap := 4 + (_phase * 2)
+	var available_slots: int = slime_cap - _active_slime_count(holder)
+	if available_slots <= 0:
+		return
+	_summon_slimes(mini(available_slots, 1 + _phase))
+
+func _active_slime_count(holder: Node) -> int:
+	var count := 0
+	for child in holder.get_children():
+		if child and child.has_method("is_reactor_slime") and child.is_reactor_slime():
+			count += 1
+	return count
 
 func _reactor_pulse() -> void:
 	_spawn_shockwave(260.0 + (_phase * 70.0))

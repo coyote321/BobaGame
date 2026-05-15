@@ -44,6 +44,20 @@ var health_bar: ProgressBar
 var alert_indicator: Label
 var _health_fill_style: StyleBoxFlat
 var _health_color_key: String = ""
+const HAZMAT_TEXTURE: Texture2D = preload("res://Assets/Sprites/hazmat_animation.png")
+const HAZMAT_ATTACK_ROW: int = 0
+const HAZMAT_RUN_ROW: int = 1
+const HAZMAT_DEATH_ROW: int = 2
+const HAZMAT_FRAME_COUNT: int = 6
+const HAZMAT_RUN_FPS: float = 10.0
+const HAZMAT_ATTACK_FPS: float = 12.0
+const HAZMAT_DEATH_FPS: float = 8.0
+const HAZMAT_VISUAL_SCALE_MULTIPLIER: float = 2.0
+var hazmat_sprite: Sprite2D
+var _hazmat_base_modulate: Color = Color.WHITE
+var _hazmat_row: int = HAZMAT_RUN_ROW
+var _hazmat_frame: int = 0
+var _hazmat_timer: float = 0.0
 
 # ─── Configurable overrides for subclasses ──────────────────────────────
 var _body_size: Vector2 = Vector2(50, 50)
@@ -90,6 +104,8 @@ func setup_visuals():
 	if is_target:
 		body_rect.color = Color(1, 0.85, 0)
 
+	setup_hazmat_visual()
+
 	# Health bar
 	if has_node("HealthBar") and $HealthBar is ProgressBar:
 		health_bar = $HealthBar
@@ -120,6 +136,38 @@ func setup_visuals():
 	alert_indicator.visible = false
 	add_child(alert_indicator)
 
+func setup_hazmat_visual() -> void:
+	if not uses_hazmat_visual():
+		return
+
+	if has_node("HazmatSprite") and $HazmatSprite is Sprite2D:
+		hazmat_sprite = $HazmatSprite
+	else:
+		hazmat_sprite = Sprite2D.new()
+		hazmat_sprite.name = "HazmatSprite"
+		add_child(hazmat_sprite)
+		move_child(hazmat_sprite, 0)
+
+	hazmat_sprite.texture = HAZMAT_TEXTURE
+	hazmat_sprite.hframes = HAZMAT_FRAME_COUNT
+	hazmat_sprite.vframes = 3
+	hazmat_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	hazmat_sprite.position = Vector2(0, -8)
+	var visual_scale: float = clampf((_body_size.y / 58.0) * HAZMAT_VISUAL_SCALE_MULTIPLIER, 1.6, 2.4)
+	hazmat_sprite.scale = Vector2(visual_scale, visual_scale)
+	hazmat_sprite.z_index = 0
+	_hazmat_base_modulate = Color(1.18, 1.1, 0.66, 1) if is_target else Color.WHITE
+	hazmat_sprite.modulate = _hazmat_base_modulate
+	set_hazmat_frame(0, HAZMAT_RUN_ROW)
+
+	if body_rect:
+		body_rect.visible = false
+
+func uses_hazmat_visual() -> bool:
+	if has_method("is_reactor_overlord") and call("is_reactor_overlord"):
+		return false
+	return true
+
 # ─── Patrol ─────────────────────────────────────────────────────────────
 
 func setup_patrol_points():
@@ -135,6 +183,7 @@ func setup_patrol_points():
 
 func _physics_process(delta):
 	if is_dead:
+		update_hazmat_animation(delta)
 		return
 
 	attack_cooldown -= delta
@@ -152,6 +201,7 @@ func _physics_process(delta):
 			process_attack(delta)
 		State.HURT:
 			process_hurt(delta)
+	update_hazmat_animation(delta)
 
 func process_idle(delta):
 	patrol_wait_timer -= delta
@@ -281,8 +331,13 @@ func take_damage(amount: float):
 	health_bar.value = health
 	_update_health_bar_color()
 
-	# Flash body white
-	if body_rect:
+	# Flash the active visual white
+	if hazmat_sprite:
+		hazmat_sprite.modulate = Color.WHITE
+		await get_tree().create_timer(0.06).timeout
+		if hazmat_sprite and not is_dead:
+			hazmat_sprite.modulate = _hazmat_base_modulate
+	elif body_rect:
 		var orig_color = body_rect.color
 		body_rect.color = Color.WHITE
 		await get_tree().create_timer(0.1).timeout
@@ -342,10 +397,80 @@ func die():
 	died.emit(self)
 	remove_from_group("enemy")
 
-	if body_rect:
+	if hazmat_sprite:
+		velocity = Vector2.ZERO
+		if health_bar:
+			health_bar.visible = false
+		if alert_indicator:
+			alert_indicator.visible = false
+		if has_node("CollisionShape2D"):
+			$CollisionShape2D.set_deferred("disabled", true)
+		start_hazmat_animation(HAZMAT_DEATH_ROW)
+		await get_tree().create_timer(float(HAZMAT_FRAME_COUNT) / HAZMAT_DEATH_FPS).timeout
+		queue_free()
+	elif body_rect:
 		var tween = create_tween()
 		tween.tween_property(body_rect, "modulate:a", 0.0, 0.5)
 		tween.parallel().tween_property(self, "scale", Vector2(1.2, 0.3), 0.5)
 		tween.tween_callback(queue_free)
 	else:
 		queue_free()
+
+func update_hazmat_animation(delta: float) -> void:
+	if not hazmat_sprite:
+		return
+
+	update_hazmat_facing()
+
+	if is_dead:
+		advance_hazmat_animation(delta, HAZMAT_DEATH_FPS, false)
+		return
+
+	if state == State.ATTACK:
+		start_hazmat_animation(HAZMAT_ATTACK_ROW)
+		advance_hazmat_animation(delta, HAZMAT_ATTACK_FPS, true)
+		return
+
+	start_hazmat_animation(HAZMAT_RUN_ROW)
+	if velocity.length_squared() > 1.0:
+		advance_hazmat_animation(delta, HAZMAT_RUN_FPS, true)
+	else:
+		set_hazmat_frame(0, HAZMAT_RUN_ROW)
+
+func update_hazmat_facing() -> void:
+	if not hazmat_sprite:
+		return
+
+	var face_vector := velocity
+	if state == State.ATTACK and player and is_instance_valid(player):
+		face_vector = player.global_position - global_position
+	if absf(face_vector.x) > 0.1:
+		hazmat_sprite.flip_h = face_vector.x > 0.0
+
+func start_hazmat_animation(row: int) -> void:
+	if _hazmat_row == row:
+		return
+	_hazmat_row = row
+	_hazmat_frame = 0
+	_hazmat_timer = 0.0
+	set_hazmat_frame(_hazmat_frame, _hazmat_row)
+
+func advance_hazmat_animation(delta: float, fps: float, loops: bool) -> void:
+	_hazmat_timer += delta
+	var frame_time := 1.0 / fps
+	while _hazmat_timer >= frame_time:
+		_hazmat_timer -= frame_time
+		if _hazmat_frame >= HAZMAT_FRAME_COUNT - 1:
+			if not loops:
+				set_hazmat_frame(HAZMAT_FRAME_COUNT - 1, _hazmat_row)
+				return
+			_hazmat_frame = 0
+		else:
+			_hazmat_frame += 1
+		set_hazmat_frame(_hazmat_frame, _hazmat_row)
+
+func set_hazmat_frame(frame_index: int, row: int) -> void:
+	_hazmat_frame = clampi(frame_index, 0, HAZMAT_FRAME_COUNT - 1)
+	_hazmat_row = clampi(row, 0, 2)
+	if hazmat_sprite:
+		hazmat_sprite.frame_coords = Vector2i(_hazmat_frame, _hazmat_row)
