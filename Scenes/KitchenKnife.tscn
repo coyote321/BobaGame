@@ -7,9 +7,9 @@
 script = ExtResource("2_script")
 
 [node name="Sprite" type="Sprite2D" parent="."]
-scale = Vector2(1.35, 1.35)
+scale = Vector2(0.9, 0.9)
 texture = ExtResource("1_whisk")
 texture_filter = 0
 
 [node name="Muzzle" type="Marker2D" parent="."]
-position = Vector2(40, 0)
+position = Vector2(28, 0)

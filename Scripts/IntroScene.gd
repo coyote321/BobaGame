@@ -104,6 +104,11 @@ func _on_typewriter_finished() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _changing_scene:
+		# Swallow any further input during the fade-out so spam-Escape can't
+		# leak through to the autoloaded PauseMenu and leave the next scene
+		# stuck in a paused state with the pause menu open.
+		if event is InputEventKey or event is InputEventMouseButton or event is InputEventJoypadButton:
+			get_viewport().set_input_as_handled()
 		return
 
 	var skip_all := false
@@ -150,4 +155,11 @@ func _finish_intro() -> void:
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.5)
 	await tween.finished
+	# Defensive: if anything (e.g. a leaked Esc press) left the tree paused or
+	# the pause menu visible during the fade, clear that state before handing
+	# off to the next scene.
+	get_tree().paused = false
+	var pause_menu: Node = get_node_or_null("/root/PauseMenu")
+	if pause_menu and pause_menu.has_method("hide_pause_menu"):
+		pause_menu.hide_pause_menu()
 	get_tree().change_scene_to_file(SHOP_SCENE_PATH)

@@ -589,6 +589,8 @@ func _stop_time_flash():
 
 
 func start_spawning():
+	if shift_active and active_customers.is_empty():
+		spawn_customer()
 	while shift_active:
 		await get_tree().create_timer(randf_range(3.0, 8.0)).timeout
 		if not shift_active: break
@@ -751,6 +753,7 @@ func interact_with_zone(zone_name):
 		return
 
 	if zone_name == "counter":
+		_ensure_customer_available_for_work()
 		_open_panel(ui_boba_panel)
 		update_mix_label()
 		_update_order_display()
@@ -1536,15 +1539,6 @@ func _show_story_overlay(pages: Array, on_complete: Callable) -> void:
 	show_page.call(int(page_state["index"]))
 
 func _launch_mission(m: Dictionary):
-	#region agent log
-	GameManager.agent_debug_log("Scripts/ShopManager.gd:_launch_mission", "Catalog GO pressed", {
-		"type": String(m.get("type", "")),
-		"tier": int(m.get("tier", 0)),
-		"scene": String(m.get("scene", "")),
-		"reward_money": int(m.get("reward_money", 0)),
-		"time_limit": float(m.get("time_limit", 0.0)),
-	}, "H2,H3")
-	#endregion
 	var tl = m.get("time_limit", 0.0)
 	GameManager.mission_profile = GameManager.build_mission_profile(
 		m.get("type", "extermination"),
@@ -1558,12 +1552,6 @@ func _launch_mission(m: Dictionary):
 	)
 	GameManager.mission_profile["is_final_mission"] = bool(m.get("is_final_mission", false))
 	GameManager.start_mission()
-	#region agent log
-	GameManager.agent_debug_log("Scripts/ShopManager.gd:_launch_mission", "Changing to catalog mission scene", {
-		"resolved_scene": GameManager.get_mission_scene(),
-		"profile": GameManager.mission_profile.duplicate(),
-	}, "H2,H4")
-	#endregion
 	get_tree().change_scene_to_file(GameManager.get_mission_scene())
 
 func _on_start_contract_mission():
@@ -1806,6 +1794,15 @@ func _get_waiting_customer():
 			best = c
 	return best
 
+func _ensure_customer_available_for_work() -> void:
+	if not shift_active:
+		return
+	if _get_waiting_customer() != null:
+		return
+	if active_customers.size() >= MAX_CUSTOMERS:
+		return
+	spawn_customer()
+
 func _on_serve_drink():
 	var target_customer = _get_waiting_customer()
 
@@ -1914,15 +1911,6 @@ func show_day_summary():
 			_day_summary_overlay = null
 			var c: Dictionary = GameManager.current_contract
 			var c_scene: String = c.get("scene", "res://Scenes/MissionScene.tscn")
-			#region agent log
-			GameManager.agent_debug_log("Scripts/ShopManager.gd:day_summary_go", "Contract GO pressed", {
-				"contract_size": c.size(),
-				"target": String(c.get("target", "")),
-				"scene": c_scene,
-				"mission_type": String(c.get("mission_type", "")),
-				"reward": int(c.get("reward", 0)),
-			}, "H2,H5")
-			#endregion
 			GameManager.mission_profile = GameManager.build_mission_profile(
 				c.get("mission_type", "extermination"),
 				1,
@@ -1934,12 +1922,6 @@ func show_day_summary():
 				c_scene
 			)
 			GameManager.start_mission()
-			#region agent log
-			GameManager.agent_debug_log("Scripts/ShopManager.gd:day_summary_go", "Changing to contract mission scene", {
-				"resolved_scene": c_scene,
-				"profile": GameManager.mission_profile.duplicate(),
-			}, "H2,H4,H5")
-			#endregion
 			get_tree().change_scene_to_file(c_scene)
 		)
 		btn_row.add_child(mission_btn)

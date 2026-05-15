@@ -54,28 +54,10 @@ func _ready():
 		GameManager.mission_countdown_seconds = time_remaining
 	else:
 		GameManager.mission_countdown_seconds = -1.0
-	#region agent log
-	GameManager.agent_debug_log("Scripts/MissionManager.gd:_ready", "Mission scene ready with profile", {
-		"profile_size": profile.size(),
-		"profile": profile.duplicate(),
-		"mission_type": mission_type,
-		"time_remaining": time_remaining,
-		"waves_total": waves_total,
-		"current_scene": String(scene_file_path),
-		"has_enemies_container": enemies_container != null,
-	}, "H2,H3,H4")
-	#endregion
 
 	_resolve_hud()
 	if hud:
 		hud.connect_buttons(_on_abort_pressed, _on_return_pressed, _on_next_mission_pressed)
-	#region agent log
-	GameManager.agent_debug_log("Scripts/MissionManager.gd:_ready", "Mission HUD lookup complete", {
-		"has_hud": hud != null,
-		"enemy_children": enemies_container.get_child_count() if enemies_container else -1,
-		"mission_type": mission_type,
-	}, "H4")
-	#endregion
 
 	_apply_mission_setup()
 
