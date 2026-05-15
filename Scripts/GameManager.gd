@@ -68,7 +68,7 @@ var weapons: Dictionary = {
 	"Whisk": {
 		"damage": 25, "fire_rate": 0.5, "unlock_level": 1, "cost": 0, "type": "melee",
 		"weapon_scene": "res://Scenes/KitchenKnife.tscn",
-		"hold_offset": Vector2(40, 6),
+		"hold_offset": Vector2(14, 2),
 		"tuning": {
 			"melee_range": 120.0, "melee_arc_dot": 0.4, "lunge_distance": 10.0,
 			"swing_rotation": 0.35, "kick_duration": 0.06, "recover_duration": 0.09,

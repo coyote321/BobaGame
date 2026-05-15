@@ -9,6 +9,11 @@ var health = 100
 var is_crouching = false
 var is_aiming = false
 
+const WALK_FRAME_RATE := 10.0
+## Target drawn height (px) for one sprite cell; scales sheet rows of different resolutions consistently.
+const CHARACTER_TARGET_HEIGHT_PX := 240.0
+const CHARACTER_CROUCH_MULTIPLIER := 0.8
+
 # Reference to external HUD
 var hud_node = null
 
@@ -27,6 +32,37 @@ var _death_sfx: AudioStreamPlayer = null
 var _current_weapon_node: Node2D = null
 var _weapon_scene_cache: Dictionary = {}
 var _crosshair: Node2D = null
+var _walk_frame_time := 0.0
+var _character_base_scale := Vector2(0.11, 0.11)
+
+var _agent_physics_logged := false
+
+@onready var _character_root := get_node_or_null("Character") as Node2D
+@onready var _character_sprite := get_node_or_null("Character/CharacterSprite") as Sprite2D
+
+#region agent log
+const _AGENT_LOG_PATH := "/Users/s/Documents/GitHub/BobaGame/.cursor/debug-2bc24f.log"
+
+func _agent_log(hypothesis_id: String, location: String, message: String, data: Dictionary, run_id: String = "pre-fix") -> void:
+	var line := {
+		"sessionId": "2bc24f",
+		"timestamp": Time.get_ticks_msec(),
+		"location": location,
+		"message": message,
+		"data": data,
+		"hypothesisId": hypothesis_id,
+		"runId": run_id,
+	}
+	var json_str := JSON.stringify(line)
+	var f: FileAccess = FileAccess.open(_AGENT_LOG_PATH, FileAccess.READ_WRITE)
+	if f == null:
+		f = FileAccess.open(_AGENT_LOG_PATH, FileAccess.WRITE)
+	if f != null:
+		f.seek_end()
+		f.store_line(json_str)
+		f.close()
+
+#endregion
 
 func _make_sfx(stream: AudioStream, volume: float = 0.0) -> AudioStreamPlayer:
 	var sfx = AudioStreamPlayer.new()
@@ -53,6 +89,28 @@ func _ready():
 	hud_node = get_tree().current_scene.find_child("HUD", true, false)
 	_create_crosshair()
 	_update_weapon_scene()
+	_recompute_character_base_scale_from_sprite()
+	_update_character_scale()
+	_agent_log("H1", "PlayerController.gd:_ready", "sprite_nodes", {
+		"root_null": _character_root == null,
+		"sprite_null": _character_sprite == null,
+		"has_path": has_node("Character/CharacterSprite"),
+	}, "pre-fix")
+	if _character_sprite:
+		var t: Texture2D = _character_sprite.texture
+		_agent_log("H2", "PlayerController.gd:_ready", "texture", {
+			"tex_null": t == null,
+			"tex_size": t.get_size() if t else Vector2.ZERO,
+			"hframes": _character_sprite.hframes,
+			"vframes": _character_sprite.vframes,
+			"base_scale": [_character_base_scale.x, _character_base_scale.y],
+		}, "pre-fix")
+	if _character_root and _character_sprite:
+		_agent_log("H5", "PlayerController.gd:_ready", "visibility", {
+			"root_vis": _character_root.visible,
+			"sprite_vis": _character_sprite.visible,
+			"self_mod": [modulate.r, modulate.g, modulate.b, modulate.a],
+		}, "pre-fix")
 
 func _physics_process(delta):
 	if fire_cooldown > 0:
@@ -86,17 +144,18 @@ func _physics_process(delta):
 		
 	velocity = direction * current_speed
 	
-	# Animations
-	if velocity.length() > 0:
-		if has_node("AnimationPlayer"):
-			$AnimationPlayer.play("walk")
-	else:
-		if has_node("AnimationPlayer"):
-			$AnimationPlayer.stop()
-			if has_node("Visuals"):
-				$Visuals.scale = Vector2(1, 1) if not is_crouching else Vector2(0.8, 0.8)
+	_update_character_animation(delta, velocity.length_squared() > 0.0)
 			
 	move_and_slide()
+	if not _agent_physics_logged and Engine.get_physics_frames() >= 90:
+		_agent_physics_logged = true
+		var nframes := _get_walk_frame_count()
+		_agent_log("H3", "PlayerController.gd:_physics_process", "animation_tick", {
+			"frame": _character_sprite.frame if _character_sprite else -1,
+			"walk_frames": nframes,
+			"vel_sq": velocity.length_squared(),
+			"scaled_h": (_character_sprite.texture.get_height() / float(maxi(_character_sprite.vframes, 1)) * _character_root.scale.y) if _character_sprite and _character_sprite.texture and _character_root else -1.0,
+		}, "pre-fix")
 	
 	if GameManager.current_phase == "MISSION" and not menu_active:
 		# Attack action covers LMB and the right trigger on Xbox.
@@ -184,12 +243,9 @@ func handle_state_inputs():
 	# Crouch
 	if Input.is_action_pressed("crouch"):
 		is_crouching = true
-		if has_node("Visuals"):
-			$Visuals.scale = Vector2(0.8, 0.8)
 	else:
 		is_crouching = false
-		if has_node("Visuals") and not (has_node("AnimationPlayer") and $AnimationPlayer.is_playing()):
-			$Visuals.scale = Vector2(1, 1)
+	_update_character_scale()
 
 	# Aim
 	is_aiming = Input.is_action_pressed("aim")
@@ -210,6 +266,51 @@ func _cycled_weapon_idx(step: int) -> int:
 
 func is_crouching_state() -> bool:
 	return is_crouching
+
+func _get_walk_frame_count() -> int:
+	if _character_sprite == null:
+		return 8
+	return maxi(_character_sprite.hframes * _character_sprite.vframes, 1)
+
+func _update_character_animation(delta: float, is_moving: bool) -> void:
+	if _character_sprite == null:
+		return
+	var nframes := _get_walk_frame_count()
+	if is_moving:
+		_walk_frame_time += delta * WALK_FRAME_RATE
+		_character_sprite.frame = int(_walk_frame_time) % nframes
+	else:
+		_walk_frame_time = 0.0
+		_character_sprite.frame = 0
+	_update_character_scale()
+
+func _recompute_character_base_scale_from_sprite() -> void:
+	if _character_sprite == null:
+		return
+	var tex: Texture2D = _character_sprite.texture
+	if tex == null:
+		return
+	var vf := maxi(_character_sprite.vframes, 1)
+	var hf := maxi(_character_sprite.hframes, 1)
+	var tw := tex.get_width()
+	var th := tex.get_height()
+	var cell_h := float(th) / float(vf)
+	var cell_w := float(tw) / float(hf)
+	var s := CHARACTER_TARGET_HEIGHT_PX / cell_h
+	_character_base_scale = Vector2(s, s)
+	_agent_log("H2", "PlayerController.gd:_recompute_character_base_scale_from_sprite", "cell_scale", {
+		"tex_wh": [tw, th],
+		"hf_vf": [hf, vf],
+		"cell_wh": [cell_w, cell_h],
+		"target_h": CHARACTER_TARGET_HEIGHT_PX,
+		"uniform_scale": s,
+	}, "pre-fix")
+
+func _update_character_scale() -> void:
+	if _character_root == null:
+		return
+	var crouch_scale := CHARACTER_CROUCH_MULTIPLIER if is_crouching else 1.0
+	_character_root.scale = _character_base_scale * crouch_scale
 
 func switch_weapon(idx):
 	current_weapon_idx = idx
@@ -239,7 +340,7 @@ func _update_weapon_scene() -> void:
 	var scene: PackedScene = _get_weapon_scene(scene_path)
 	if scene:
 		_current_weapon_node = scene.instantiate()
-		var offset = weapon_data.get("hold_offset", Vector2(32, 8))
+		var offset = weapon_data.get("hold_offset", Vector2(12, 4))
 		_current_weapon_node.position = offset
 		$Visuals.add_child(_current_weapon_node)
 		# Initialize the weapon script
@@ -510,12 +611,13 @@ func melt_die() -> void:
 		_death_sfx.play()
 	if hud_node and hud_node.has_method("hide_hud"):
 		hud_node.hide_hud()
-	var visuals := get_node_or_null("Visuals") as Node2D
+	var visuals := get_node_or_null("Character") as Node2D
 	var tween := create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	if visuals:
+		var melt_scale := visuals.scale * Vector2(1.4, 0.12)
 		tween.set_parallel(true)
 		tween.tween_property(visuals, "modulate", Color(0.25, 1.0, 0.15, 0.15), 0.7)
-		tween.tween_property(visuals, "scale", Vector2(1.4, 0.12), 0.7)
+		tween.tween_property(visuals, "scale", melt_scale, 0.7)
 		tween.tween_property(visuals, "rotation", visuals.rotation + 0.5, 0.7)
 	else:
 		tween.tween_property(self, "modulate", Color(0.25, 1.0, 0.15, 0.15), 0.7)
