@@ -356,7 +356,7 @@ theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
 theme_override_fonts/font = ExtResource("13_font_semi")
 theme_override_font_sizes/font_size = 20
-text = "✕"
+text = "X"
 flat = true
 
 [node name="UpgradePanel" type="Panel" parent="UI_Layer"]
@@ -387,7 +387,7 @@ theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
 theme_override_fonts/font = ExtResource("13_font_semi")
 theme_override_font_sizes/font_size = 20
-text = "✕"
+text = "X"
 flat = true
 
 [node name="MissionPanel" type="Panel" parent="UI_Layer"]
@@ -418,7 +418,7 @@ theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
 theme_override_fonts/font = ExtResource("13_font_semi")
 theme_override_font_sizes/font_size = 20
-text = "✕"
+text = "X"
 flat = true
 
 [node name="AbilityPanel" type="Panel" parent="UI_Layer"]
@@ -449,7 +449,7 @@ theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
 theme_override_fonts/font = ExtResource("13_font_semi")
 theme_override_font_sizes/font_size = 20
-text = "✕"
+text = "X"
 flat = true
 
 [node name="Hotbar" parent="UI_Layer" instance=ExtResource("10_hotbar")]

@@ -372,7 +372,7 @@ func setup_hud():
 	time_row.add_theme_constant_override("separation", 6)
 	left_col.add_child(time_row)
 
-	var clock_icon = _styled_label("⏱", font_medium, 14, TEXT_DIM)
+	var clock_icon = _styled_label("TIME", font_medium, 10, TEXT_DIM)
 	time_row.add_child(clock_icon)
 
 	lbl_time = _styled_label("02:00", font_bold, 18, TEXT_WHITE)
@@ -485,8 +485,8 @@ func _build_quest_tracker():
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		quest_container.add_child(row)
 
-		var check = _styled_label("✓" if completed else "○", font_bold, 16, color)
-		check.custom_minimum_size = Vector2(20, 0)
+		var check = _styled_label("[x]" if completed else "[ ]", font_bold, 12, color)
+		check.custom_minimum_size = Vector2(28, 0)
 		check.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		row.add_child(check)
 
@@ -735,7 +735,7 @@ func show_contract_notification(customer):
 	var title_lbl = _styled_label("Contract Available", font_semi, 13, Color(0.9, 0.7, 0.6))
 	text_col.add_child(title_lbl)
 
-	var detail_lbl = _styled_label(target + "  ·  $" + str(reward), font_medium, 11, TEXT_DIM)
+	var detail_lbl = _styled_label(target + "  |  $" + str(reward), font_medium, 11, TEXT_DIM)
 	text_col.add_child(detail_lbl)
 
 	toast.modulate.a = 0.0
@@ -846,7 +846,7 @@ func show_upgrade_panel(animate: bool = true):
 	var title = _styled_label("WEAPON SHOP", font_bold, 22, ACCENT_GOLD)
 	title_col.add_child(title)
 
-	var level_lbl = _styled_label("Level " + str(GameManager.level) + "  ·  $" + str(GameManager.money) + " available", font_medium, 12, TEXT_DIM)
+	var level_lbl = _styled_label("Level " + str(GameManager.level) + "  |  $" + str(GameManager.money) + " available", font_medium, 12, TEXT_DIM)
 	title_col.add_child(level_lbl)
 
 	outer_vbox.add_child(_make_divider())
@@ -904,12 +904,12 @@ func show_upgrade_panel(animate: bool = true):
 		var poison_data = weapon_data.get("tuning", {})
 		if poison_data.get("poison_ticks", 0) > 0:
 			stat_parts.append("POISON")
-		var stat_lbl = _styled_label("  ·  ".join(stat_parts), font_medium, 11, type_col)
+		var stat_lbl = _styled_label("  |  ".join(stat_parts), font_medium, 11, type_col)
 		info_col.add_child(stat_lbl)
 
 		var equipped_in = _get_equipped_slot_name(wn)
 		if equipped_in != "":
-			var eq_lbl = _styled_label("▸ " + equipped_in, font_medium, 10, ACCENT_GOLD_DIM)
+			var eq_lbl = _styled_label("> " + equipped_in, font_medium, 10, ACCENT_GOLD_DIM)
 			info_col.add_child(eq_lbl)
 
 		if not owned:
@@ -1041,7 +1041,7 @@ func show_ability_panel(animate: bool = true):
 	var title = _styled_label("ABILITY SHOP", font_bold, 22, Color(0.85, 0.6, 1.0))
 	title_col.add_child(title)
 
-	var level_lbl = _styled_label("Level " + str(GameManager.level) + "  ·  $" + str(GameManager.money) + " available", font_medium, 12, TEXT_DIM)
+	var level_lbl = _styled_label("Level " + str(GameManager.level) + "  |  $" + str(GameManager.money) + " available", font_medium, 12, TEXT_DIM)
 	title_col.add_child(level_lbl)
 
 	outer_vbox.add_child(_make_divider())
@@ -1327,7 +1327,7 @@ func show_mission_panel():
 		if int(ct.get("waves", 0)) > 0:
 			meta_parts.append(str(int(ct["waves"])) + " WAVES")
 		meta_parts.append("$" + str(int(ct.get("reward", 0))))
-		info_col.add_child(_styled_label_wrapped("  ·  ".join(meta_parts), font_medium, 11, TEXT_GREEN))
+		info_col.add_child(_styled_label_wrapped("  |  ".join(meta_parts), font_medium, 11, TEXT_GREEN))
 
 		var go_btn := _styled_button("GO", Vector2(70, 36))
 		go_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -1402,7 +1402,7 @@ func _build_mission_card(parent: VBoxContainer, m: Dictionary):
 	var reward_parts := []
 	reward_parts.append("$" + str(m.get("reward_money", 0)))
 	reward_parts.append(str(m.get("reward_xp", 0)) + " XP")
-	info_col.add_child(_styled_label_wrapped("  ·  ".join(reward_parts), font_semi, 13, TEXT_GREEN))
+	info_col.add_child(_styled_label_wrapped("  |  ".join(reward_parts), font_semi, 13, TEXT_GREEN))
 
 	var go_btn := _styled_button("GO", Vector2(80, 40))
 	go_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -2014,7 +2014,7 @@ func _show_tutorial() -> void:
 		{
 			"color": Color(1.0, 0.45, 0.45),
 			"label": "CONTRACTS",
-			"text": "Some customers slip you a secret order — a contract. Take it for big money on assassination missions.",
+			"text": "Some customers slip you a secret order - a contract. Take it for big money on assassination missions.",
 		},
 		{
 			"color": Color(0.8, 0.55, 1.0),

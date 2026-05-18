@@ -6,7 +6,7 @@ const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const PAGES: Array = [
 	{
 		"title": "THE YEAR IS 2030...",
-		"body": "Earth has thrived on the rise of new technology. Humanity is connected and unstoppable.\n\nIn the heart of the city, one little shop has become legend — [color=#e8c34a]The Boba Shop[/color]. Its drinks have captivated the world.\n\nBut where there is wealth, shadows grow."
+		"body": "Earth has thrived on the rise of new technology. Humanity is connected and unstoppable.\n\nIn the heart of the city, one little shop has become legend - [color=#e8c34a]The Boba Shop[/color]. Its drinks have captivated the world.\n\nBut where there is wealth, shadows grow."
 	},
 	{
 		"title": "A WORLD IN CRISIS",
@@ -18,11 +18,11 @@ const PAGES: Array = [
 	},
 	{
 		"title": "YOU ARE THE BOBARISTA",
-		"body": "By day, you serve drinks with a smile.\nBy night, a [color=#e8c34a]secret menu order[/color] is whispered across the counter — a contract.\n\nSlip out of your apron.\nFollow the clues through rundown streets and watchful windows.\nFind the target. Finish the job."
+		"body": "By day, you serve drinks with a smile.\nBy night, a [color=#e8c34a]secret menu order[/color] is whispered across the counter - a contract.\n\nSlip out of your apron.\nFollow the clues through rundown streets and watchful windows.\nFind the target. Finish the job."
 	},
 	{
 		"title": "CONTROLS",
-		"body": "[color=#e8c34a]KEYBOARD & MOUSE[/color]\nWASD — Move    Shift — Sprint    Ctrl — Crouch\nLMB — Attack    RMB — Aim    E — Interact\n1 / 2 / 3 or Q / R — Switch Weapons\nG — Ability    Esc — Pause\n\n[color=#e8c34a]GAMEPAD[/color]\nL-Stick — Move    R-Stick — Aim    RT / Y — Shoot\nLT — Aim    A — Use / Select    B — Crouch\nX — Ability    L3 — Sprint    LB / RB — Cycle Weapon\nStart — Pause"
+		"body": "[color=#e8c34a]KEYBOARD & MOUSE[/color]\nWASD - Move    Shift - Sprint    Ctrl - Crouch\nLMB - Attack    RMB - Aim    E - Interact\n1 / 2 / 3 or Q / R - Switch Weapons\nG - Ability    Esc - Pause\n\n[color=#e8c34a]GAMEPAD[/color]\nL-Stick - Move    R-Stick - Aim    RT / Y - Shoot\nLT - Aim    A - Use / Select    B - Crouch\nX - Ability    L3 - Sprint    LB / RB - Cycle Weapon\nStart - Pause"
 	},
 	{
 		"title": "BREW. SERVE. STRIKE.",

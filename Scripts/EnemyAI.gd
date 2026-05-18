@@ -15,7 +15,7 @@ func _ready():
 	_body_offset = Vector2(-25, -25)
 	_patrol_extent = Vector2(100, 50)
 	_idle_wait_range = Vector2(1.0, 3.0)
-	_alert_icon_text = "❗"
+	_alert_icon_text = "!"
 	_alert_font_size = 24
 	_alert_offset = Vector2(-10, -70)
 	_alert_blink_multiplier = 4.0

@@ -55,7 +55,7 @@ func _process(delta):
 
 func _on_zone_entered(area, zone_name):
 	active_zone = zone_name
-	ui_interaction.text = "PRESS 'E' — " + zone_name.to_upper()
+	ui_interaction.text = "PRESS 'E' - " + zone_name.to_upper()
 	ui_interaction.visible = true
 
 func _on_zone_exited(area):
@@ -243,7 +243,7 @@ func setup_upgrade_ui():
 	divider.color = ACCENT_GOLD_DIM
 	vbox.add_child(divider)
 
-	var btn := _styled_button("UPGRADE BOBA LAUNCHER  —  $50", Vector2(300, 44))
+	var btn := _styled_button("UPGRADE BOBA LAUNCHER  -  $50", Vector2(300, 44))
 	btn.pressed.connect(_on_upgrade_pressed)
 	vbox.add_child(btn)
 

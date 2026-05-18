@@ -216,11 +216,11 @@ func serve_complete():
 	
 	# Secret agents show the same feedback as regular customers
 	if satisfaction_score >= 4:
-		order_label.text = "★★★★★ Amazing!"
+		order_label.text = "5/5 Amazing!"
 	elif satisfaction_score >= 3:
-		order_label.text = "★★★☆☆ Thanks!"
+		order_label.text = "3/5 Thanks!"
 	else:
-		order_label.text = "★☆☆☆☆ Meh."
+		order_label.text = "1/5 Meh."
 	
 	await get_tree().create_timer(0.4).timeout
 	leave_shop()

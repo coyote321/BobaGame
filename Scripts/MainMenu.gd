@@ -26,6 +26,7 @@ const OPENING_STORY := [
 @onready var subtitle: Label = $CenterColumn/Subtitle
 
 var options_panel: Panel
+var quit_notice_panel: Panel
 var _click_sfx: AudioStreamPlayer = null
 
 func _ready() -> void:
@@ -159,7 +160,76 @@ func _on_options_button_pressed() -> void:
 	_show_options_panel()
 
 func _on_exit_button_pressed() -> void:
+	if _is_web_export():
+		_show_web_quit_notice()
+		return
 	get_tree().quit()
+
+func _is_web_export() -> bool:
+	return OS.has_feature("web")
+
+func _show_web_quit_notice() -> void:
+	if quit_notice_panel and is_instance_valid(quit_notice_panel):
+		quit_notice_panel.queue_free()
+		quit_notice_panel = null
+		return
+
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
+	quit_notice_panel = Panel.new()
+	quit_notice_panel.set_anchors_preset(Control.PRESET_CENTER)
+	quit_notice_panel.size = Vector2(460, 210)
+	quit_notice_panel.position = Vector2(-230, -105)
+	add_child(quit_notice_panel)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = BG_DARK
+	style.border_color = ACCENT_GOLD
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	quit_notice_panel.add_theme_stylebox_override("panel", style)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	quit_notice_panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "QUIT GAME"
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", ACCENT_GOLD)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var message := Label.new()
+	message.text = "The web version cannot close the itch.io page automatically.\nPress Esc to leave fullscreen, or close the browser tab."
+	message.add_theme_font_size_override("font_size", 15)
+	message.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(message)
+
+	var close_btn := Button.new()
+	close_btn.text = "OK"
+	close_btn.flat = true
+	close_btn.custom_minimum_size = Vector2(90, 34)
+	close_btn.add_theme_font_size_override("font_size", 15)
+	close_btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	close_btn.add_theme_color_override("font_hover_color", ACCENT_GOLD)
+	close_btn.pressed.connect(func():
+		quit_notice_panel.queue_free()
+		quit_notice_panel = null
+		exit_button.call_deferred("grab_focus")
+	)
+	vbox.add_child(close_btn)
+	close_btn.call_deferred("grab_focus")
 
 func _show_options_panel() -> void:
 	# Always rebuild the panel so sliders read the current audio state

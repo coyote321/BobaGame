@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 
+const MAIN_MENU_SCENE_PATH: String = "res://Scenes/MainMenu.tscn"
 const ACCENT_GOLD := Color(0.91, 0.76, 0.29, 1.0)
 const BG_DARK := Color(0.07, 0.07, 0.09, 0.97)
 
@@ -123,7 +124,19 @@ func _can_abort_current_mission() -> bool:
 	return true
 
 func _on_quit_pressed() -> void:
+	if _is_web_export():
+		_return_to_main_menu()
+		return
 	get_tree().quit()
+
+func _return_to_main_menu() -> void:
+	_close_options_panel()
+	hide_pause_menu()
+	get_tree().paused = false
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
+
+func _is_web_export() -> bool:
+	return OS.has_feature("web")
 
 
 func _toggle_options_panel() -> void:
