@@ -10,13 +10,16 @@ var _player_in_range: Node2D = null
 var _picked_up: bool = false
 var _prompt_label: Label = null
 var _bob_offset: float = 0.0
-var _base_y: float = 0.0
+var _visual_base_position := Vector2.ZERO
 var _pickup_sfx: AudioStreamPlayer = null
+@onready var _visual_root := get_node_or_null("VisualRoot") as Node2D
+@onready var _shadow := get_node_or_null("VisualRoot/Shadow") as Polygon2D
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
-	_base_y = position.y
+	if _visual_root:
+		_visual_base_position = _visual_root.position
 	
 	# Heal potion sound effect
 	_pickup_sfx = AudioStreamPlayer.new()
@@ -38,9 +41,16 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _picked_up:
 		return
-	# Gentle bobbing animation to make the pickup noticeable
-	_bob_offset += delta * 2.5
-	position.y = _base_y + sin(_bob_offset) * 4.0
+	# Keep collision steady while the potion itself floats.
+	_bob_offset += delta * 2.6
+	var lift := sin(_bob_offset)
+	if _visual_root:
+		_visual_root.position = _visual_base_position + Vector2(0.0, lift * 7.0)
+		_visual_root.rotation = sin(_bob_offset * 0.65) * 0.06
+	if _shadow:
+		var squash := 1.0 - (lift * 0.08)
+		_shadow.scale = Vector2(1.0 + lift * 0.08, squash)
+		_shadow.modulate.a = 0.65 - lift * 0.18
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _picked_up or _player_in_range == null:

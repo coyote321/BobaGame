@@ -10,18 +10,28 @@ var is_crouching = false
 var is_aiming = false
 
 const WALK_FRAME_RATE := 10.0
+const IDLE_FRAME_RATE := 8.0
 const SIDE_WALK_TEXTURE: Texture2D = preload("res://Assets/Sprites/mc_walk_side.png")
 const BACK_WALK_TEXTURE: Texture2D = preload("res://Assets/Sprites/mc-mc_walk_backwards.png")
+const ASSASSIN_IDLE_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-idle.png")
+const ASSASSIN_WALK_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-walk.png")
+const ASSASSIN_WALK_SOUTH_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-walking_south.png")
 const FRONT_WALK_HFRAMES := 8
 const FRONT_WALK_VFRAMES := 1
 const FRONT_WALK_FRAME_COUNT := 8
 const WALK_GRID_HFRAMES := 5
 const WALK_GRID_VFRAMES := 5
 const WALK_GRID_FRAME_COUNT := 25
+const ASSASSIN_IDLE_HFRAMES := 5
+const ASSASSIN_IDLE_VFRAMES := 5
+const ASSASSIN_IDLE_FRAME_COUNT := 25
 const CHARACTER_TARGET_VISIBLE_HEIGHT_PX := 153.0
 const FRONT_WALK_VISIBLE_HEIGHT_PX := 149.0
 const SIDE_WALK_VISIBLE_HEIGHT_PX := 101.0
 const BACK_WALK_VISIBLE_HEIGHT_PX := 98.0
+const ASSASSIN_IDLE_VISIBLE_HEIGHT_PX := 136.0
+const ASSASSIN_WALK_VISIBLE_HEIGHT_PX := 136.0
+const ASSASSIN_WALK_SOUTH_VISIBLE_HEIGHT_PX := 136.0
 const FRONT_HAND_ANCHOR := Vector2(28.0, 22.0)
 const SIDE_RIGHT_HAND_ANCHOR := Vector2(38.0, -5.0)
 const SIDE_LEFT_HAND_ANCHOR := Vector2(-14.0, -5.0)
@@ -323,16 +333,25 @@ func _update_character_animation(delta: float, move_direction: Vector2) -> void:
 	_update_character_scale()
 
 func _update_directional_character_animation(delta: float, move_direction: Vector2, is_moving: bool) -> void:
+	if _should_use_assassin_idle(is_moving):
+		_update_assassin_idle_animation(delta)
+		return
+
 	var facing := move_direction if is_moving else _last_character_facing
 	if is_moving:
 		_last_character_facing = move_direction
 
 	if absf(facing.x) >= absf(facing.y) and absf(facing.x) > 0.0:
-		_update_grid_walk_animation(delta, SIDE_WALK_TEXTURE, facing.x < 0.0, is_moving)
+		var side_texture := ASSASSIN_WALK_TEXTURE if GameManager.current_phase == "MISSION" else SIDE_WALK_TEXTURE
+		_update_grid_walk_animation(delta, side_texture, facing.x < 0.0, is_moving)
 		return
 
 	if facing.y < 0.0:
 		_update_grid_walk_animation(delta, BACK_WALK_TEXTURE, false, is_moving)
+		return
+
+	if GameManager.current_phase == "MISSION" and is_moving:
+		_update_grid_walk_animation(delta, ASSASSIN_WALK_SOUTH_TEXTURE, false, true)
 		return
 
 	_set_character_animation_sheet(_front_back_walk_texture, FRONT_WALK_HFRAMES, FRONT_WALK_VFRAMES, false)
@@ -342,6 +361,15 @@ func _update_directional_character_animation(delta: float, move_direction: Vecto
 	else:
 		_walk_frame_time = 0.0
 		_character_sprite.frame = 0
+
+func _should_use_assassin_idle(is_moving: bool) -> bool:
+	return GameManager.current_phase == "MISSION" and not is_moving
+
+func _update_assassin_idle_animation(delta: float) -> void:
+	_last_character_facing = Vector2.DOWN
+	_set_character_animation_sheet(ASSASSIN_IDLE_TEXTURE, ASSASSIN_IDLE_HFRAMES, ASSASSIN_IDLE_VFRAMES, false)
+	_walk_frame_time += delta * IDLE_FRAME_RATE
+	_character_sprite.frame = int(_walk_frame_time) % ASSASSIN_IDLE_FRAME_COUNT
 
 func _update_grid_walk_animation(delta: float, texture: Texture2D, flip_h: bool, is_moving: bool) -> void:
 	_set_character_animation_sheet(texture, WALK_GRID_HFRAMES, WALK_GRID_VFRAMES, flip_h)
@@ -393,6 +421,12 @@ func _get_character_visible_height_for_texture(texture: Texture2D) -> float:
 		return SIDE_WALK_VISIBLE_HEIGHT_PX
 	if texture == BACK_WALK_TEXTURE:
 		return BACK_WALK_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_IDLE_TEXTURE:
+		return ASSASSIN_IDLE_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_WALK_TEXTURE:
+		return ASSASSIN_WALK_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_WALK_SOUTH_TEXTURE:
+		return ASSASSIN_WALK_SOUTH_VISIBLE_HEIGHT_PX
 	if texture == _front_back_walk_texture:
 		return FRONT_WALK_VISIBLE_HEIGHT_PX
 	return 0.0
