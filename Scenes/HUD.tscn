@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://c8ungd4jd7yww"]
+[gd_scene load_steps=13 format=3 uid="uid://c8ungd4jd7yww"]
 
 [ext_resource type="Script" uid="uid://coltxto0566oy" path="res://Scripts/HUD.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://Scenes/Hotbar.tscn" id="6_hotbar"]
@@ -31,6 +31,20 @@ corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_bg"]
+bg_color = Color(0.09, 0.06, 0.14, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_fill"]
+bg_color = Color(0.97, 0.76, 0.2, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.05, 0.05, 0.08, 0.95)
@@ -203,6 +217,16 @@ layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
+[node name="ReturnButton" type="Button" parent="MissionEndPanel/VBox/Buttons"]
+custom_minimum_size = Vector2(170, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.91, 0.76, 0.29, 1)
+theme_override_fonts/font = ExtResource("7_font_bold")
+theme_override_font_sizes/font_size = 16
+text = "RETURN TO SHOP"
+flat = true
+
 [node name="NextMissionButton" type="Button" parent="MissionEndPanel/VBox/Buttons"]
 custom_minimum_size = Vector2(180, 50)
 layout_mode = 2
@@ -285,6 +309,8 @@ offset_left = 14.0
 offset_top = 62.0
 offset_right = 230.0
 offset_bottom = 78.0
+theme_override_styles/background = SubResource("StyleBoxFlat_xp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_xp_fill")
 max_value = 50.0
 value = 0.0
 show_percentage = false

@@ -10,6 +10,37 @@ var is_crouching = false
 var is_aiming = false
 
 const WALK_FRAME_RATE := 10.0
+const IDLE_FRAME_RATE := 8.0
+const SIDE_WALK_TEXTURE: Texture2D = preload("res://Assets/Sprites/mc_walk_side.png")
+const BACK_WALK_TEXTURE: Texture2D = preload("res://Assets/Sprites/mc-mc_walk_backwards.png")
+const ASSASSIN_IDLE_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-idle.png")
+const ASSASSIN_WALK_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-walk.png")
+const ASSASSIN_WALK_SOUTH_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-walking_south.png")
+const ASSASSIN_WALK_FORWARD_TEXTURE: Texture2D = preload("res://Assets/Sprites/Assassin-walking_forward.png")
+const FRONT_WALK_HFRAMES := 8
+const FRONT_WALK_VFRAMES := 1
+const FRONT_WALK_FRAME_COUNT := 8
+const WALK_GRID_HFRAMES := 5
+const WALK_GRID_VFRAMES := 5
+const WALK_GRID_FRAME_COUNT := 25
+const ASSASSIN_WALK_FORWARD_HFRAMES := 5
+const ASSASSIN_WALK_FORWARD_VFRAMES := 2
+const ASSASSIN_WALK_FORWARD_FRAME_COUNT := 10
+const ASSASSIN_IDLE_HFRAMES := 5
+const ASSASSIN_IDLE_VFRAMES := 5
+const ASSASSIN_IDLE_FRAME_COUNT := 25
+const CHARACTER_TARGET_VISIBLE_HEIGHT_PX := 153.0
+const FRONT_WALK_VISIBLE_HEIGHT_PX := 149.0
+const SIDE_WALK_VISIBLE_HEIGHT_PX := 101.0
+const BACK_WALK_VISIBLE_HEIGHT_PX := 98.0
+const ASSASSIN_IDLE_VISIBLE_HEIGHT_PX := 136.0
+const ASSASSIN_WALK_VISIBLE_HEIGHT_PX := 136.0
+const ASSASSIN_WALK_SOUTH_VISIBLE_HEIGHT_PX := 136.0
+const ASSASSIN_WALK_FORWARD_VISIBLE_HEIGHT_PX := 136.0
+const FRONT_HAND_ANCHOR := Vector2(28.0, 22.0)
+const SIDE_RIGHT_HAND_ANCHOR := Vector2(38.0, -5.0)
+const SIDE_LEFT_HAND_ANCHOR := Vector2(-14.0, -5.0)
+const BACK_HAND_ANCHOR := Vector2(16.0, -10.0)
 ## Target drawn height (px) for one sprite cell; scales sheet rows of different resolutions consistently.
 const CHARACTER_TARGET_HEIGHT_PX := 240.0
 const CHARACTER_CROUCH_MULTIPLIER := 0.8
@@ -30,10 +61,13 @@ var _heartbeat_sfx: AudioStreamPlayer = null
 var _death_sfx: AudioStreamPlayer = null
 
 var _current_weapon_node: Node2D = null
+var _current_weapon_grip_offset := Vector2.ZERO
 var _weapon_scene_cache: Dictionary = {}
 var _crosshair: Node2D = null
 var _walk_frame_time := 0.0
 var _character_base_scale := Vector2(0.11, 0.11)
+var _last_character_facing := Vector2.DOWN
+var _front_back_walk_texture: Texture2D = null
 
 var _agent_physics_logged := false
 
@@ -89,6 +123,7 @@ func _ready():
 	hud_node = get_tree().current_scene.find_child("HUD", true, false)
 	_create_crosshair()
 	_update_weapon_scene()
+	_configure_character_sprite_sheet()
 	_recompute_character_base_scale_from_sprite()
 	_update_character_scale()
 	_agent_log("H1", "PlayerController.gd:_ready", "sprite_nodes", {
@@ -144,7 +179,8 @@ func _physics_process(delta):
 		
 	velocity = direction * current_speed
 	
-	_update_character_animation(delta, velocity.length_squared() > 0.0)
+	_update_character_animation(delta, direction)
+	_update_weapon_hand_anchor()
 			
 	move_and_slide()
 	if not _agent_physics_logged and Engine.get_physics_frames() >= 90:
@@ -272,9 +308,26 @@ func _get_walk_frame_count() -> int:
 		return 8
 	return maxi(_character_sprite.hframes * _character_sprite.vframes, 1)
 
-func _update_character_animation(delta: float, is_moving: bool) -> void:
+func _configure_character_sprite_sheet() -> void:
+	if _character_sprite == null or _character_sprite.texture == null:
+		return
+	_character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_front_back_walk_texture = _character_sprite.texture
+	_character_sprite.hframes = FRONT_WALK_HFRAMES
+	_character_sprite.vframes = FRONT_WALK_VFRAMES
+
+func _has_directional_character_sheet() -> bool:
+	return _front_back_walk_texture != null
+
+func _update_character_animation(delta: float, move_direction: Vector2) -> void:
 	if _character_sprite == null:
 		return
+	var is_moving := move_direction.length_squared() > 0.0
+	if _has_directional_character_sheet():
+		_update_directional_character_animation(delta, move_direction, is_moving)
+		_update_character_scale()
+		return
+
 	var nframes := _get_walk_frame_count()
 	if is_moving:
 		_walk_frame_time += delta * WALK_FRAME_RATE
@@ -283,6 +336,83 @@ func _update_character_animation(delta: float, is_moving: bool) -> void:
 		_walk_frame_time = 0.0
 		_character_sprite.frame = 0
 	_update_character_scale()
+
+func _update_directional_character_animation(delta: float, move_direction: Vector2, is_moving: bool) -> void:
+	if _should_use_assassin_idle(is_moving):
+		_update_assassin_idle_animation(delta)
+		return
+
+	var facing := move_direction if is_moving else _last_character_facing
+	if is_moving:
+		_last_character_facing = move_direction
+
+	if absf(facing.x) >= absf(facing.y) and absf(facing.x) > 0.0:
+		var side_texture := ASSASSIN_WALK_TEXTURE if GameManager.current_phase == "MISSION" else SIDE_WALK_TEXTURE
+		_update_grid_walk_animation(delta, side_texture, facing.x < 0.0, is_moving)
+		return
+
+	if facing.y < 0.0:
+		var forward_texture := ASSASSIN_WALK_FORWARD_TEXTURE if GameManager.current_phase == "MISSION" else BACK_WALK_TEXTURE
+		_update_grid_walk_animation(delta, forward_texture, false, is_moving)
+		return
+
+	if GameManager.current_phase == "MISSION" and is_moving:
+		_update_grid_walk_animation(delta, ASSASSIN_WALK_SOUTH_TEXTURE, false, true)
+		return
+
+	_set_character_animation_sheet(_front_back_walk_texture, FRONT_WALK_HFRAMES, FRONT_WALK_VFRAMES, false)
+	if is_moving:
+		_walk_frame_time += delta * WALK_FRAME_RATE
+		_character_sprite.frame = int(_walk_frame_time) % FRONT_WALK_FRAME_COUNT
+	else:
+		_walk_frame_time = 0.0
+		_character_sprite.frame = 0
+
+func _should_use_assassin_idle(is_moving: bool) -> bool:
+	return GameManager.current_phase == "MISSION" and not is_moving
+
+func _update_assassin_idle_animation(delta: float) -> void:
+	_last_character_facing = Vector2.DOWN
+	_set_character_animation_sheet(ASSASSIN_IDLE_TEXTURE, ASSASSIN_IDLE_HFRAMES, ASSASSIN_IDLE_VFRAMES, false)
+	_walk_frame_time += delta * IDLE_FRAME_RATE
+	_character_sprite.frame = int(_walk_frame_time) % ASSASSIN_IDLE_FRAME_COUNT
+
+func _update_grid_walk_animation(delta: float, texture: Texture2D, flip_h: bool, is_moving: bool) -> void:
+	var hframes := _get_walk_hframes_for_texture(texture)
+	var vframes := _get_walk_vframes_for_texture(texture)
+	var frame_count := _get_walk_frame_count_for_texture(texture)
+	_set_character_animation_sheet(texture, hframes, vframes, flip_h)
+	if is_moving:
+		_walk_frame_time += delta * WALK_FRAME_RATE
+		_character_sprite.frame = int(_walk_frame_time) % frame_count
+	else:
+		_walk_frame_time = 0.0
+		_character_sprite.frame = 0
+
+func _get_walk_hframes_for_texture(texture: Texture2D) -> int:
+	if texture == ASSASSIN_WALK_FORWARD_TEXTURE:
+		return ASSASSIN_WALK_FORWARD_HFRAMES
+	return WALK_GRID_HFRAMES
+
+func _get_walk_vframes_for_texture(texture: Texture2D) -> int:
+	if texture == ASSASSIN_WALK_FORWARD_TEXTURE:
+		return ASSASSIN_WALK_FORWARD_VFRAMES
+	return WALK_GRID_VFRAMES
+
+func _get_walk_frame_count_for_texture(texture: Texture2D) -> int:
+	if texture == ASSASSIN_WALK_FORWARD_TEXTURE:
+		return ASSASSIN_WALK_FORWARD_FRAME_COUNT
+	return WALK_GRID_FRAME_COUNT
+
+func _set_character_animation_sheet(texture: Texture2D, hframes: int, vframes: int, flip_h: bool) -> void:
+	if _character_sprite.texture != texture or _character_sprite.hframes != hframes or _character_sprite.vframes != vframes:
+		_character_sprite.texture = texture
+		_character_sprite.hframes = hframes
+		_character_sprite.vframes = vframes
+		_character_sprite.frame = 0
+		_character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_recompute_character_base_scale_from_sprite()
+	_character_sprite.flip_h = flip_h
 
 func _recompute_character_base_scale_from_sprite() -> void:
 	if _character_sprite == null:
@@ -294,6 +424,10 @@ func _recompute_character_base_scale_from_sprite() -> void:
 	var hf := maxi(_character_sprite.hframes, 1)
 	var tw := tex.get_width()
 	var th := tex.get_height()
+	var visible_h := _get_character_visible_height_for_texture(tex)
+	if visible_h > 0.0:
+		_set_character_base_scale_for_visible_height(visible_h)
+		return
 	var cell_h := float(th) / float(vf)
 	var cell_w := float(tw) / float(hf)
 	var s := CHARACTER_TARGET_HEIGHT_PX / cell_h
@@ -305,6 +439,32 @@ func _recompute_character_base_scale_from_sprite() -> void:
 		"target_h": CHARACTER_TARGET_HEIGHT_PX,
 		"uniform_scale": s,
 	}, "pre-fix")
+
+func _get_character_visible_height_for_texture(texture: Texture2D) -> float:
+	if texture == SIDE_WALK_TEXTURE:
+		return SIDE_WALK_VISIBLE_HEIGHT_PX
+	if texture == BACK_WALK_TEXTURE:
+		return BACK_WALK_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_IDLE_TEXTURE:
+		return ASSASSIN_IDLE_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_WALK_TEXTURE:
+		return ASSASSIN_WALK_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_WALK_SOUTH_TEXTURE:
+		return ASSASSIN_WALK_SOUTH_VISIBLE_HEIGHT_PX
+	if texture == ASSASSIN_WALK_FORWARD_TEXTURE:
+		return ASSASSIN_WALK_FORWARD_VISIBLE_HEIGHT_PX
+	if texture == _front_back_walk_texture:
+		return FRONT_WALK_VISIBLE_HEIGHT_PX
+	return 0.0
+
+func _set_character_base_scale_for_visible_height(visible_height: float) -> void:
+	if visible_height <= 0.0 or _character_sprite == null:
+		return
+	var sprite_scale_y := absf(_character_sprite.scale.y)
+	if sprite_scale_y <= 0.0:
+		sprite_scale_y = 1.0
+	var s := CHARACTER_TARGET_VISIBLE_HEIGHT_PX / (visible_height * sprite_scale_y)
+	_character_base_scale = Vector2(s, s)
 
 func _update_character_scale() -> void:
 	if _character_root == null:
@@ -328,6 +488,7 @@ func _update_weapon_scene() -> void:
 	if _current_weapon_node and is_instance_valid(_current_weapon_node):
 		_current_weapon_node.queue_free()
 		_current_weapon_node = null
+	_current_weapon_grip_offset = Vector2.ZERO
 	# No weapons in shop phase
 	if GameManager.current_phase == "SHOP":
 		return
@@ -340,12 +501,28 @@ func _update_weapon_scene() -> void:
 	var scene: PackedScene = _get_weapon_scene(scene_path)
 	if scene:
 		_current_weapon_node = scene.instantiate()
-		var offset = weapon_data.get("hold_offset", Vector2(12, 4))
-		_current_weapon_node.position = offset
+		_current_weapon_grip_offset = weapon_data.get("grip_offset", Vector2.ZERO)
 		$Visuals.add_child(_current_weapon_node)
+		_update_weapon_hand_anchor()
 		# Initialize the weapon script
 		if _current_weapon_node.has_method("init_weapon"):
 			_current_weapon_node.init_weapon(self, weapon_name)
+
+func _update_weapon_hand_anchor() -> void:
+	if not _current_weapon_node or not is_instance_valid(_current_weapon_node) or not has_node("Visuals"):
+		return
+	var visuals := $Visuals as Node2D
+	var hand_global := to_global(_get_current_hand_anchor())
+	_current_weapon_node.position = visuals.to_local(hand_global) + _current_weapon_grip_offset
+	_current_weapon_node.z_index = 30
+
+func _get_current_hand_anchor() -> Vector2:
+	var facing := _last_character_facing
+	if absf(facing.x) >= absf(facing.y) and absf(facing.x) > 0.0:
+		return SIDE_RIGHT_HAND_ANCHOR if facing.x > 0.0 else SIDE_LEFT_HAND_ANCHOR
+	if facing.y < 0.0:
+		return BACK_HAND_ANCHOR
+	return FRONT_HAND_ANCHOR
 
 func _get_weapon_scene(scene_path: String) -> PackedScene:
 	if _weapon_scene_cache.has(scene_path):

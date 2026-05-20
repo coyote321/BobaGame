@@ -1,7 +1,5 @@
 extends "res://Scripts/EnemyBase.gd"
-## Ranged tank enemy (purple). Shoots projectiles instead of lunging.
-
-const PROJECTILE_SCRIPT = preload("res://Scripts/EnemyProjectile.gd")
+## Heavy spear enemy. Tougher and slower than grunts, but still melee-only.
 
 func _ready():
 	# ── Stat overrides ──
@@ -10,7 +8,7 @@ func _ready():
 	chase_speed = 55.0
 	attack_damage = 25.0
 	detection_range = 400.0
-	attack_range = 300.0
+	attack_range = 105.0
 	_body_color = Color(0.6, 0.2, 0.7, 1)
 	_body_size = Vector2(60, 60)
 	_body_offset = Vector2(-30, -30)
@@ -29,44 +27,17 @@ func _ready():
 
 # ── Override: different disengage threshold ──────────────────────────────
 func _get_attack_disengage_mult() -> float:
-	return 1.2
+	return 1.5
 
-# ── Override: slowly approach during attack ──────────────────────────────
-func _attack_movement(_delta: float) -> void:
-	if player and is_instance_valid(player):
-		var dir = (player.global_position - global_position).normalized()
-		velocity = dir * speed * 0.5
-		move_and_slide()
-
-# ── Override: ranged projectile attack ───────────────────────────────────
+# ── Override: heavy spear jab ────────────────────────────────────────────
 func perform_attack():
-	if not player:
+	if not player or not player.has_method("take_damage"):
 		return
 
-	var projectile = Area2D.new()
-	projectile.name = "EnemyProj_" + str(randi())
+	player.take_damage(attack_damage)
 
-	projectile.collision_layer = 16
-	projectile.collision_mask = 1 | 2
-
-	projectile.set_script(PROJECTILE_SCRIPT)
-	projectile.direction = (player.global_position - global_position).normalized()
-	projectile.damage = attack_damage
-	projectile.speed = 350.0
-
-	var p_rect = ColorRect.new()
-	p_rect.color = Color(0.7, 0.15, 0.1)
-	p_rect.size = Vector2(12, 12)
-	p_rect.position = Vector2(-6, -6)
-	projectile.add_child(p_rect)
-
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 10.0
-	shape.shape = circle
-	projectile.add_child(shape)
-
-	projectile.global_position = global_position
-
-	get_tree().current_scene.add_child(projectile)
-	projectile.body_entered.connect(projectile._on_body_entered)
+	var jab_dir = (player.global_position - global_position).normalized()
+	var original_pos = position
+	var tween = create_tween()
+	tween.tween_property(self, "position", original_pos + jab_dir * 18, 0.08)
+	tween.tween_property(self, "position", original_pos, 0.12)

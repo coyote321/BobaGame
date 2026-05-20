@@ -1,16 +1,23 @@
-[gd_scene load_steps=9 format=3 uid="uid://mission5_reactor"]
+[gd_scene load_steps=10 format=3 uid="uid://vaj0v2s26e1s"]
 
 [ext_resource type="Script" uid="uid://bx34agcu58124" path="res://Scripts/MissionManager.gd" id="1_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://enemy123" path="res://Scenes/Enemy.tscn" id="3_enemy"]
-[ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes/Wall.tscn" id="4_wall"]
+[ext_resource type="PackedScene" uid="uid://enemy123" path="res://Scenes copy/Enemy.tscn" id="3_enemy"]
+[ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes copy/Wall.tscn" id="4_wall"]
 [ext_resource type="PackedScene" path="res://Scenes/ReactorBoss.tscn" id="5_boss"]
 [ext_resource type="PackedScene" uid="uid://c8ungd4jd7yww" path="res://Scenes/HUD.tscn" id="6_hud"]
-[ext_resource type="Script" path="res://Scripts/Hazard.gd" id="7_hazard"]
+[ext_resource type="Script" uid="uid://w61nmrr7er37" path="res://Scripts/Hazard.gd" id="7_hazard"]
 [ext_resource type="PackedScene" path="res://Scenes/BobaHealingPotion.tscn" id="8_boba_heal"]
+[ext_resource type="AudioStream" path="res://Assets/Audio/music/reactor-mission-music.wav" id="9_reactor_music"]
 
 [node name="MissionScene5" type="Node2D"]
 script = ExtResource("1_manager")
+
+[node name="ReactorMissionMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_reactor_music")
+volume_db = -8.0
+bus = &"Music"
+autoplay = true
 
 [node name="Background" type="Polygon2D" parent="."]
 color = Color(0.12, 0.12, 0.1, 1)
@@ -132,7 +139,7 @@ scale = Vector2(1.4, 2.4)
 
 [node name="WastelandRuinC" parent="Walls" instance=ExtResource("4_wall")]
 position = Vector2(2360, 760)
-scale = Vector2(2.6, 1.0)
+scale = Vector2(2.6, 1)
 
 [node name="Hazards" type="Node2D" parent="."]
 

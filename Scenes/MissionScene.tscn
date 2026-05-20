@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://bx34agcu58124" path="res://Scripts/MissionManager.gd" id="1_manager"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://enemy123" path="res://Scenes/Enemy.tscn" id="3_enemy"]
-[ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes/Wall.tscn" id="4_wall"]
-[ext_resource type="PackedScene" path="res://Scenes/FlamethrowerPickup.tscn" id="7_31li1"]
-[ext_resource type="PackedScene" uid="uid://by8ejuwjj3axa" path="res://Scenes/Enemy2.tscn" id="7_enemy2"]
+[ext_resource type="PackedScene" uid="uid://enemy123" path="res://Scenes copy/Enemy.tscn" id="3_enemy"]
+[ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes copy/Wall.tscn" id="4_wall"]
+[ext_resource type="PackedScene" uid="uid://bi0tqm2u0r0cv" path="res://Scenes/FlamethrowerPickup.tscn" id="7_31li1"]
+[ext_resource type="PackedScene" uid="uid://by8ejuwjj3axa" path="res://Scenes copy/Enemy2.tscn" id="7_enemy2"]
 [ext_resource type="PackedScene" uid="uid://c8ungd4jd7yww" path="res://Scenes/HUD.tscn" id="8_hud"]
 [ext_resource type="PackedScene" path="res://Scenes/BobaHealingPotion.tscn" id="9_boba_heal"]
 

@@ -1,6 +1,7 @@
-[gd_scene load_steps=17 format=3 uid="uid://shopscene123"]
+[gd_scene load_steps=20 format=3 uid="uid://shopscene123"]
 
 [ext_resource type="Script" uid="uid://ct3ygntqv3fsk" path="res://Scripts/ShopManager.gd" id="1_script_manager"]
+[ext_resource type="Texture2D" uid="uid://cpglrgy3x6k0w" path="res://Assets/tilemaps/shop-tilemap.png" id="2_aph2w"]
 [ext_resource type="PackedScene" uid="uid://player123" path="res://Scenes/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://wall123" path="res://Scenes copy/Wall.tscn" id="3_wall"]
 [ext_resource type="PackedScene" path="res://Scenes/Prop.tscn" id="4_prop"]
@@ -12,6 +13,12 @@
 [ext_resource type="PackedScene" path="res://Scenes/MoneyDisplay.tscn" id="11_money"]
 [ext_resource type="FontFile" uid="uid://cdahggeitls5a" path="res://Assets copy/Fonts/Montserrat-SemiBold.ttf" id="13_font_semi"]
 [ext_resource type="Texture2D" uid="uid://d3bh8i2xurto5" path="res://Assets copy/Sprites/light_cookie.svg" id="15_logo_ability"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fepw0"]
+texture = ExtResource("2_aph2w")
+
+[sub_resource type="TileSet" id="TileSet_6mlxe"]
+sources/2 = SubResource("TileSetAtlasSource_fepw0")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_counter"]
 size = Vector2(34, 239)
@@ -54,6 +61,7 @@ script = ExtResource("1_script_manager")
 position = Vector2(100, 600)
 
 [node name="Floor" type="ColorRect" parent="."]
+z_index = -30
 offset_left = -2000.0
 offset_top = -2000.0
 offset_right = 2000.0
@@ -61,16 +69,22 @@ offset_bottom = 2000.0
 color = Color(0.22, 0.2, 0.18, 1)
 
 [node name="FloorTile" type="ColorRect" parent="."]
+z_index = -25
 offset_right = 1280.0
 offset_bottom = 1200.0
 color = Color(0.28, 0.25, 0.22, 1)
 
 [node name="FloorAccent" type="ColorRect" parent="."]
+z_index = -20
 offset_left = 156.0
 offset_top = 189.0
 offset_right = 1396.0
 offset_bottom = 1349.0
 color = Color(0.26, 0.23, 0.2, 1)
+
+[node name="ShopTilemap" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = SubResource("TileSet_6mlxe")
 
 [node name="ServiceCounter" type="Node2D" parent="."]
 
