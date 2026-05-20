@@ -20,6 +20,7 @@ var mission_countdown_tick_timer: Timer = null
 @onready var mission_end_panel: Panel = get_node_or_null("MissionEndPanel") as Panel
 @onready var mission_end_title: Label = get_node_or_null("MissionEndPanel/VBox/Title") as Label
 @onready var mission_end_subtitle: Label = get_node_or_null("MissionEndPanel/VBox/Subtitle") as Label
+@onready var return_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/ReturnButton") as Button
 @onready var next_mission_button: Button = get_node_or_null("MissionEndPanel/VBox/Buttons/NextMissionButton") as Button
 @onready var money_label: Label = get_node_or_null("MoneyPanel/MoneyLabel")
 @onready var level_label: Label = get_node_or_null("ProgressionPanel/LevelLabel")
@@ -311,15 +312,21 @@ func _show_mission_end_state(text: String, color: Color, subtitle: String, show_
 		mission_end_title.add_theme_color_override("font_color", color)
 	if mission_end_subtitle:
 		mission_end_subtitle.text = subtitle
+	if return_button:
+		return_button.visible = true
 	if next_mission_button:
 		next_mission_button.visible = show_next
 	if show_next and next_mission_button:
 		next_mission_button.call_deferred("grab_focus")
+	elif return_button:
+		return_button.call_deferred("grab_focus")
 
 func is_mission_end_panel_visible() -> bool:
 	return mission_end_panel != null and mission_end_panel.visible
 
-func connect_buttons(_abort_callback: Callable, _return_callback: Callable, next_callback: Callable = Callable()):
+func connect_buttons(_abort_callback: Callable, return_callback: Callable, next_callback: Callable = Callable()):
+	if return_button and return_callback.is_valid():
+		return_button.pressed.connect(return_callback)
 	if next_mission_button and next_callback.is_valid():
 		next_mission_button.pressed.connect(next_callback)
 

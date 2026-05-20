@@ -2,6 +2,7 @@ extends "res://Scripts/EnemyBase.gd"
 
 const SLIME_SCENE: PackedScene = preload("res://Scenes/SlimeEnemy.tscn")
 const SUMMON_TEXTURE: Texture2D = preload("res://Assets/Sprites/reactor_boss_summon.png")
+const SUMMON_SFX: AudioStream = preload("res://Assets/Audio/sfx/summon-slimes.mp3")
 const BOSS_FRAME_COUNT: int = 10
 const BOSS_ROW_COUNT: int = 3
 const WALK_ROW: int = 0
@@ -28,6 +29,7 @@ var _boss_frame: int = 0
 var _boss_animation_timer: float = 0.0
 var _summon_visual_timer: float = 0.0
 var _boss_faces_left: bool = false
+var _summon_sfx_player: AudioStreamPlayer
 
 func is_reactor_overlord() -> bool:
 	return true
@@ -55,6 +57,7 @@ func _ready():
 func setup_visuals():
 	super.setup_visuals()
 	_setup_boss_sprite()
+	_setup_summon_sfx()
 	if body_rect:
 		body_rect.position = _body_offset
 		body_rect.size = _body_size
@@ -165,6 +168,7 @@ func _summon_slimes(count: int) -> void:
 	if holder == null:
 		return
 	_play_summon_animation()
+	_play_summon_sfx()
 	for i in range(count):
 		var slime = SLIME_SCENE.instantiate()
 		var angle: float = (TAU / float(max(count, 1))) * float(i)
@@ -173,6 +177,24 @@ func _summon_slimes(count: int) -> void:
 		var mission = get_tree().current_scene
 		if mission and mission.has_method("_connect_enemy"):
 			mission._connect_enemy(slime)
+
+func _setup_summon_sfx() -> void:
+	if has_node("SummonSFX") and $SummonSFX is AudioStreamPlayer:
+		_summon_sfx_player = $SummonSFX
+	else:
+		_summon_sfx_player = AudioStreamPlayer.new()
+		_summon_sfx_player.name = "SummonSFX"
+		add_child(_summon_sfx_player)
+
+	_summon_sfx_player.stream = SUMMON_SFX
+	_summon_sfx_player.bus = &"SFX"
+	_summon_sfx_player.volume_db = 6.0
+
+func _play_summon_sfx() -> void:
+	if not _summon_sfx_player:
+		return
+	_summon_sfx_player.stop()
+	_summon_sfx_player.play()
 
 func _setup_boss_sprite() -> void:
 	if has_node("BossSprite") and $BossSprite is Sprite2D:
